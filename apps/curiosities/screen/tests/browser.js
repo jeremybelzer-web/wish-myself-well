@@ -6,7 +6,9 @@
    on start, pick each level, change a control in the inspector (a node appears), add an inspiration viewer,
    take a curiosity from two films and blend it, click a lane to add nodes, join two nodes across lanes (a
    proximity), copy and paste it, move a node (its partner moves too), switch to Arrange, show all potential
-   curiosities and suites, change a track's curiosity, undo, reload. The page must report no errors. */
+   curiosities and suites, change a track's curiosity, undo, reload. Two tracks with the same curiosity show two
+   rows named by their track, and Add a curiosity track offers graded lanes. A curiosity, a suite and a proximity of
+   your own are made in the library, used, kept over a reload, shared as a file and deleted. The page must report no errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -137,6 +139,74 @@ const ok = (cond, msg) => {
   await page.fill("[data-lib-search]", "freeze");
   ok(await page.$('[data-pick-card="curiosity|freezeFrame"]'), "the library search finds curiosities in any category");
   await page.fill("[data-lib-search]", "");
+  /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). */
+  {
+    const FK = "curiosities-screen-faves-v1";
+    const fv = () => page.evaluate(() => window.CurioScreen.faves.now());
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.click('[data-icat="transitions"]');
+    await page.click(".sc-side .sc-pill:first-child");
+    const sel0 = await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel));
+    const curRef = await page.evaluate(() => { const s = window.CurioScreen.state().sel; return [...document.querySelectorAll('.sc-grid .sc-card[data-card="curiosity"] [data-fave]')].map((b) => b.dataset.fave).find((r) => r !== "curiosity|" + s.id); });
+    const star = await page.$eval(`[data-fave="${curRef}"]`, (b) => ({ tag: b.tagName, pressed: b.getAttribute("aria-pressed"), label: b.getAttribute("aria-label"), name: b.closest(".sc-card").querySelector("strong").textContent }));
+    ok(star.tag === "BUTTON" && star.pressed === "false" && star.label.includes(star.name), "every card has a star button with aria-pressed and a label naming the item (" + star.label + ")");
+    ok((await page.$$(".sc-grid .sc-card[data-card='curiosity']")).length === (await page.$$(".sc-grid .sc-card[data-card='curiosity'] [data-fave]")).length, "every curiosity card in the grid has a star");
+    await page.click(`[data-fave="${curRef}"]`);
+    ok((await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel))) === sel0, "clicking the star does not pick the card");
+    ok((await page.$eval(`[data-fave="${curRef}"]`, (b) => b.getAttribute("aria-pressed") + b.textContent)) === "true★" && (await fv()).faves.join() === curRef, "the star fills and the item is a favorite");
+    await page.click('[data-group="suite"]');
+    const suiteRef = await page.$eval('.sc-card[data-card="suite"] [data-fave]', (b) => b.dataset.fave);
+    const suiteName = await page.$eval('.sc-card[data-card="suite"] strong', (s) => s.textContent);
+    await page.focus(`[data-fave="${suiteRef}"]`);
+    await page.keyboard.press("Enter");
+    ok((await fv()).faves.join() === curRef + "," + suiteRef && (await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel))) === sel0, "a suite's star works from the keyboard, also without picking it");
+    ok(await page.evaluate(() => document.querySelector(".sc-icons button").dataset.libtab === "faves" && /Favorites/.test(document.querySelector(".sc-icons button").textContent)), "★ Favorites is the first tab in the library's icon row");
+    await page.click('[data-libtab="faves"]');
+    const shown = () => page.evaluate(() => { const h = [...document.querySelectorAll(".sc-grid .sc-fave-h")].map((x) => x.textContent); const secs = {}; let cur = ""; [...document.querySelector(".sc-grid").children].forEach((el) => { if (el.matches(".sc-fave-h")) cur = el.textContent; else if (el.matches(".sc-cards")) secs[cur] = [...el.querySelectorAll("[data-fave]")].map((b) => b.dataset.fave); }); return { h, secs }; });
+    let s = await shown();
+    ok(JSON.stringify(s.secs.Starred) === JSON.stringify([curRef, suiteRef]), "the Favorites tab lists every starred item as cards, in the order starred");
+    ok(s.h[0] === "Recently used" && s.secs["Recently used"][0] === "curiosity|transitionKind", "Recently used sits at the top of the Favorites tab, newest first (" + (s.secs["Recently used"] || []).slice(0, 3).join(",") + ")");
+    /* Pick 14 different curiosities from a search: recently used keeps the last 12, no repeats. */
+    await page.click('[data-icat="camera"]');
+    await page.fill("[data-lib-search]", "e");
+    const picked = await page.evaluate(() => { const out = []; for (let i = 0; i < 14; i++) { const b = document.querySelectorAll('.sc-grid [data-pick-card^="curiosity|"]')[i]; out.push(b.dataset.pickCard); b.click(); } document.querySelectorAll('.sc-grid [data-pick-card^="curiosity|"]')[5].click(); return out; });
+    let r = (await fv()).recent;
+    ok(r.length === 12 && new Set(r).size === 12 && r[0] === picked[5] && r[1] === picked[13] && !r.includes(picked[0]), "recently used updates on each pick: newest first, at most 12, no repeats");
+    const fp1 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.fill("[data-lib-search]", "");
+    await page.click('[data-libtab="faves"]');
+    await page.click(`.sc-grid [data-add-card="${suiteRef}"]`);
+    ok((await fv()).recent[0] === suiteRef, "putting something into the film puts it at the top of recently used");
+    await page.keyboard.press("Control+z");
+    /* Search covers Favorites. */
+    await page.fill("[data-lib-search]", suiteName.slice(0, 6));
+    ok(await page.evaluate((ref) => !!document.querySelector(`.sc-grid [data-fave="${ref}"]`) && /favorite/.test(document.querySelector(".sc-grid-h").textContent), suiteRef), "search in the Favorites tab finds a starred suite");
+    await page.click('[data-icat="camera"]');
+    await page.fill("[data-lib-search]", suiteName.slice(0, 6));
+    ok(await page.evaluate((ref) => !!document.querySelector(`.sc-grid [data-fave="${ref}"]`) && [...document.querySelectorAll(".sc-fave-h")].some((h) => /Favorites/.test(h.textContent)), suiteRef), "search in any tab finds favorites too, suites included");
+    await page.fill("[data-lib-search]", "");
+    /* A saved id the database no longer has is skipped; the list survives a reload. */
+    await page.evaluate((k) => { const p = JSON.parse(localStorage.getItem(k)); p.faves.push("suite|gone-for-good"); localStorage.setItem(k, JSON.stringify(p)); }, FK);
+    const before = await fv();
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const after = await fv();
+    ok(JSON.stringify(after.recent) === JSON.stringify(before.recent) && after.faves.slice(0, 2).join() === curRef + "," + suiteRef, "favorites and recently used survive a reload");
+    await page.click('[data-libtab="faves"]');
+    s = await shown();
+    ok(JSON.stringify(s.secs.Starred) === JSON.stringify([curRef, suiteRef]), "an id the database no longer has is skipped quietly");
+    /* Unstar from the Favorites tab; the last one gone shows the plain empty state. */
+    await page.click(`.sc-grid [data-fave="${curRef}"]`);
+    await page.click(`.sc-grid [data-fave="${suiteRef}"]`);
+    ok(await page.evaluate(() => /Star anything in the library to keep it here/.test(document.querySelector(".sc-grid").textContent)), "with nothing starred the Favorites tab says: Star anything in the library to keep it here");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp1 && fp1 === fp0, "stars, picks and recently used leave the film unchanged (not in the film, not in undo)");
+    ok(!(await page.evaluate((k) => Object.keys(JSON.parse(localStorage.getItem("curiosities-engine-v1") || "{}")).some((x) => /fave/i.test(x)), FK)), "nothing about favorites is saved with the film");
+    /* Back to where the walk-through was: the Transitions tab, looking through Transition style. */
+    await page.click('[data-icat="transitions"]');
+    await page.click(".sc-side .sc-pill:first-child");
+    await page.click('[data-pick-card="curiosity|transitionKind"]');
+    if ((await page.evaluate(() => window.CurioScreen.state().sel.id)) !== "transitionKind") await page.click('[data-pick-card="curiosity|transitionKind"]');
+  }
   await page.click('[data-act="clear-lanes"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-1b-transitions.png") });
 
@@ -148,12 +218,83 @@ const ok = (cond, msg) => {
     window.CurioScreen.setRow(2);
     const r = window.CurioScreen.row();
     window.CurioScreen.setRow(0);
-    const el = document.querySelector('.sc-player > .sc-dock[data-panel="test-dock"]');
+    const el = document.querySelector('.sc-player .sc-dock[data-panel="test-dock"]');
     return { added, r, told, text: el && el.textContent };
   });
   ok(hook.added && hook.text === "docked" && hook.r === 2 && hook.told >= 2, "other threads can dock a panel, read the playhead and hear every move");
   ok(await page.evaluate(() => /^00:00:00:06 /.test(document.querySelector(".sc-tc").textContent) === false && /00:00:00:00/.test(document.querySelector(".sc-tc").textContent)), "the clock starts at zero");
-  await page.evaluate(() => { document.querySelector('.sc-dock[data-panel="test-dock"]').remove(); });
+  /* Two docked panels stack in the Screen's own column beside the Player instead of sitting on top of each other. */
+  const stack = await page.evaluate(() => {
+    window.CurioScreen.addPanel({ id: "test-dock-2", label: "Second dock", place: "player", mount: (el) => (el.innerHTML = '<div style="height:24px">second</div>') });
+    const r = (s) => document.querySelector(s).getBoundingClientRect();
+    const a = r('.sc-dock[data-panel="test-dock"]'), b = r('.sc-dock[data-panel="test-dock-2"]'), v = r(".sc-player > .sc-viewers");
+    return { below: b.top >= a.bottom - 1, sameCol: Math.abs(a.left - b.left) < 1, beside: a.left >= v.right - 1, col: !!document.querySelector('.sc-player > .sc-docks > .sc-dock[data-panel="test-dock-2"]') };
+  });
+  ok(stack.col && stack.below && stack.sameCol && stack.beside, "two docked panels stack in one column beside the viewers, never on top of each other");
+  /* Every docked panel keeps part of the column in view; a slim bar can sit in a strip under the Player; the column
+     shrinks to a strip only when every panel in it is folded. */
+  const docks2 = await page.evaluate(() => {
+    const S = window.CurioScreen;
+    S.addPanel({ id: "test-dock-tall", label: "Tall", place: "player", mount: (el) => (el.innerHTML = '<div style="height:2000px">tall</div>') });
+    S.addPanel({ id: "test-dock-bar", label: "Bar", place: "under", mount: (el) => (el.textContent = "a slim bar") });
+    const col = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect();
+    const last = document.querySelector('.sc-dock[data-panel="test-dock-tall"]').previousElementSibling ? document.querySelector('.sc-docks > .sc-dock:last-child').getBoundingClientRect() : null;
+    const two = document.querySelector('.sc-dock[data-panel="test-dock-2"]').getBoundingClientRect();
+    const bar = document.querySelector('.sc-player > .sc-under > .sc-dock[data-panel="test-dock-bar"]');
+    const w0 = col.width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d) => d.classList.add("folded"));
+    const w1 = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect().width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d, i) => i && d.classList.remove("folded"));
+    const w2 = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect().width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d) => d.classList.remove("folded"));
+    S.removePanel("test-dock-tall");
+    S.removePanel("test-dock-bar");
+    return { inView: two.bottom <= col.bottom + 1 && two.height > 10 && (!last || last.top < col.bottom), bar: !!bar, w0, w1, w2 };
+  });
+  ok(docks2.inView, "a tall docked panel scrolls inside itself, so the panels after it stay in view");
+  ok(docks2.bar, 'place "under" puts a slim bar in a strip under the Player');
+  ok(docks2.w1 < 50 && docks2.w2 > 150 && docks2.w0 > 150, `the column shrinks to a strip only when every panel in it is folded (${Math.round(docks2.w0)} → ${Math.round(docks2.w1)} → ${Math.round(docks2.w2)}px)`);
+  /* Keys typed in a tool window over the Screen belong to that tool, not the film behind it. */
+  const keyGuard = await page.evaluate(() => {
+    window.CurioScreen.setRow(1);
+    const d = document.createElement("dialog");
+    d.innerHTML = '<button type="button">in the tool</button>';
+    document.body.appendChild(d);
+    d.showModal();
+    d.querySelector("button").focus();
+    const send = (key, o) => d.querySelector("button").dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key, bubbles: true, cancelable: true }, o || {})));
+    const undo0 = window.CurioEngine.history().undo.length;
+    send("ArrowRight");
+    send(" ");
+    const out = { row: window.CurioScreen.row(), undo: window.CurioEngine.history().undo.length === undo0 };
+    d.close();
+    d.remove();
+    return out;
+  });
+  ok(keyGuard.row === 1 && keyGuard.undo, "arrows and Space inside a tool window leave the film behind it alone");
+  /* The Viewer (Draw & build) open over the Screen marks <html> with cv-open: the Screen's keys stay quiet. */
+  const viewerGuard = await page.evaluate(() => {
+    window.CurioScreen.setRow(1);
+    if (document.activeElement) document.activeElement.blur();
+    document.documentElement.classList.add("cv-open");
+    const send = (key, o) => document.body.dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key, bubbles: true, cancelable: true }, o || {})));
+    const undo0 = window.CurioEngine.history().undo.length;
+    const marks0 = JSON.stringify(window.CurioLanes.tools().markers || []);
+    send("ArrowRight");
+    send(" ");
+    send("m");
+    send("k", { metaKey: true });
+    send("z", { metaKey: true });
+    const out = { row: window.CurioScreen.row(), undo: window.CurioEngine.history().undo.length === undo0, marks: JSON.stringify(window.CurioLanes.tools().markers || []) === marks0, find: !document.querySelector(".sc-find:not([hidden])") };
+    document.documentElement.classList.remove("cv-open");
+    send("ArrowRight");
+    out.after = window.CurioScreen.row();
+    window.CurioScreen.setRow(1);
+    return out;
+  });
+  ok(viewerGuard.row === 1 && viewerGuard.undo && viewerGuard.marks && viewerGuard.find, "with the Viewer open over the Screen (html.cv-open), arrows, Space, M, ⌘K and ⌘Z leave the Screen alone");
+  ok(viewerGuard.after === 2, "and once the Viewer closes the Screen's keys work again (" + viewerGuard.after + ")");
+  ok(await page.evaluate(() => window.CurioScreen.removePanel("test-dock") && window.CurioScreen.removePanel("test-dock-2") && !document.querySelector('.sc-dock[data-panel^="test-dock"]')), "a docked panel can be taken off again");
 
   /* Maya's ghosting, the play range, and the momentum box. */
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
@@ -219,6 +360,35 @@ const ok = (cond, msg) => {
   ok((await T()).markers.length === m0 + 1 && !!(await page.$(".sl-marker")), "M adds a marker at the playhead");
   await page.keyboard.press("m");
   ok((await T()).markers.length === m0, "M again takes it off");
+  /* ⇧[ and ⇧]: previous and next marker, like CapCut; the status line says when there is none that way. */
+  {
+    const keep = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    const rowNow = () => page.evaluate(() => window.CurioScreen.row());
+    const said = () => page.evaluate(() => document.querySelector(".sl-msg").textContent);
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); const st = window.CurioEngine.state(); t.markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }, { row: st.rows[1].id, color: "orange", note: "" }]; window.CurioScreen.setRow(0); });
+    await page.keyboard.press("Shift+BracketRight");
+    const r1 = await rowNow();
+    await page.keyboard.press("Shift+BracketRight");
+    const r2 = await rowNow();
+    const s2 = await said();
+    ok(r1 === 1 && r2 === 4 && /marker, at moment 5: the joke lands/.test(s2), "⇧] moves the playhead to the next marker, then the one after (" + r1 + ", " + r2 + ": " + s2 + ")");
+    await page.keyboard.press("Shift+BracketRight");
+    const s3 = await said();
+    ok((await rowNow()) === 4 && /No marker after moment 5/.test(s3), "with no marker further on, ⇧] stays put and the status line says so (" + s3 + ")");
+    await page.keyboard.press("Shift+BracketLeft");
+    const r4 = await rowNow();
+    await page.keyboard.press("Shift+BracketLeft");
+    const s5 = await said();
+    ok(r4 === 1 && (await rowNow()) === 1 && /No marker before moment 2/.test(s5), "⇧[ goes back to the previous marker, and says when there is none before it (" + s5 + ")");
+    await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(2); });
+    await page.keyboard.press("Shift+BracketRight");
+    ok((await rowNow()) === 2 && /no markers yet/.test(await said()), "with no markers at all, the status line says to press M");
+    await page.evaluate((k) => { window.CurioLanes.tools().markers = JSON.parse(k); window.CurioScreen.setRow(0); }, keep);
+    await page.click('[data-act="shortcuts"]');
+    const listed = await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent));
+    ok(listed.some((t) => /^⇧\[Previous marker/.test(t)) && listed.some((t) => /^⇧\]Next marker/.test(t)), "the Shortcuts window lists ⇧[ Previous marker and ⇧] Next marker");
+    await page.keyboard.press("Escape");
+  }
   await page.keyboard.press("Control+Equal");
   ok((await T()).zoom > 1, "⌘+ zooms the timeline in");
   await page.keyboard.press("Shift+Z");
@@ -395,8 +565,9 @@ const ok = (cond, msg) => {
   await page.evaluate(() => window.CurioEngine.undo());
   ok(await page.evaluate(() => !!window.CurioEngine.state().lanes["camera|shotSize"]), "undo brings it back");
 
-  /* Zoom and scroll, fine lines, area copy and paste, curves, curiosity windows (Jeremy, 20:26Z). */
-  await page.click('[data-view="screen"]');
+  /* Zoom and scroll, fine lines, area copy and paste, curves, curiosity windows (Jeremy, 20:26Z). The button: the
+     Screen's page also carries data-view="screen" while that view is on, and a click on it lands mid-page. */
+  await page.click('button[data-view="screen"]');
   await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotionIntensity")) || st.tracks[0]; if (!t.curiosities.includes("emotionIntensity")) E.send({ type: "addCuriosity", track: t.id, curiosity: "emotionIntensity" }); const cmds = [0, 2, 5, 7].map((j, k) => ({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: "emotionIntensity", value: [1, 4, 0, 5][k] })); E.send({ type: "batch", label: "test lane", commands: cmds }); });
   await page.evaluate(() => { window.CurioLanes.tools().zoom = 1; window.CurioLanes.tools().laneH = 50; });
   await page.click('[data-pick-card="curiosity|transitionKind"]').catch(() => {});
@@ -497,6 +668,394 @@ const ok = (cond, msg) => {
   ok(afterRedo === beforeUndo, "⌘Z then ⇧⌘Z gives back exactly the same film (one undo is one step, also with the app-wide undo list)");
   await page.keyboard.press("Control+z");
   ok(await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).some((k) => k.endsWith("|emotionIntensity"))), "one ⌘Z undoes only the paste, not the steps before it");
+  /* Area tools: Reverse, Flip, Stretch ×2 and Squeeze ½ on a selected area, each one undo step; then My film's
+     clip track shows a storyboard frame per moment when zoomed in. Strength of the feeling has 1, 4, 0, 5 at
+     moments 1, 3, 6, 8. */
+  {
+    const box2 = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = box2.w / box2.n;
+    /* Moments 1 to 4 of this lane (selected again before each tool: Stretch and Squeeze resize the area). */
+    const select = async () => {
+      await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; });
+      /* Let go of the last area first: a press inside a selected area drags it sideways instead of starting a box. */
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+      await page.mouse.move(box2.x + cw * 0.1, box2.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(box2.x + cw * 3.9, box2.y + box2.h - 2, { steps: 8 });
+      await page.mouse.up();
+    };
+    await select();
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 7, "a selected area shows Reverse, Flip, Stretch ×2, Squeeze ½, Freeze, Shape ▾ and Take from the film");
+    const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
+    const orig = await pts();
+    const tool = async (act) => { await select(); await page.click(`.sl [data-act="${act}"]`); const p = await pts(); await page.keyboard.press("Control+z"); return p; };
+    const rv = await tool("area-reverse");
+    ok(rv[3] === orig[0] && rv[1] === orig[2] && rv[0] == null && rv[2] == null && rv[5] === orig[5], "Reverse mirrors the area's nodes in time (" + rv.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Reverse back");
+    const fp = await tool("area-flip");
+    const flipped = await page.evaluate((o) => [o[0], o[2]].map((v) => window.CurioScale.fix("emotionIntensity", window.CurioScale.at("emotionIntensity", 1 -window.CurioScale.pos("emotionIntensity", v)))), orig);
+    ok(String(fp[0]) === String(flipped[0]) && String(fp[2]) === String(flipped[1]) && fp[5] === orig[5], "Flip turns each node's setting upside down on its scale (" + fp.join(",") + " for " + flipped.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Flip back");
+    const sp = await tool("area-stretch");
+    ok(sp[0] === orig[0] && sp[4] === orig[2] && sp[2] == null && sp[5] == null && sp[7] === orig[7], "Stretch ×2 spreads the nodes out to twice as long (" + sp.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Stretch back");
+    const sq = await tool("area-squeeze");
+    ok(sq[0] === orig[0] && sq[1] === orig[2] && sq[2] == null && sq[5] === orig[5], "Squeeze ½ pulls the nodes together (" + sq.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Squeeze back");
+    /* Freeze: moment 1's setting held at moments 1 and 4, the node at moment 3 gone, everything between still. */
+    const plays = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); const at = lk.indexOf("|"); return st.rows.slice(0, 8).map((r) => String(window.CurioEngine.value(r.id, lk.slice(0, at), lk.slice(at + 1)))); });
+    await select();
+    await page.click('.sl [data-act="area-freeze"]');
+    const fzPlays = await plays();
+    const fz = await pts();
+    const fzArea = await page.evaluate(() => !!document.querySelector(".sl-area") && !!document.querySelector('.sl [data-act="area-freeze"]'));
+    await page.keyboard.press("Control+z");
+    ok(String(fz[0]) === String(orig[0]) && String(fz[3]) === String(orig[0]) && fz[2] == null && fz[5] === orig[5] && fzPlays.slice(0, 4).every((v) => v === String(orig[0])), "Freeze holds moment 1's setting still over the selection (" + fz.join(",") + ")");
+    ok(fzArea && JSON.stringify(await pts()) === JSON.stringify(orig), "the selection stays after Freeze, and one ⌘Z takes it back");
+    /* Shape ▾ > Rise and fall: low at both ends of the selection, up to its highest in the middle. */
+    await select();
+    await page.click('.sl [data-act="area-shape"]');
+    ok((await page.$$(".sl-shapemenu [data-preset]")).length === 6, "Shape ▾ opens a menu of six shapes");
+    await page.click('.sl-shapemenu [data-preset="riseFall"]');
+    const rf = await plays();
+    const rfKeep = await page.evaluate(() => !document.querySelector(".sl-shapemenu") && !!document.querySelector(".sl-area") && /Rise and fall/.test(document.querySelector(".sl-msg").textContent));
+    await page.keyboard.press("Control+z");
+    const lowest = String(Math.min(orig[0], orig[2]));
+    ok(rf[0] === lowest && rf[3] === lowest && [rf[1], rf[2]].includes(String(orig[2])) && rf[5] === String(orig[5]), "Rise and fall goes up from the lane's lowest to its highest and back down inside the selection (" + rf.slice(0, 6).join(",") + ")");
+    ok(rfKeep && JSON.stringify(await pts()) === JSON.stringify(orig), "the menu closes, the selection stays, and one ⌘Z takes the shape back");
+    const thumbs = () => page.$$eval(".sl-topsvg .sl-clip.mine image.sl-thumb", (x) => x.map((i) => i.getAttribute("href").slice(0, 19)));
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 0.25; window.CurioScreen.setRow(0); });
+    const few = await thumbs();
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 3; window.CurioScreen.setRow(0); document.querySelector(".sl-scroll").scrollLeft = 0; document.querySelector(".sl-scroll").scrollTop = 0; });
+    const many = await thumbs();
+    ok(few.length === 0 && many.length === box2.n && many.every((h) => h === "data:image/svg+xml;"), "zoomed in, My film's clip track shows a storyboard frame for each moment (" + few.length + " zoomed out, " + many.length + " zoomed in)");
+    await page.waitForTimeout(150);
+    const tl = await page.$(".sc-timeline");
+    if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-6b-area-tools-thumbs.png") });
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 1; window.CurioLanes.tools().laneH = 60; window.CurioScreen.setRow(0); });
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 0 && JSON.stringify(await pts()) === JSON.stringify(orig), "Esc lets go of the area and its tools hide");
+
+    /* Save as suite clip (CapCut's compound clip, kept to use again): name it in a small pop-up, find it in
+       Suite clips ▾, drop it at the playhead (one undo step), as an analogy, and rename it. The reload and
+       Delete are checked at the end, after the film's own reload. */
+    await page.evaluate(() => localStorage.removeItem("curiosities-suite-clips-v1"));
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-suite-clips-v1") || "[]"));
+    /* Moments 1 to 4 of the lane again, measured afresh (the lanes are taller now). */
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw2 = bx.w / bx.n;
+    await page.mouse.move(bx.x + cw2 * 0.1, bx.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw2 * 3.9, bx.y + bx.h - 2, { steps: 8 });
+    await page.mouse.up();
+    ok(!!(await page.$('.sl .sl-areatools [data-act="suite-save"]')), "a selected area's tools offer Save as suite clip");
+    await page.click('.sl [data-act="suite-save"]');
+    ok(await page.evaluate(() => { const p = document.querySelector(".sl-suitepop"); return !!p && document.activeElement === p.querySelector("[data-suite-name]"); }), "it asks for a name in a small pop-up in the timeline, ready to type");
+    await page.fill(".sl-suitepop [data-suite-name]", "the slow reveal");
+    await page.keyboard.press("Enter");
+    const sv = await saved();
+    ok(sv.length === 1 && sv[0].name === "the slow reveal" && sv[0].span === 3 && sv[0].lanes.some((l) => l.cur === "emotionIntensity") && !(await page.$(".sl-suitepop")), "Enter saves it as a suite clip in curiosities-suite-clips-v1 (" + (sv[0] ? sv[0].name + ", " + (sv[0].span + 1) + " moments" : "nothing") + ")");
+    ok(await page.evaluate(() => /Saved "the slow reveal" as a suite clip/.test(document.querySelector(".sl-msg").textContent) && /Suite clips 1 ▾/.test(document.querySelector('[data-act="suite-list"]').textContent)), "it says so, and the toolbar's Suite clips ▾ counts it");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    await page.click('.sl [data-act="suite-list"]');
+    const li = await page.evaluate(() => [...document.querySelectorAll(".sl-suitelist li")].map((x) => ({ name: x.querySelector(".sl-suitename").textContent, what: x.querySelector(".sl-suitewhat").textContent, acts: [...x.querySelectorAll("button")].map((b) => b.textContent) })));
+    const plain = await page.evaluate(() => window.CurioScale.label("emotionIntensity"));
+    ok(li.length === 1 && li[0].name === "the slow reveal" && /^4 moments long · /.test(li[0].what) && li[0].what.includes(plain) && !li[0].what.includes("emotionIntensity"), "Suite clips ▾ lists it with how many moments long and its curiosities in plain words (" + (li[0] ? li[0].what : "") + ")");
+    ok(li[0] && ["Drop at the playhead", "Drop as an analogy", "Rename", "Delete"].every((t) => li[0].acts.includes(t)), "each clip offers Drop at the playhead, Drop as an analogy, Rename and Delete");
+    const fpBefore = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.click(".sl-suitelist [data-suite-drop]");
+    const dropped = await pts();
+    ok(String(dropped[4]) === String(orig[0]) && String(dropped[6]) === String(orig[2]) && dropped[5] == null && JSON.stringify(dropped.slice(0, 4)) === JSON.stringify(orig.slice(0, 4)), "Drop at the playhead puts the clip's nodes in starting at moment 5 (" + dropped.join(",") + ")");
+    ok(await page.evaluate(() => /Dropped "the slow reveal" at moment 5/.test(document.querySelector(".sl-msg").textContent)), "it says where it dropped and onto which lanes");
+    await page.keyboard.press("Control+z");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig) && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fpBefore, "one ⌘Z takes the whole drop back");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-analogy]");
+    const an = await pts();
+    const anMsg = await page.evaluate(() => document.querySelector(".sl-msg").textContent);
+    ok(/as an analogy at moment 5/.test(anMsg) && an[4] != null && an[6] != null, "Drop as an analogy drops it too, starting from each lane's own setting (" + an.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes the analogy back");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-rename]");
+    ok(await page.evaluate(() => document.querySelector(".sl-suitepop [data-suite-name]").value === "the slow reveal"), "Rename opens the name pop-up with its name");
+    await page.fill(".sl-suitepop [data-suite-name]", "the slower reveal");
+    await page.click('.sl-suitepop [data-l="ok"]');
+    ok((await saved()).map((c) => c.name).join() === "the slower reveal" && (await page.evaluate(() => /Renamed "the slow reveal" to "the slower reveal"/.test(document.querySelector(".sl-msg").textContent))), "Rename changes only its name");
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+  }
+  /* Moving an area: drag the selected block sideways (CapCut: a group of clips) and every node in it moves by whole
+     moments, one undo step; Alt when letting go copies. Strength of the feeling has 1, 4, 0, 5 at moments 1, 3, 6, 8. */
+  {
+    const film = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
+    let bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = bx.w / bx.n;
+    /* Where the lane is now (the toolbar's message can wrap onto a second line and push the lanes down). */
+    const measure = async () => (bx = await page.evaluate((a) => { const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a));
+    const select = async () => {
+      /* Let go of any area first, so the press starts a new box instead of dragging the old one. */
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+      await measure();
+      await page.mouse.move(bx.x + cw * 0.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 2.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      await measure();
+    };
+    const orig = await pts();
+    const before = await film();
+    await select();
+    ok(await page.evaluate(() => /sideways to move/.test(document.querySelector(".sl-msg").textContent)), "with an area selected, the toolbar says it can be dragged sideways (Alt copies)");
+    /* Press inside the area (on empty space) and drag right by two moments. */
+    await page.mouse.move(bx.x + cw * 1.5, bx.y + 3);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 2.6, bx.y + 3, { steps: 4 });
+    await page.mouse.move(bx.x + cw * 3.5, bx.y + 3, { steps: 4 });
+    ok(await page.evaluate(() => !!document.querySelector(".sl-svg .sl-areaghost") && document.querySelector(".sl-svg").classList.contains("sl-areamoving")), "while dragging, a preview of the block slides along");
+    const tl = await page.$(".sc-timeline");
+    if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-6c-area-drag.png") });
+    await page.mouse.up();
+    const mv = await pts();
+    ok(mv[0] == null && mv[2] === orig[0] && mv[4] === orig[2] && mv[5] === orig[5] && mv[7] === orig[7], "dragging the area right by two moments moves its nodes two moments later (" + mv.join(",") + ")");
+    ok(await page.evaluate(() => { const a = document.querySelector(".sl-area"); return a && /Moved 2 nodes 2 moments later/.test(document.querySelector(".sl-msg").textContent); }), "the area follows the block and a plain message says what moved");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z brings back the exact film");
+    /* Alt while letting go: a copy three moments later, over the node at moment 6. */
+    await select();
+    await page.mouse.move(bx.x + cw * 1.5, bx.y + 3);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 4.5, bx.y + 3, { steps: 8 });
+    await page.keyboard.down("Alt");
+    await page.mouse.move(bx.x + cw * 4.55, bx.y + 3);
+    ok(await page.evaluate(() => !!document.querySelector(".sl-svg .sl-areaghost.copy")), "holding Alt shows the preview as a copy");
+    await page.mouse.up();
+    await page.keyboard.up("Alt");
+    const cp = await pts();
+    ok(cp[0] === orig[0] && cp[2] === orig[2] && cp[3] === orig[0] && cp[5] === orig[2] && cp[7] === orig[7], "Alt-dragging copies the area's nodes and the originals stay (" + cp.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z takes the copy back");
+    /* The old gestures still work with an area selected: a node outside it drags alone; a click outside lets go. */
+    await select();
+    const n8 = await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); const c = document.querySelector(`.sl-node[data-node="${st.rows[7].id}@${lk}"]`); const r = c.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, in: c.classList.contains("in") }; });
+    await page.mouse.move(n8.x, n8.y);
+    await page.mouse.down();
+    await page.mouse.move(n8.x - cw, n8.y, { steps: 6 });
+    await page.mouse.up();
+    const one = await pts();
+    ok(!n8.in && one[6] === orig[7] && one[7] == null && one[0] === orig[0] && one[2] === orig[2], "a node outside the area still drags on its own (" + one.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    await select();
+    await page.mouse.click(bx.x + cw * 6.5, bx.y + 3);
+    ok(!(await page.$(".sl-area")) && (await film()) === before, "a click on empty space outside the area still lets go of it");
+    await measure();
+    await page.mouse.move(bx.x + cw * 4.1, bx.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 5.9, bx.y + bx.h - 2, { steps: 8 });
+    await page.mouse.up();
+    ok(await page.evaluate(() => { const a = document.querySelector(".sl-area"); return !!a && Math.abs(Number(a.getAttribute("x")) - 4 * (Number(a.getAttribute("width")) / 2)) < 2; }), "dragging across empty space outside a selection still draws a new one");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+  }
+  /* Lane heads: Off (👁), Solo (S) and Lock (🔒), like CapCut's track buttons. Off is the engine lane's `on` (one undo
+     step); Solo turns the other lanes off as one batch and pressing it again restores them; Lock is a view setting
+     that stops the timeline from changing a lane's nodes. Strength of the feeling has 1, 4, 0, 5 at moments 1, 3, 6, 8. */
+  {
+    const film = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const onMap = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on])); });
+    const lkOf = (cur) => page.evaluate((c) => Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|" + c)), cur);
+    const lkE = await lkOf("emotionIntensity");
+    const lkS = await lkOf("shotSize");
+    const btn = (act, lk) => `.sl-heads [data-act="${act}"][data-lk="${lk}"]`;
+    const headOf = (lk) => `.sl-heads .sl-head:has([data-act="lane-lock"][data-lk="${lk}"])`;
+    const press = async (act, lk) => { await page.hover(headOf(lk)); await page.click(btn(act, lk)); };
+    const msgText = () => page.$eval(".sl-msg", (x) => x.textContent);
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const before = await film();
+    ok(lkE && lkS && (await page.$(btn("lane-off", lkE))) && (await page.$(btn("lane-solo", lkE))) && (await page.$(btn("lane-lock", lkE))), "each lane's header has Off, Solo and Lock buttons");
+    ok(await page.$eval(btn("lane-off", lkE), (b) => b.title.length > 30 && /stops changing the film/.test(b.title)), "the Off button says in plain words what it does");
+    /* Off */
+    await press("lane-off", lkE);
+    ok(await page.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === false, lkE), "👁 turns the lane's automation off in the engine (on: false)");
+    ok(await page.evaluate((lk) => { const h = document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`); const i = Number(h.dataset.i); const st = window.CurioEngine.state(); const n = Object.keys(st.lanes[lk].points).length; const offNodes = [...document.querySelectorAll(`.sl-node.off[data-lane="${i}"]`)].length; return h.classList.contains("is-off") && offNodes === n && !!document.querySelector(".sl-auto.off"); }, lkE), "an off lane is drawn dimmed: its header, its nodes and its dashed line");
+    ok(await page.$eval(btn("lane-off", lkE), (b) => b.classList.contains("on") && b.getBoundingClientRect().width > 4), "the Off button stays showing while the lane is off");
+    await page.focus(".sl");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z turns it back on (the exact film)");
+    /* Solo, by keyboard: focus the S button and press Enter. */
+    const map0 = await onMap();
+    await page.focus(btn("lane-solo", lkS));
+    ok(await page.$eval(btn("lane-solo", lkS), (b) => b.getBoundingClientRect().width > 4), "a lane's buttons show when one of them has keyboard focus");
+    await page.keyboard.press("Enter");
+    ok(await page.evaluate((lk) => { const l = window.CurioEngine.state().lanes; return l[lk].on && Object.keys(l).filter((k) => k !== lk).every((k) => !l[k].on); }, lkS), "S plays only this lane's automation: every other lane is off");
+    ok(await page.evaluate((lk) => document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`).classList.contains("is-solo") && document.activeElement && document.activeElement.dataset.act === "lane-solo", lkS), "the soloed lane is marked, and focus stays on its S button");
+    await page.keyboard.press("Enter");
+    ok((await onMap()) === map0 && (await film()) === before, "pressing S again brings the other lanes back the way they were");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    /* Lock: no adding by clicking, no dragging, area paste skips it. */
+    const pts = () => page.evaluate((lk) => JSON.stringify(window.CurioEngine.state().lanes[lk].points), lkE);
+    const p0 = await pts();
+    await press("lane-lock", lkE);
+    ok(await page.evaluate((lk) => window.CurioLanes.tools().locks[lk] === true && JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).locks[lk] === true, lkE), "🔒 keeps the lock in the timeline's tools (a view setting, not film data)");
+    ok(await page.evaluate((lk) => document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`).classList.contains("is-locked") && !!document.querySelector(".sl-svg .sl-lockbg"), lkE), "a locked lane looks locked: its header and a hatched lane");
+    ok((await film()) === before, "locking changes nothing in the film");
+    const bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = bx.w / bx.n;
+    await page.mouse.click(bx.x + cw * 1.5, bx.y + 4);
+    ok((await pts()) === p0 && /locked/.test(await msgText()), "clicking an empty spot on a locked lane adds no node, with a plain message");
+    const n8 = await page.evaluate((lk) => { const st = window.CurioEngine.state(); const c = document.querySelector(`.sl-node[data-node="${st.rows[7].id}@${lk}"]`); const r = c.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, lkE);
+    await page.mouse.move(n8.x, n8.y);
+    await page.mouse.down();
+    await page.mouse.move(n8.x - cw, n8.y - 10, { steps: 6 });
+    await page.mouse.up();
+    ok((await pts()) === p0 && (await film()) === before, "a locked lane's node can't be dragged");
+    await page.mouse.dblclick(n8.x, n8.y);
+    ok((await pts()) === p0, "or removed with a double-click");
+    /* Copy the locked lane (copying is fine), select from it to Shot size, paste: the locked lane is skipped, Shot size takes it. */
+    const subOf = async (i) => (await (await page.$$(".sl-heads .sl-head"))[i].$(".sl-sub")).boundingBox();
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    let sb = await subOf(laneIx.a);
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    await page.click('.sl [data-act="copy"]');
+    sb = await subOf(laneIx.a);
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    sb = await subOf(laneIx.b);
+    await page.keyboard.down("Shift");
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    await page.keyboard.up("Shift");
+    const spread = await page.evaluate(() => { const a = document.querySelectorAll(".sl-heads .sl-head.on"); return a.length; });
+    await page.click('.sl [data-act="paste"]');
+    ok((await pts()) === p0 && /Skipped 1 locked lane/.test(await msgText()), "area paste over several lanes skips the locked one and says so (" + spread + " lanes selected)");
+    const pastedIn = (await film()) !== before;
+    ok(pastedIn, "the unlocked lanes in the selection were pasted into");
+    await page.focus(".sl");
+    if (pastedIn) await page.keyboard.press("Control+z");
+    await page.keyboard.press("Escape");
+    ok((await film()) === before, "and ⌘Z takes the paste back");
+    /* A screenshot with one lane locked and another off, then everything back. */
+    await press("lane-off", lkS);
+    await page.mouse.move(2, 2);
+    await page.evaluate((i) => { const sc = document.querySelector(".sl-scroll"); sc.scrollTop = Math.max(0, Math.min(...i.map((k) => document.querySelectorAll(".sl-bg")[k].getBBox().y)) - 20); }, [laneIx.a, laneIx.b]);
+    await page.waitForTimeout(120);
+    const tlh = await page.$(".sc-timeline");
+    if (tlh) await tlh.screenshot({ path: path.join(SHOTS, "screen-6d-lane-heads.png") });
+    await page.focus(".sl");
+    await page.keyboard.press("Control+z");
+    await press("lane-lock", lkE);
+    ok(await page.evaluate((lk) => !window.CurioLanes.tools().locks[lk] && !document.querySelector(".sl-svg .sl-lockbg"), lkE), "🔒 again unlocks the lane");
+    ok((await film()) === before, "the film is exactly as it was");
+  }
+  /* Lane groups (CapCut's folding track groups): a header per category with its counts and ▸/▾; a folded group is one
+     thin row with a dot where any of its lanes has a node; folds are a view setting; an area skips folded lanes. */
+  {
+    const film = () => page.evaluate(() => window.CurioEngine.fingerprint() + JSON.stringify(window.CurioEngine.state().lanes));
+    const before = await film();
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const info = await page.evaluate(() => {
+      const st = window.CurioEngine.state();
+      const lkE = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity"));
+      const cat = window.CurioLevels.categoryOf("emotionIntensity");
+      const label = window.CurioLevels.CATEGORIES.find((c) => c.id === cat).label;
+      const heads = [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => ({ id: h.dataset.group, text: h.textContent }));
+      return { lkE, cat, label, heads, lanes: document.querySelectorAll(".sl-heads .sl-head").length };
+    });
+    ok(info.heads.length >= 2 && info.heads.every((h) => /· \d+ · \d+●/.test(h.text)), "lanes are grouped under a header per category, each saying how many lanes it holds and how many have nodes (" + info.heads.map((h) => h.text.replace(/\s+/g, " ").trim()).join(" | ") + ")");
+    const gh = info.heads.find((h) => h.id === info.cat);
+    ok(!!gh && gh.text.includes(info.label) && /▾/.test(gh.text), "Strength of the feeling sits under " + info.label + ", the category Details puts it in, open (▾)");
+    ok(!!(await page.$('.sl-tools [data-act="fold-all"]')), "the timeline toolbar has Fold all");
+    const fold = `.sl-heads [data-act="fold"][data-group="${info.cat}"]`;
+    await page.click(fold);
+    const folded = await page.evaluate((o) => {
+      const st = window.CurioEngine.state();
+      const t = JSON.parse(localStorage.getItem("curiosities-screen-tools-v1") || "{}");
+      const dots = [...document.querySelectorAll(`.sl-gdot[data-group="${o.cat}"]`)].map((d) => Number(d.dataset.gdot));
+      const pts = Object.keys(st.lanes[o.lkE].points).map((r) => st.rows.findIndex((x) => x.id === r));
+      const h = document.querySelector(`.sl-heads .sl-ghead[data-group="${o.cat}"]`);
+      return { saved: !!(t.folds && t.folds[o.cat]), gone: !document.querySelector(`.sl-heads .sl-head [data-lk="${o.lkE}"]`), dots, pts, arrow: h && /▸/.test(h.textContent), expanded: document.querySelector(`.sl-heads [data-act="fold"][data-group="${o.cat}"]`).getAttribute("aria-expanded"), focus: document.activeElement && document.activeElement.dataset.act };
+    }, info);
+    ok(folded.gone && folded.arrow && folded.expanded === "false" && folded.focus === "fold", "▾ folds the group: its lanes are tucked away, the arrow turns to ▸ and focus stays on it");
+    ok(folded.pts.length > 0 && folded.pts.every((j) => folded.dots.includes(j)), "the folded row has a dot at every moment where one of its lanes has a node (" + folded.dots.join(",") + ")");
+    ok(folded.saved && (await film()) === before, "the fold is kept in the timeline's tools, and the film is unchanged (not an undo step)");
+    /* An area dragged across every lane leaves the folded lanes out. */
+    const sv = await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; const bgs = [...document.querySelectorAll(".sl-bg")]; const a = bgs[0].getBoundingClientRect(); const b = bgs[bgs.length - 1].getBoundingClientRect(); return { x: a.x, y: a.y, w: a.width, y2: b.y + b.height, n: window.CurioEngine.state().rows.length, lanes: bgs.length }; });
+    const cwG = sv.w / sv.n;
+    await page.mouse.move(sv.x + cwG * 0.2, sv.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(sv.x + cwG * 2.8, Math.min(sv.y2 - 2, sv.y + 600), { steps: 8 });
+    await page.mouse.up();
+    const picked = await page.evaluate((lk) => ({ on: document.querySelectorAll(".sl-heads .sl-head.on").length, area: !!document.querySelector(".sl-area"), hasE: [...document.querySelectorAll(".sl-heads .sl-head.on")].some((h) => h.querySelector(`[data-lk="${lk}"]`)) }), info.lkE);
+    ok(picked.area && picked.on >= 1 && !picked.hasE, "an area dragged across the lanes skips the folded group's lanes (" + picked.on + " lanes taken)");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    /* A dot moves the playhead to its moment. */
+    const dj = folded.dots[folded.dots.length - 1];
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.evaluate((o) => { const d = document.querySelector(`.sl-gdot[data-group="${o.cat}"][data-gdot="${o.dj}"]`); const sc = document.querySelector(".sl-scroll"); sc.scrollTop = Math.max(0, Number(d.getAttribute("cy")) - 30); sc.scrollLeft = Math.max(0, Number(d.getAttribute("cx")) - 200); }, { cat: info.cat, dj });
+    await page.waitForTimeout(100);
+    const dot = await page.$(`.sl-gdot[data-group="${info.cat}"][data-gdot="${dj}"]`);
+    const db = await dot.boundingBox();
+    await page.mouse.click(db.x + db.width / 2, db.y + db.height / 2);
+    ok((await page.evaluate(() => window.CurioScreen.row())) === dj, "clicking a folded row's dot moves the playhead to that moment");
+    await page.screenshot({ path: path.join(SHOTS, "screen-6e-lane-groups.png") });
+    /* Fold all, then Open all. */
+    await page.click('.sl-tools [data-act="fold-all"]');
+    const all = await page.evaluate(() => ({ heads: document.querySelectorAll(".sl-heads .sl-head").length, groups: document.querySelectorAll(".sl-heads .sl-ghead.is-folded").length, total: document.querySelectorAll(".sl-heads .sl-ghead").length, btn: !!document.querySelector('.sl-tools [data-act="open-all"]') }));
+    ok(all.heads === 0 && all.groups === all.total && all.btn, "Fold all folds every group to one row each, and the button now says Open all");
+    await page.click('.sl-tools [data-act="open-all"]');
+    const back = await page.evaluate(() => ({ heads: document.querySelectorAll(".sl-heads .sl-head").length, folded: document.querySelectorAll(".sl-heads .sl-ghead.is-folded").length, folds: Object.keys(window.CurioLanes.tools().folds).length }));
+    ok(back.heads === info.lanes && back.folded === 0 && back.folds === 0, "Open all brings every lane back (" + back.heads + " lanes)");
+    ok((await film()) === before, "folding and opening never changed the film");
+    /* The header fits the 190px name column: a short count ("Camera · 5 · 4●") with the full wording in its
+       tooltip and aria-label. */
+    const fit = await page.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => {
+      const c = h.querySelector(".sl-gcount");
+      const b = h.querySelector(".sl-fold");
+      return { text: h.textContent.replace(/\s+/g, " ").trim(), w: h.getBoundingClientRect().width, cRight: c.getBoundingClientRect().right, hRight: h.getBoundingClientRect().right, cClip: c.scrollWidth > c.clientWidth + 1, tip: c.title, aria: b.getAttribute("aria-label") || "" };
+    }));
+    ok(fit.length >= 2 && fit.every((h) => /· \d+ · \d+●$/.test(h.text) && h.cRight <= h.hRight + 0.5 && !h.cClip), "each group header's count shows in full inside the name column (" + fit.map((h) => h.text + " @" + Math.round(h.w) + "px").join(" | ") + ")");
+    ok(fit.every((h) => /: \d+ lanes?, \d+ with nodes$/.test(h.tip) && /: \d+ lanes?, \d+ with nodes\. (Fold|Open) /.test(h.aria)), "the full wording (\"" + (fit[0] || {}).tip + "\") is in the tooltip and the fold button's aria-label");
+    /* Picking a curiosity whose group is folded opens that group (and only that one) and scrolls to its lane. */
+    const other = info.heads.find((h) => h.id !== info.cat);
+    const selBefore = await page.evaluate(() => window.CurioScreen.state().sel);
+    await page.click(fold);
+    if (other) await page.click(`.sl-heads [data-act="fold"][data-group="${other.id}"]`);
+    await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollTop = sc.scrollHeight; });
+    await page.evaluate(() => window.CurioScreen.openWin("emotionIntensity"));
+    await page.click('.sc-win[data-win="emotionIntensity"] [data-select-cur="emotionIntensity"]');
+    const shown = await page.evaluate((o) => {
+      const t = window.CurioLanes.tools();
+      const head = [...document.querySelectorAll(".sl-heads .sl-head")].find((h) => h.querySelector(`[data-lk="${o.lkE}"]`));
+      const sc = document.querySelector(".sl-scroll").getBoundingClientRect();
+      const top = document.querySelector(".sl-top").getBoundingClientRect().bottom;
+      const r = head && head.getBoundingClientRect();
+      return { open: !t.folds[o.cat], other: o.other ? !!t.folds[o.other] : true, head: !!head, inView: !!r && r.top >= top - 1 && r.bottom <= sc.bottom + 1, msg: document.querySelector(".sl-msg").textContent };
+    }, { lkE: info.lkE, cat: info.cat, other: other && other.id });
+    ok(shown.open && shown.head, "picking a curiosity in its window opens its folded group, so its lane shows (" + shown.msg + ")");
+    ok(shown.inView, "and the timeline scrolls so its lane is in view");
+    ok(shown.other, "another folded group stays folded");
+    await page.click('.sc-win[data-win="emotionIntensity"] [data-win-close="emotionIntensity"]');
+    /* Look through what was picked before again, so the tests after this see the same timeline. */
+    await page.click(`[data-level="${selBefore.level}"]`);
+    await page.selectOption("[data-pick-item]", selBefore.id);
+    /* A redraw because the film changed does not open a group you folded again. */
+    await page.click(fold);
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks[0]; E.send({ type: "setPoint", row: st.rows[0].id, track: t.id, curiosity: t.curiosities[0], value: E.value(st.rows[0].id, t.id, t.curiosities[0]) }); E.undo(); });
+    ok(await page.evaluate((c) => !!window.CurioLanes.tools().folds[c], info.cat), "a change to the film never opens a folded group");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); Object.keys(t.folds).forEach((k) => delete t.folds[k]); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); });
+    ok((await film()) === before, "picking and folding never changed the film");
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+  }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));
   const segA = await page.evaluate(() => { const s = [...document.querySelectorAll(".sl-seghit")].find((x) => /emotionIntensity\|r1\|r3|emotionIntensity\|/.test(x.dataset.seg)); return s ? s.dataset.seg : null; });
@@ -550,6 +1109,1470 @@ const ok = (cond, msg) => {
   while (await page.$(".sc-win [data-win-close]")) await page.click(".sc-win [data-win-close]");
   ok((await page.$$(".sc-win")).length === 0, "windows close");
 
+  /* Keyframe jumps (CapCut's ◀ ◆ ▶ in Details) and the Player's Ratio menu (frame shape). */
+  /* Clicked on the elements themselves. The Screen's page also carries data-view="screen", so the selector names the
+     button; a click that lands on the page by position hits the Player's Play button. */
+  await page.$eval('button[data-view="screen"]', (b) => b.click());
+  await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+  /* The checks below read and write at the playhead, so nothing may be playing: a running Play moves the playhead
+     and redraws Details every 1.1s, which closes an open ⋯ menu, moves the row the Ratio node is looked for at
+     and moves the attention glow. */
+  ok((await page.$eval('[data-act="play"]', (b) => b.textContent)) === "Play", "nothing is playing before the keyframe checks");
+  const kid = await page.evaluate(() => (document.querySelector(".sc-inspector .sc-cur .sc-key[data-key]") || {}).dataset?.key);
+  ok(!!kid, "Details has a key diamond to work with (" + kid + ")");
+  /* Clear its lane, then set keys at moments 2 and 5 with the diamond. */
+  await page.evaluate((id) => {
+    const E = window.CurioEngine, st = E.state(), t = st.tracks.find((x) => x.curiosities.includes(id)), lane = t && st.lanes[t.id + "|" + id];
+    if (lane) E.send({ type: "batch", label: "clear", commands: Object.keys(lane.points).map((r) => ({ type: "removePoint", row: r, track: t.id, curiosity: id })) });
+  }, kid);
+  const knav = (dir) => page.evaluate(([id, dir]) => { const k = [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id); const n = k && k.closest(".sc-knav"); const b = n && n.querySelector(`[data-dir="${dir}"]`); return b ? { dis: b.disabled, to: b.dataset.keyJump } : null; }, [kid, dir]);
+  const clickKey = async () => page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).click(), kid);
+  await page.evaluate(() => window.CurioScreen.setRow(1));
+  ok((await knav("prev")) === null, "no arrows while the curiosity has no nodes");
+  await clickKey();
+  await page.evaluate(() => window.CurioScreen.setRow(4));
+  await clickKey();
+  await page.evaluate(() => window.CurioScreen.setRow(2));
+  const p2 = await knav("prev"), n2 = await knav("next");
+  ok(p2 && !p2.dis && p2.to === "1" && n2 && !n2.dis && n2.to === "4", "between keys, ◀ and ▶ point at moments 2 and 5");
+  await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).closest(".sc-knav").querySelector('[data-dir="next"]').click(), kid);
+  ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "▶ jumps the playhead to the next key");
+  ok((await knav("next")).dis && !(await knav("prev")).dis, "on the last key ▶ is greyed and ◀ is not");
+  await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).closest(".sc-knav").querySelector('[data-dir="prev"]').click(), kid);
+  ok((await page.evaluate(() => window.CurioScreen.row())) === 1, "◀ jumps the playhead to the previous key");
+  ok((await knav("prev")).dis && !(await knav("next")).dis, "on the first key ◀ is greyed and ▶ is not");
+  ok(await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).classList.contains("here"), kid), "the diamond still shows the key here");
+  /* A Details row's ⋯ menu (CapCut's Apply to all and Reset): each item is one undo step, says what it did in the
+     status line, and a locked lane is refused. kid has keys at moments 2 and 5. */
+  {
+    const laneOf = () => page.evaluate((id) => { const E = window.CurioEngine, st = E.state(), t = st.tracks.find((x) => x.curiosities.includes(id)), lane = t && st.lanes[t.id + "|" + id]; return { lk: t && t.id + "|" + id, mode: lane && lane.mode, at: lane ? st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0) : [], vals: st.rows.map((r) => String(t ? E.value(r.id, t.id, id) : "")) }; }, kid);
+    /* The film's lanes in a fixed order (an undo can bring a lane back in another place in the list). */
+    const lanesNow = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on, l[k].mode, Object.keys(l[k].points).sort().map((r) => [r, l[k].points[r]])])); });
+    const more = `.sc-inspector [data-cur-menu="${kid}"]`;
+    const said = () => page.$eval(".sc-toast", (t) => t.textContent);
+    const items = () => page.$$eval(".sc-cur-menu [data-cur-apply]", (b) => b.map((x) => x.dataset.curApply).join());
+    const pick = async (act) => { await page.click(more); await page.click(`.sc-cur-menu [data-cur-apply="${act}"]`); };
+    const undoes = (before) => page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before);
+    ok(!!(await page.$(more)), "each Details row has a ⋯ menu");
+    await page.evaluate(() => { document.querySelector(".sl").focus(); });
+    await page.keyboard.press("Escape");
+    const atMore = await page.$eval(more, (b) => { b.scrollIntoView({ block: "nearest" }); const r = b.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return el === b ? "" : `covered by ${el && el.tagName}.${el && String((el.className && (el.className.baseVal ?? el.className)) || "")} at ${Math.round(r.left)},${Math.round(r.top)}`; });
+    if (atMore) console.log("note: the ⋯ button is " + atMore);
+    await page.click(more);
+    ok((await items()) === "all,reset,clear" && (await page.$eval(more, (b) => b.getAttribute("aria-expanded"))) === "true", "with no stretch selected the menu offers all through the film, reset and clear (" + (await items()) + ")");
+    ok((await page.evaluate(() => document.activeElement.dataset.curApply)) === "all", "the menu takes keyboard focus on its first item");
+    await page.keyboard.press("ArrowDown");
+    ok((await page.evaluate(() => document.activeElement.dataset.curApply)) === "reset", "the arrow keys move through it");
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sc-cur-menu")) && (await page.evaluate((k) => document.activeElement && document.activeElement.dataset.curMenu === k, kid)), "Esc closes it and gives focus back to ⋯");
+    await page.click(more);
+    await page.click(".sc-details");
+    ok(!(await page.$(".sc-cur-menu")), "a click anywhere else closes it");
+    await page.focus(more);
+    await page.keyboard.press("Enter");
+    ok(!!(await page.$(".sc-cur-menu")), "⋯ opens from the keyboard too");
+    await page.keyboard.press("Escape");
+
+    const before = await lanesNow();
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    const l0 = await laneOf();
+    const here = l0.vals[4];
+    await pick("all");
+    let l = await laneOf();
+    let msg = await said();
+    ok(l.at.join() === "0" && l.mode === "hold" && l.vals.every((v) => v === here), "Use this all through the film leaves one node at moment 1 with the playhead's setting, and the lane jumps so it stays flat (" + l.at.join() + ", " + l.mode + ")");
+    ok(/all through the film/.test(msg) && /Undo takes it back\.$/.test(msg), "it says so in the status line (" + msg + ")");
+    ok(await undoes(before), "one undo takes it back");
+
+    await pick("reset");
+    l = await laneOf();
+    msg = await said();
+    ok(l.at.join() === "0" && l.vals.every((v) => v === l0.vals[0]) && /how the scene starts/.test(msg) && /Undo takes it back\.$/.test(msg), "Reset to how the scene starts takes off the nodes after moment 1 and keeps the start (" + msg + ")");
+    ok(await undoes(before), "one undo takes Reset back");
+
+    await pick("clear");
+    l = await laneOf();
+    msg = await said();
+    ok(l.at.length === 0 && /lane is clear/.test(msg) && /Undo takes it back\.$/.test(msg), "Clear this lane takes every node off (" + msg + ")");
+    await pick("reset");
+    ok(/nothing to reset/.test(await said()), "Reset on a lane with nothing to reset says so plainly (" + (await said()) + ")");
+    ok(await undoes(before), "one undo brings the cleared lane back");
+
+    /* The selected stretch: drag across moments 1 to 3 on this lane, then use the playhead's setting there. */
+    const bx = await page.evaluate((lk) => { const heads = [...document.querySelectorAll(".sl-heads .sl-head")]; const i = heads.findIndex((h) => h.querySelector(`[data-lk="${lk}"]`)); if (i < 0) return null; const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[i].getBBox().y); const r = document.querySelectorAll(".sl-bg")[i].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, l0.lk);
+    ok(!!bx, "the curiosity's lane is on the timeline");
+    if (bx) {
+      const cw = bx.w / bx.n;
+      await page.mouse.move(bx.x + cw * 0.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 2.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      ok(!!(await page.$(".sl-area")), "a stretch is selected on the timeline");
+      await page.click(more);
+      ok((await items()) === "all,stretch,reset,clear" && /moment 1 to moment 3/.test(await page.$eval('[data-cur-apply="stretch"]', (b) => b.textContent)), "with a stretch selected the menu offers Use this in the selected stretch (" + (await items()) + ")");
+      await page.click('.sc-cur-menu [data-cur-apply="stretch"]');
+      l = await laneOf();
+      msg = await said();
+      ok(l.at.join() === "0,2,4" && [0, 1, 2].every((j) => l.vals[j] === here) && l.vals[4] === l0.vals[4], "it holds the playhead's setting from moment 1 to moment 3, the node inside taken off, the rest kept (" + l.at.join() + ")");
+      ok(/from moment 1 to moment 3/.test(msg) && /Undo takes it back\.$/.test(msg), "and says so (" + msg + ")");
+      ok(await undoes(before), "one undo takes the stretch back");
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+    }
+
+    /* A locked lane is refused, and nothing changes. */
+    await page.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), l0.lk);
+    await pick("clear");
+    msg = await said();
+    ok(/locked/.test(msg) && (await lanesNow()) === before, "a locked lane is refused with a plain message and left as it is (" + msg + ")");
+    await page.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], l0.lk);
+  }
+  /* Look ▾ (CapCut's Copy attributes and Paste attributes, for a whole moment): copy moment 3's look, paste it on
+     moment 6 (one undo step), paste it over a stretch, skip a locked lane, and the ⌥⌘C and ⌥⌘V shortcuts. */
+  {
+    const said = () => page.$eval(".sc-toast", (t) => t.textContent);
+    const lanesNow = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on, l[k].mode, Object.keys(l[k].points).sort().map((r) => [r, l[k].points[r]])])); });
+    const lookItems = () => page.$$eval(".sc-mlook-menu [data-look]", (b) => b.map((x) => x.dataset.look + (x.disabled ? "-off" : "")).join());
+    /* Every curiosity on a track, as Details reads it: the track it is on, and what it plays at moment j. */
+    const plays = (j) => page.evaluate((j) => { const E = window.CurioEngine, S = window.CurioScale, st = E.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (c in out || !S.known(c)) return; const tr = st.tracks.find((x) => x.curiosities.includes(c)); out[c] = String(S.fix(c, E.value(st.rows[j].id, tr.id, c))); })); return out; }, j);
+    /* The node at moment j on the lane plays() reads: the first track that carries each curiosity (when several
+       tracks carry one, each keeps its own lane, and the look gives each its own setting back, see byLane). */
+    const nodeAt = (j) => page.evaluate((j) => { const st = window.CurioEngine.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (c in out || st.tracks.find((x) => x.curiosities.includes(c)) !== t) return; const l = st.lanes[t.id + "|" + c]; const v = l && l.points[st.rows[j].id]; if (v != null) out[c] = String(v); })); return out; }, j);
+    /* What every lane plays at moment j, by lane key ("char2|characterPath"), for curiosities on several tracks. */
+    const byLane = (j) => page.evaluate((j) => { const E = window.CurioEngine, S = window.CurioScale, st = E.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (S.known(c) && st.tracks.filter((x) => x.curiosities.includes(c)).length > 1) out[t.id + "|" + c] = String(S.fix(c, E.value(st.rows[j].id, t.id, c))); })); return out; }, j);
+    await page.evaluate(() => { document.querySelector(".sl").focus(); });
+    await page.keyboard.press("Escape");
+    /* Make moment 3 differ from moments 6 to 8 on three lanes no link changes, so the paste has something to change:
+       a node at moment 3, and nodes keeping what moments 6, 7 and 8 play now (one node alone would hold everywhere). */
+    const made = await page.evaluate(() => {
+      const E = window.CurioEngine, S = window.CurioScale, st = E.state(), cmds = [], curs = [];
+      const linked = new Set(st.links.map((l) => l.to && l.to.curiosity));
+      st.tracks.forEach((t) => t.curiosities.forEach((c) => {
+        if (curs.length >= 3 || curs.includes(c) || linked.has(c) || !S.known(c) || S.domain(c).kind !== "choice" || st.tracks.find((x) => x.curiosities.includes(c)) !== t) return;
+        const opts = S.domain(c).options, here = [5, 6, 7].map((j) => E.value(st.rows[j].id, t.id, c));
+        const v = opts.find((o) => !here.map(String).includes(String(o)) && String(o) !== String(E.value(st.rows[2].id, t.id, c)));
+        if (v == null || here.some((x) => x == null)) return;
+        curs.push(c);
+        cmds.push({ type: "setPoint", row: st.rows[2].id, track: t.id, curiosity: c, value: v });
+        [5, 6, 7].forEach((j, i) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: c, value: S.fix(c, here[i]) }));
+      }));
+      E.send({ type: "batch", label: "Test: moment 3's look", commands: cmds });
+      return curs;
+    });
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const look = ".sc-inspector [data-look-menu]";
+    ok(!!(await page.$(look)) && /Moment 3/.test(await page.$eval(".sc-insp-h", (h) => h.textContent)), "Details' header for My film has a Look ▾ menu");
+    await page.click(look);
+    ok((await lookItems()) === "copy,paste-off" && (await page.evaluate(() => document.activeElement.dataset.look)) === "copy", "with nothing copied yet it offers Copy this moment's look, and Paste is greyed (" + (await lookItems()) + ")");
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sc-mlook-menu")) && (await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-look-menu"))), "Esc closes it and gives focus back to Look ▾");
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const at3 = await plays(2);
+    const lanes3 = await byLane(2);
+    await page.click(look);
+    await page.click('.sc-mlook-menu [data-look="copy"]');
+    let msg = await said();
+    const kept = await page.evaluate(() => JSON.parse(sessionStorage.getItem("curiosities-screen-look-v1") || "null"));
+    const n3 = Object.keys(at3).length;
+    ok(new RegExp("^Copied moment 3's look: " + n3 + " settings\\.$").test(msg), "Copy says how many settings it took (" + msg + ")");
+    ok(kept && kept.from === 2 && Object.keys(kept.values).length === n3 && Object.keys(at3).every((c) => String(kept.values[c]) === at3[c]), "the copied look is every setting moment 3 plays, kept for this tab in sessionStorage");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && !(await page.evaluate(() => /look/i.test(localStorage.getItem("curiosities-engine-v1") || ""))), "copying changes nothing in the film and is not saved with it");
+
+    /* Paste at moment 6. */
+    await page.evaluate(() => window.CurioScreen.setRow(5));
+    const before = await lanesNow();
+    const at6 = await plays(5);
+    const differ = Object.keys(at3).filter((c) => at3[c] !== at6[c]);
+    await page.click(look);
+    ok((await lookItems()) === "copy,paste" && /Moment 3's look .* onto moment 6/.test(await page.$eval('[data-look="paste"]', (b) => b.textContent)), "after a copy, Paste the look here names both moments");
+    await page.click('.sc-mlook-menu [data-look="paste"]');
+    msg = await said();
+    const after6 = await plays(5);
+    const nodes6 = await nodeAt(5);
+    ok(new RegExp("^Pasted moment 3's look onto moment 6: " + differ.length + " settings? changed, " + (n3 - differ.length) + " already matched\\.").test(msg) && /Undo takes it back\.$/.test(msg), "Paste says how many settings changed and how many already matched (" + msg + ")");
+    ok(differ.length >= made.length && differ.every((c) => nodes6[c] === at3[c]), "every setting that differed gets a node at moment 6 with moment 3's setting (" + differ.length + ")");
+    const lanes6 = await byLane(5);
+    ok(Object.keys(lanes3).every((lk) => lanes6[lk] === lanes3[lk]), "a curiosity on several tracks (one per character) gets each track's own moment 3 setting back (" + Object.keys(lanes3).length + " lanes)");
+    const still = Object.keys(at3).filter((c) => after6[c] !== at3[c]);
+    ok(made.every((c) => after6[c] === at3[c]) && (still.length === 0 || /a link or a pin/.test(msg)), "moment 6 now plays moment 3's look" + (still.length ? " (a link or a pin still changes " + still.join(", ") + ", and the message says so)" : ""));
+    ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes the whole paste back");
+
+    /* Paste into a selected stretch: moments 6 to 8. */
+    const bx = await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const bg = document.querySelector(".sl-bg"); if (!bg) return null; sc.scrollTop = Math.max(0, bg.getBBox().y); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; });
+    ok(!!bx && bx.n >= 8, "a lane is on the timeline to select a stretch on");
+    if (bx) {
+      const cw = bx.w / bx.n;
+      await page.mouse.move(bx.x + cw * 5.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 7.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      ok(!!(await page.$(".sl-area")), "a stretch is selected on the timeline");
+      await page.click(look);
+      ok((await lookItems()) === "copy,paste,stretch" && /from moment 6 to moment 8/.test(await page.$eval('[data-look="stretch"]', (b) => b.textContent)), "with a stretch selected Look ▾ offers Paste into the selected stretch (" + (await lookItems()) + ")");
+      await page.click('.sc-mlook-menu [data-look="stretch"]');
+      msg = await said();
+      const ends = [await nodeAt(5), await nodeAt(7)];
+      const mid = [await plays(5), await plays(6), await plays(7)];
+      ok(/^Pasted moment 3's look onto moments 6 to 8: \d+ settings? changed, held from start to end, \d+ already matched\./.test(msg) && /Undo takes it back\.$/.test(msg), "it says what it did (" + msg + ")");
+      ok(made.every((c) => ends[0][c] === at3[c] && ends[1][c] === at3[c] && mid.every((m) => m[c] === at3[c])), "every lane that changed has a node at the start and the end of the stretch, and plays the look all through it");
+      ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes the stretch back");
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+    }
+
+    /* A locked lane is skipped, and ⌥⌘V pastes at the playhead (no stretch selected now). */
+    const lockLk = await page.evaluate((c) => { const st = window.CurioEngine.state(); return st.tracks.find((t) => t.curiosities.includes(c)).id + "|" + c; }, made[0]);
+    await page.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), lockLk);
+    await page.evaluate(() => window.CurioScreen.setRow(7));
+    const at8 = await nodeAt(7);
+    const clip0 = await page.evaluate(() => localStorage.getItem("curiosities-screen-clip-v1"));
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Alt+KeyV");
+    msg = await said();
+    const after8 = await nodeAt(7);
+    ok(/^Pasted moment 3's look onto moment 8/.test(msg) && /1 locked lane was skipped/.test(msg) && after8[made[0]] === at8[made[0]] && made.slice(1).every((c) => after8[c] === at3[c]), "⌥⌘V pastes at the playhead, and a locked lane is skipped and named (" + msg + ")");
+    ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes that paste back");
+    await page.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], lockLk);
+
+    /* ⌥⌘C copies the playhead's moment; it is not ⌘C (the node clipboard stays as it was). */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Alt+KeyC");
+    msg = await said();
+    ok(/^Copied moment 1's look: \d+ settings\.$/.test(msg) && (await page.evaluate(() => JSON.parse(sessionStorage.getItem("curiosities-screen-look-v1")).from)) === 0, "⌥⌘C copies the playhead's moment (" + msg + ")");
+    ok((await page.evaluate(() => localStorage.getItem("curiosities-screen-clip-v1"))) === clip0 && (await lanesNow()) === before, "⌥⌘C and ⌥⌘V do not set off ⌘C, ⌘V or anything else");
+    await page.keyboard.press("?");
+    const listed = await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent));
+    ok(listed.some((t) => /^⌥⌘CCopy this moment's look/.test(t)) && listed.some((t) => /^⌥⌘VPaste the look here/.test(t)), "the Shortcuts window lists ⌥⌘C and ⌥⌘V");
+    await page.keyboard.press("Escape");
+    /* Take back the test's own three nodes at moment 3. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
+  }
+  /* Ratio. */
+  ok(!!(await page.$(".sc-transport select[data-ratio]")), "the Player's transport bar has a Ratio menu");
+  const shape = () => page.evaluate(() => { const f = document.querySelector(".sc-viewer.mine .sc-frame"), r = f.getBoundingClientRect(), s = f.querySelector("svg").getBoundingClientRect(), i = document.querySelector(".sc-viewer.insp .sc-frame"), ir = i && i.getBoundingClientRect(); return { shape: f.dataset.shape, w: r.width, h: r.height, sw: s.width, sh: s.height, cx: s.left + s.width / 2 - (r.left + r.width / 2), insp: ir ? ir.width / ir.height : null }; });
+  const wide0 = await shape();
+  const setRatio = (v) => page.evaluate((v) => { const s = document.querySelector(".sc-transport select[data-ratio]"); s.value = v; s.dispatchEvent(new Event("change", { bubbles: true })); }, v);
+  await setRatio("vertical 9:16");
+  ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|canvasFill.ratio")); return lk && st.lanes[lk].points[st.rows[window.CurioScreen.row()].id] === "vertical 9:16"; }), "Ratio writes a Frame shape node at the playhead");
+  const tall = await shape();
+  ok(tall.shape === "vertical" && tall.h > tall.w * 1.5 && wide0.w > wide0.h, `my film's frame turns vertical (${Math.round(tall.w)}×${Math.round(tall.h)}, was ${Math.round(wide0.w)}×${Math.round(wide0.h)})`);
+  ok(Math.abs(tall.sw - tall.w) < 2 && Math.abs(tall.sh - tall.h) < 2 && Math.abs(tall.cx) < 2 && (await page.evaluate(() => document.querySelector(".sc-viewer.mine .sc-frame > svg").getAttribute("preserveAspectRatio"))) === "xMidYMid slice", "the picture is cropped to fill the vertical frame, centered");
+  ok(tall.insp == null || tall.insp > 1.5, "inspiration films keep their own shape");
+  ok(await page.evaluate(() => document.querySelector(".sc-transport select[data-ratio]").value === "vertical 9:16"), "the menu shows the shape at the playhead");
+  await page.screenshot({ path: path.join(SHOTS, "screen-8-ratio-keyjumps.png") });
+  await setRatio("cinema 2.39");
+  const cin = await shape();
+  ok(cin.shape === "cinema" && Math.abs(cin.w / cin.h - 2.39) < 0.05, "cinema makes the frame extra wide (" + (cin.w / cin.h).toFixed(2) + ")");
+  await setRatio("wide 16:9");
+  ok((await shape()).shape === "wide", "back to wide");
+
+  /* Guides (CapCut's Player guides): Guides ▾ in the transport bar, any combination, over my film only, in its
+     frame shape, saved in the Screen's view, never an undo step, never in the way of a click. */
+  {
+    const gd = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const o = f.querySelector(".sc-gd");
+      const rel = (el) => { const b = el.getBoundingClientRect(); return { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, w: b.width / r.width, h: b.height / r.height }; };
+      return {
+        on: o ? [...o.querySelectorAll("[data-gd]")].map((g) => g.dataset.gd) : [],
+        box: o && rel(o),
+        thirds: o ? [...o.querySelectorAll('[data-gd="thirds"] .sc-gd-v')].map((e) => rel(e).l) : [],
+        thirdsH: o ? [...o.querySelectorAll('[data-gd="thirds"] .sc-gd-h')].map((e) => rel(e).t) : [],
+        golden: o ? [...o.querySelectorAll('[data-gd="golden"] .sc-gd-v')].map((e) => rel(e).l) : [],
+        cross: o && o.querySelector(".sc-gd-cross") ? rel(o.querySelector(".sc-gd-cross")) : null,
+        action: o && o.querySelector(".sc-gd-box.action") ? rel(o.querySelector(".sc-gd-box.action")) : null,
+        title: o && o.querySelector(".sc-gd-box.title") ? rel(o.querySelector(".sc-gd-box.title")) : null,
+        spot: o && o.querySelector(".sc-gd-spot") ? { el: rel(o.querySelector(".sc-gd-spot")), par: o.querySelector(".sc-gd-att").getAttribute("preserveAspectRatio"), cap: o.querySelector(".sc-gd-cap").textContent } : null,
+        insp: document.querySelectorAll(".sc-viewer.insp .sc-gd").length,
+        pe: o ? getComputedStyle(o).pointerEvents : null,
+        shape: f.dataset.shape, w: r.width, h: r.height,
+      };
+    });
+    const tick = (id) => page.click(`.sc-guides-menu [data-guide="${id}"]`);
+    const near = (a, b, e) => Math.abs(a - b) < (e || 0.015);
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    ok(!!(await page.$('.sc-transport [data-act="guides-menu"]')) && !(await page.$(".sc-guides-menu")) && (await gd()).on.length === 0, "the transport bar has a Guides ▾ menu, closed, with nothing drawn yet");
+    await page.click('[data-act="guides-menu"]');
+    const items = await page.evaluate(() => [...document.querySelectorAll(".sc-guides-menu label")].map((l) => ({ id: l.querySelector("input").dataset.guide, tip: l.title, text: l.textContent.trim() })));
+    ok(items.map((x) => x.id).join() === "thirds,center,safe,golden,attention" && items.every((x) => x.tip.startsWith(x.text + ":")), "it lists Thirds, Center cross, Safe areas, Golden ratio and Where attention is, each with a plain tooltip");
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await tick("thirds");
+    let g = await gd();
+    ok(g.on.join() === "thirds" && g.thirds.length === 2 && near(g.thirds[0], 1 / 3) && near(g.thirds[1], 2 / 3) && near(g.thirdsH[0], 1 / 3) && near(g.thirdsH[1], 2 / 3), "Thirds draws two lines each way at a third and two thirds (" + g.thirds.map((x) => x.toFixed(3)).join(", ") + ")");
+    ok(g.insp === 0, "guides draw over my film only, not the inspiration films");
+    ok(!!(await page.$(".sc-guides-menu")), "the menu stays open while you tick");
+    await tick("center");
+    g = await gd();
+    ok(g.cross && near(g.cross.l + g.cross.w / 2, 0.5) && near(g.cross.t + g.cross.h / 2, 0.5), "Center cross marks the middle");
+    await tick("safe");
+    g = await gd();
+    ok(g.action && g.title && near(g.action.l, 0.05) && near(g.action.w, 0.9) && near(g.title.l, 0.1) && near(g.title.h, 0.8), "Safe areas draw the action box at 90% and the title box at 80%");
+    await tick("golden");
+    g = await gd();
+    ok(g.golden.length === 2 && near(g.golden[0], 0.382) && near(g.golden[1], 0.618), "Golden ratio draws its lines at 38% and 62%");
+    await tick("attention");
+    g = await gd();
+    ok(g.spot && g.spot.el.w > 0.05 && g.spot.el.l >= -0.2 && g.spot.el.l < 1 && /^Eyes on: /.test(g.spot.cap), "Where attention is glows on part of the picture (" + (g.spot && g.spot.cap) + ")");
+    ok(g.on.join() === "thirds,center,safe,golden,attention" && g.thirds.length === 2 && g.cross && g.action, "all five combine at once");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "guides change nothing in the film (no undo steps)");
+    ok(JSON.stringify(await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-v1")).guides)) === JSON.stringify(["thirds", "center", "safe", "golden", "attention"]), "the guides are kept in the Screen's view (curiosities-screen-v1, guides)");
+    ok(g.pe === "none" && near(g.box.l, 0) && near(g.box.w, 1) && near(g.box.h, 1), "the overlay covers the frame exactly and lets clicks through");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8b-guides.png") });
+    /* A click anywhere else closes the menu; a click on the frame still reaches it. */
+    await page.click(".sc-viewer.insp .sc-frame");
+    ok(!(await page.$(".sc-guides-menu")) && (await page.evaluate(() => window.CurioScreen.state().focus)) !== "mine", "a click outside closes the menu (and picks the inspiration film)");
+    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); const x = r.left + r.width / 3, y = r.top + r.height / 3; const el = document.elementFromPoint(x, y); return { x, y, inGd: !!el.closest(".sc-gd"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; });
+    await page.mouse.click(hit.x, hit.y);
+    ok(!hit.inGd && hit.inFrame && (await page.evaluate(() => window.CurioScreen.state().focus)) === "mine", "a click right where the thirds lines cross still reaches my film's frame");
+    /* The guides follow the vertical frame shape. */
+    await setRatio("vertical 9:16");
+    g = await gd();
+    ok(g.shape === "vertical" && g.h > g.w * 1.5 && near(g.box.w, 1) && near(g.box.h, 1) && near(g.thirds[0], 1 / 3) && near(g.action.w, 0.9) && near(g.cross.l + g.cross.w / 2, 0.5), `in the vertical frame the guides take its shape (${Math.round(g.w)}×${Math.round(g.h)})`);
+    ok(g.spot && g.spot.par === "xMidYMid slice", "the attention glow is cropped with the picture, so it stays on the same spot");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8c-guides-vertical.png") });
+    await setRatio("wide 16:9");
+    /* A reload keeps them; turning them off clears them; ⌘; still flips the thirds guide. */
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    g = await gd();
+    ok(g.on.join() === "thirds,center,safe,golden,attention", "the guides survive a reload");
+    await page.click('[data-act="guides-menu"]');
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-guides-menu input")].filter((i) => i.checked).length)) === 5, "the menu shows them ticked after the reload");
+    for (const id of ["thirds", "center", "safe", "golden", "attention"]) await tick(id);
+    ok((await gd()).on.length === 0 && !(await page.$(".sc-viewer.mine .sc-gd")), "unticking every guide clears the frame");
+    await page.click('[data-act="guides-menu"]');
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+;");
+    ok((await gd()).on.join() === "thirds", "⌘; turns the thirds guide on");
+    await page.keyboard.press("Control+;");
+    ok((await gd()).on.length === 0, "and off again");
+  }
+
+  /* Compare ◐ (CapCut's before/after compare slider): a toggle and a select in the transport bar split my film's
+     frame; left of a draggable line is the film I'm learning from or my film when I opened the Screen. A view
+     setting kept in curiosities-screen-v1 (compare), never an undo step, never in the way of a click. */
+  {
+    const cmp = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const c = f.querySelector(".sc-cmp");
+      const rel = (el) => { const b = el.getBoundingClientRect(); return { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, w: b.width / r.width, h: b.height / r.height }; };
+      const line = c && c.querySelector("[data-cmp-line]");
+      const pic = c && c.querySelector(".sc-cmp-pic svg");
+      const lb = line && line.getBoundingClientRect();
+      return {
+        on: !!c, with: c && c.dataset.cmp, box: c && rel(c),
+        lineX: lb ? (lb.left + lb.width / 2 - r.left) / r.width : null, lineY: lb ? lb.top + lb.height / 2 : null, lineCX: lb ? lb.left + lb.width / 2 : null,
+        pic: pic ? pic.innerHTML : null, par: pic && pic.getAttribute("preserveAspectRatio"),
+        main: f.querySelector(":scope > svg").innerHTML,
+        insp: (document.querySelector(".sc-viewer.insp .sc-frame > svg") || {}).innerHTML,
+        labels: c ? [...c.querySelectorAll(".sc-cmp-lab")].map((l) => ({ text: l.textContent, ...rel(l) })) : [],
+        clip: c && c.querySelector(".sc-cmp-pic") ? getComputedStyle(c.querySelector(".sc-cmp-pic")).clipPath : null,
+        pe: c ? getComputedStyle(c).pointerEvents : null,
+        saved: (JSON.parse(localStorage.getItem("curiosities-screen-v1")) || {}).compare,
+        sel: (document.querySelector(".sc-transport [data-compare-with]") || {}).value,
+        shape: f.dataset.shape, w: r.width, h: r.height, left: r.left, top: r.top,
+      };
+    });
+    const near = (a, b, e) => Math.abs(a - b) < (e || 0.02);
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const undo0 = await page.evaluate(() => window.CurioEngine.history().undo.length);
+    ok(!!(await page.$('.sc-transport [data-act="compare"]')) && !!(await page.$(".sc-transport select[data-compare-with]")) && !(await cmp()).on, "the transport bar has Compare ◐ and a select of what to compare with, off to start");
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-transport [data-compare-with] option")].map((o) => o.textContent).join("|"))) === "The film I'm learning from|When I opened the Screen", "the select offers the film I'm learning from and when I opened the Screen");
+    /* Toggle on: the film I'm learning from at the matching moment, left of a line in the middle. */
+    await page.click('.sc-transport [data-act="compare"]');
+    let c = await cmp();
+    ok(c.on && c.with === "insp" && near(c.box.l, 0) && near(c.box.w, 1) && near(c.box.h, 1) && near(c.lineX, 0.5), "Compare ◐ splits my film's frame with a line in the middle");
+    ok(c.pic && c.pic === c.insp && c.pic !== c.main, "left of the line is the inspiration film's frame at the matching moment");
+    ok(c.labels.length === 2 && /^Learning from: /.test(c.labels[0].text) && c.labels[0].l < 0.1 && c.labels[0].t < 0.15 && c.labels[1].text === "My film now" && c.labels[1].l + c.labels[1].w > 0.9 && c.labels[1].t < 0.15, "small labels at the top corners name each side (" + c.labels.map((l) => l.text).join(" / ") + ")");
+    ok(c.pe === "none", "the split lets clicks through except on the line");
+    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); /* Halfway between the frame's left edge and the line's own grab area, so a narrow frame still has room. */ const ln = document.querySelector(".sc-viewer.mine .sc-cmp-line").getBoundingClientRect(); const el = document.elementFromPoint((r.left + ln.left) / 2, r.top + r.height * 0.6); return { inCmp: !!el.closest(".sc-cmp"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame"), what: (() => { const a = []; let n = el; while (n && a.length < 5) { a.push((n.tagName || "") + "." + String((n.className && (n.className.baseVal ?? n.className)) || "")); n = n.parentElement; } return a.join(" < ") + " frame " + [r.left, r.top, r.width, r.height].map(Math.round).join(","); })() }; });
+    ok(!hit.inCmp && hit.inFrame, "a click on the left picture still reaches my film's frame" + (hit.inFrame && !hit.inCmp ? "" : ` (hit ${hit.what})`));
+    /* Drag the line. */
+    await page.mouse.move(c.lineCX, c.lineY);
+    await page.mouse.down();
+    await page.mouse.move(c.left + c.w * 0.4, c.lineY, { steps: 3 });
+    await page.mouse.move(c.left + c.w * 0.25, c.lineY, { steps: 3 });
+    await page.mouse.up();
+    c = await cmp();
+    ok(near(c.lineX, 0.25) && near(c.saved.split, 25, 1.5) && /inset\(0(px)? 7[45]/.test(c.clip || ""), "dragging the line moves the split (" + (c.saved && c.saved.split) + "%, " + c.clip + ")");
+    ok((await page.evaluate(() => window.CurioScreen.row())) === 1, "dragging the line doesn't move the playhead");
+    /* Keyboard: focus the line and use ← →. */
+    await page.focus(".sc-cmp [data-cmp-line]");
+    const s0 = (await cmp()).saved.split;
+    for (let k = 0; k < 3; k++) await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowLeft");
+    c = await cmp();
+    ok(near(c.saved.split, s0 + 4, 0.01) && near(c.lineX, (s0 + 4) / 100) && (await page.evaluate(() => window.CurioScreen.row())) === 1 && (await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-cmp-line"))), "← → on the focused line move the split, not the playhead (" + c.saved.split + "%)");
+    /* When I opened the Screen: the film as it was on open; a change since shows on the right only. */
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-compare-with]"); s.value = "open"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    c = await cmp();
+    ok(c.with === "open" && c.sel === "open" && c.labels[0].text === "When I opened the Screen" && c.pic === c.main, "\"When I opened the Screen\" shows my film as it was then (no change yet, so the same picture)");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && (await page.evaluate(() => window.CurioEngine.history().undo.length)) === undo0, "Compare changes nothing in the film and adds no undo steps");
+    const before = c.pic;
+    const changed = await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      if (!t) return false;
+      const row = st.rows[window.CurioScreen.row()].id;
+      const now = E.value(row, t.id, "shotSize");
+      return E.send({ type: "setPoint", row, track: t.id, curiosity: "shotSize", value: now === "insert" ? "wide" : "insert" }).ok;
+    });
+    c = await cmp();
+    ok(changed && c.pic === before && c.main !== before, "after a change, the left still shows the film as it was and the right shows it now");
+    await page.evaluate(() => window.CurioEngine.undo());
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "the film is back as it was");
+    /* Guides sit over the split. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+;");
+    ok(await page.evaluate(() => { const c = document.querySelector(".sc-viewer.mine .sc-cmp"), g = document.querySelector(".sc-viewer.mine .sc-gd"); return !!(c && g && c.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING); }), "the guides are drawn over the split");
+    await page.keyboard.press("Control+;");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8d-compare.png") });
+    /* Saved across a reload. */
+    const kept = (await cmp()).saved;
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    c = await cmp();
+    ok(c.on && c.with === "open" && c.sel === "open" && near(c.lineX, kept.split / 100) && JSON.stringify(c.saved) === JSON.stringify(kept), "Compare, its choice and the split survive a reload (" + JSON.stringify(kept) + ")");
+    /* The vertical frame: the split takes its shape and the left picture is cropped the same way. */
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-compare-with]"); s.value = "insp"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    await setRatio("vertical 9:16");
+    c = await cmp();
+    ok(c.shape === "vertical" && c.h > c.w * 1.5 && near(c.box.l, 0) && near(c.box.w, 1) && near(c.box.h, 1) && c.par === "xMidYMid slice" && near(c.lineX, kept.split / 100) && c.labels.every((l) => l.l >= -0.01 && l.l + l.w <= 1.01), `in the vertical frame the split takes its shape (${Math.round(c.w)}×${Math.round(c.h)})`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-8e-compare-vertical.png") });
+    await setRatio("wide 16:9");
+    /* Off again. */
+    await page.click('.sc-transport [data-act="compare"]');
+    ok(!(await cmp()).on && (await cmp()).saved.on === false, "Compare ◐ again turns it off");
+  }
+
+  /* Captions (CapCut's captions, from marker notes): a toggle and a select in the transport bar put the note of
+     the moment at the playhead at the bottom of my film's frame, or a dimmer "What's happening" line when the
+     moment has no note. A view setting kept in curiosities-screen-v1 (captions), never in the way of a click. */
+  {
+    const cap = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const c = f.querySelector(".sc-cap");
+      const p = c && c.querySelector("p");
+      const b = p && p.getBoundingClientRect();
+      const cs = p && getComputedStyle(p);
+      return {
+        on: !!(document.querySelector('.sc-transport [data-act="captions"]') || {}).classList?.contains("on"),
+        kind: c ? c.dataset.cap : null, text: p ? p.textContent : null,
+        box: b && { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, r: (b.right - r.left) / r.width, b: (b.bottom - r.top) / r.height },
+        cx: b ? b.left + b.width / 2 : null, cy: b ? b.top + b.height / 2 : null,
+        lines: cs ? Math.round(b.height / parseFloat(cs.lineHeight)) : 0,
+        /* How many lines the note would take with no limit: a copy without the two-line clamp. */
+        clipped: p ? (() => { const q = p.cloneNode(true); q.style.cssText = "display:block;-webkit-line-clamp:none;line-clamp:none;position:absolute;visibility:hidden;width:" + b.width + "px"; p.parentNode.appendChild(q); const n = Math.round(q.getBoundingClientRect().height / parseFloat(cs.lineHeight)); q.remove(); return n > 2; })() : false, clamp: cs ? cs.webkitLineClamp : null,
+        fontPx: cs ? parseFloat(cs.fontSize) : 0, color: cs ? cs.color : null, auto: c ? !!c.querySelector(".sc-cap-auto") : false,
+        pe: c ? [getComputedStyle(c).pointerEvents, cs.pointerEvents] : null, z: c ? getComputedStyle(c).zIndex : null,
+        saved: (JSON.parse(localStorage.getItem("curiosities-screen-v1")) || {}).captions,
+        mode: (document.querySelector(".sc-transport [data-captions-mode]") || {}).value,
+        shape: f.dataset.shape, w: r.width, h: r.height,
+      };
+    });
+    const rowId = (j) => page.evaluate((j) => window.CurioEngine.state().rows[j].id, j);
+    const setMarks = (list) => page.evaluate((list) => { const t = window.CurioLanes.tools(); const ids = list.map((m) => m.row); t.markers = t.markers.filter((m) => !ids.includes(m.row)).concat(list); }, list);
+    const ids = [await rowId(2), await rowId(3), await rowId(4), await rowId(5)];
+    const marksBefore = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    await page.evaluate((ids) => { const t = window.CurioLanes.tools(); t.markers = t.markers.filter((m) => !ids.includes(m.row)); }, ids);
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands" }, { row: ids[2], color: "red", note: "she finally says it" }, { row: ids[3], color: "purple", note: "Attention moves to the voice", auto: true }]);
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    ok(!!(await page.$('.sc-transport [data-act="captions"]')) && !(await page.$(".sc-transport select[data-captions-mode]")) && !(await cap()).on && (await cap()).kind === null, "the transport bar has Captions, off to start, with no caption drawn (and no select taking room)");
+    await page.click('.sc-transport [data-act="captions"]');
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-transport [data-captions-mode] option")].map((o) => o.textContent).join("|"))) === "My notes only|My notes and what changes", "turned on, a select next to it offers my notes only, or my notes and what changes");
+    await page.evaluate(() => document.querySelector(".sc-viewer.mine .sc-frame").scrollIntoView({ block: "center" }));
+    let c = await cap();
+    ok(c.on && c.kind === "note" && c.text === "the joke lands" && c.saved.on === true && c.saved.mode === "notes", "Captions shows the marker's note on the playhead's moment (" + c.text + ")");
+    ok(c.box && c.box.b > 0.75 && c.box.b <= 1 && c.box.l >= 0 && c.box.r <= 1 && Math.abs((c.box.l + c.box.r) / 2 - 0.5) < 0.03, "the caption sits at the bottom of my film's frame, centered, like a subtitle");
+    ok(c.pe && c.pe.every((x) => x === "none"), "the caption lets every click through");
+    const hit = await page.evaluate(({ x, y }) => { const el = document.elementFromPoint(x, y); return { inCap: !!el.closest(".sc-cap"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; }, { x: c.cx, y: c.cy });
+    ok(!hit.inCap && hit.inFrame, "a click on the caption reaches my film's frame");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    c = await cap();
+    ok(c.kind === "note" && c.text === "she finally says it", "it changes with the playhead (" + c.text + ")");
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    ok((await cap()).kind === null, "with my notes only, a moment with no note has no caption");
+    await page.evaluate(() => window.CurioScreen.setRow(5));
+    c = await cap();
+    ok(c.kind === "auto" && c.auto && /^Attention moves to the voice \(auto\)$/.test(c.text), "an auto marker's note shows too, marked (auto) (" + c.text + ")");
+    /* A note written in the timeline shows right away, without moving the playhead. */
+    await page.evaluate((id) => { window.CurioLanes.tools().markers.find((m) => m.row === id).note = "a turn I like"; window.CurioLanes.tools().markers.find((m) => m.row === id).auto = false; }, ids[3]);
+    await page.click(".sc-transport .sc-tc");
+    await page.waitForTimeout(50);
+    c = await cap();
+    ok(c.kind === "note" && c.text === "a turn I like", "a changed note shows in the caption right away (" + c.text + ")");
+    /* My notes and what changes: a moment with no note gets a dimmer "What's happening" line. */
+    const changed = await page.evaluate((id) => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      if (!t) return false;
+      const before = E.value(st.rows[2].id, t.id, "shotSize");
+      return E.send({ type: "setPoint", row: id, track: t.id, curiosity: "shotSize", value: before === "insert" ? "wide" : "insert" }).ok;
+    }, ids[1]);
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-captions-mode]"); s.value = "changes"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    c = await cap();
+    ok(changed && c.kind === "hint" && /^What's happening .*Shot size: .+ → .+/.test(c.text) && c.mode === "changes" && c.saved.mode === "changes", "\"My notes and what changes\" shows what changed on a moment with no note (" + c.text + ")");
+    const hintAlpha = (c.color.match(/[\d.]+/g) || []).map(Number)[3];
+    ok(hintAlpha != null && hintAlpha < 0.9, "the \"What's happening\" line is dimmer than a note (" + c.color + ")");
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    ok((await cap()).text === "the joke lands", "a note still wins over what changes");
+    await page.evaluate(() => window.CurioEngine.undo());
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "Captions change nothing in the film");
+    /* Two lines at most, with an ellipsis. */
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands, and then the second joke lands on top of it, and the whole room falls apart laughing for a very long time while the camera holds still" }]);
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    c = await cap();
+    ok(c.lines <= 2 && c.clipped && c.clamp === "2", "a long note keeps to two lines with an ellipsis (" + c.lines + " lines)");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8f-captions.png") });
+    /* Saved across a reload (the markers are saved too, as the timeline saves them). */
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands" }]);
+    await page.evaluate(() => localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(window.CurioLanes.tools())));
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    c = await cap();
+    ok(c.on && c.mode === "changes" && JSON.stringify(c.saved) === JSON.stringify({ on: true, mode: "changes" }) && c.text === "the joke lands", "Captions and the choice survive a reload");
+    /* The vertical frame: the caption stays inside its shape. */
+    await setRatio("vertical 9:16");
+    c = await cap();
+    ok(c.shape === "vertical" && c.h > c.w * 1.5 && c.box && c.box.l >= 0 && c.box.r <= 1.001 && c.box.b <= 1 && c.box.b > 0.7 && c.lines <= 2 && c.fontPx >= 10, `in the vertical frame the caption stays inside its shape (${Math.round(c.w)}×${Math.round(c.h)}, ${c.fontPx}px)`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-8g-captions-vertical.png") });
+    await setRatio("wide 16:9");
+    /* It sits over the guides and under the Compare line. */
+    await page.keyboard.press("Control+;");
+    await page.click('.sc-transport [data-act="compare"]');
+    ok(await page.evaluate(() => { const f = document.querySelector(".sc-viewer.mine .sc-frame"), c = f.querySelector(".sc-cap"), g = f.querySelector(".sc-gd"), l = f.querySelector(".sc-cmp-line"); return !!(c && g && l && g.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING) && Number(getComputedStyle(c).zIndex) < Number(getComputedStyle(l).zIndex); }), "the caption is drawn over the guides and under the Compare line");
+    await page.click('.sc-transport [data-act="compare"]');
+    await page.keyboard.press("Control+;");
+    /* Full player view (⇧⌘F) shows the caption too, bigger. */
+    const small = (await cap()).fontPx;
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Shift+F");
+    c = await cap();
+    ok((await page.evaluate(() => document.querySelector(".sc-page").dataset.fullplayer === "1")) && c.text === "the joke lands" && c.fontPx > small, "the caption shows in full player view, bigger (" + c.fontPx + "px)");
+    await page.keyboard.press("Escape");
+    /* Off again, and the markers put back as they were. */
+    await page.click('.sc-transport [data-act="captions"]');
+    c = await cap();
+    ok(!c.on && c.kind === null && c.saved.on === false, "Captions again turns them off");
+    await page.evaluate((m) => { window.CurioLanes.tools().markers = JSON.parse(m); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(window.CurioLanes.tools())); }, marksBefore);
+  }
+
+  /* Markers with a color and a note (CapCut's markers): add one, double-click its flag to write a note and pick
+     a color, find it in the Markers list, jump to it, delete it; an old save (plain row ids) still loads. */
+  {
+    const MK = () => page.evaluate(() => window.CurioLanes.tools().markers);
+    const rowId = (j) => page.evaluate((j) => window.CurioEngine.state().rows[j].id, j);
+    const r2 = await rowId(2);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = t.markers.filter((m) => m.row !== id); window.CurioScreen.setRow(2); }, r2);
+    await page.evaluate(() => { document.activeElement && document.activeElement.blur(); const sc = document.querySelector(".sc-lanes .sl-scroll"); if (sc) sc.scrollLeft = 0; });
+    await page.keyboard.press("m");
+    let mk = (await MK()).find((m) => m.row === r2);
+    ok(mk && mk.color === "orange" && mk.note === "", "M adds a marker that has a color (orange to start) and an empty note");
+    const flag = '.sl-topsvg .sl-marker[data-marker="2"] path';
+    await page.dblclick(flag);
+    ok(!!(await page.$(".sl-mkpop")), "double-clicking a marker's flag opens its pop-up");
+    ok((await page.$$(".sl-mkpop [data-mk-color]")).length === 6, "the pop-up offers six colors");
+    await page.fill(".sl-mkpop [data-mk-note]", "the joke lands");
+    await page.click('.sl-mkpop [data-mk-color="blue"]');
+    await page.screenshot({ path: path.join(SHOTS, "screen-9-marker-popup.png") });
+    await page.click('.sl-mkpop [data-l="done"]');
+    mk = (await MK()).find((m) => m.row === r2);
+    ok(!(await page.$(".sl-mkpop")) && mk && mk.note === "the joke lands" && mk.color === "blue", "Done keeps the note and the color");
+    ok(await page.$eval('.sl-topsvg .sl-marker[data-marker="2"]', (g) => /the joke lands/.test(g.querySelector("title").textContent) && /#4dabf7/i.test(g.getAttribute("style"))), "the flag is drawn blue with the note as its tooltip");
+    ok(/^the joke/.test(await page.$eval('.sl-topsvg .sl-marker[data-marker="2"] .sl-mklabel', (t) => t.textContent).catch(() => "")), "the note is written beside the flag when there is room");
+    await page.dblclick(flag);
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sl-mkpop")), "Esc closes the marker pop-up");
+    /* The Markers list: jump to a marker. */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.click('[data-act="marker-list"]');
+    const item = await page.$('.sl-marklist [data-mk-go="2"]');
+    ok(item && /Moment 3/.test(await item.textContent()) && /the joke lands/.test(await item.textContent()) && !!(await item.$(".sl-mkdot")), "Markers ▾ lists the marker with its moment, color dot and note");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9b-marker-list.png") });
+    await item.click();
+    ok((await page.evaluate(() => window.CurioScreen.row())) === 2 && !(await page.$(".sl-marklist")), "clicking it in the list moves the playhead there");
+    /* Right-click opens the same pop-up; Delete takes the marker off. */
+    await page.click(flag, { button: "right" });
+    ok(!!(await page.$(".sl-mkpop")), "right-clicking a flag opens its pop-up too");
+    await page.click('.sl-mkpop [data-l="delete"]');
+    ok(!(await MK()).some((m) => m.row === r2) && !(await page.$('.sl-topsvg .sl-marker[data-marker="2"]')), "Delete marker takes it off");
+    /* An old save: a plain list of row ids. */
+    const r4 = await rowId(4);
+    await page.evaluate((id) => { const t = JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")) || {}; t.markers = [id]; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); }, r4);
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const oldM = await MK();
+    ok(oldM.length === 1 && oldM[0].row === r4 && oldM[0].color === "orange" && oldM[0].note === "" && !!(await page.$('.sl-topsvg .sl-marker[data-marker="4"]')), "an old saved marker list (plain row ids) still loads, as orange markers");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+  }
+
+  /* Auto markers (Mark the turns, the film's "Beats"): markers where attention moves, the feeling changes or a
+     track jumps, each with a plain note; Clear auto markers takes only those off and a marker of your own stays. */
+  {
+    const MK = () => page.evaluate(() => window.CurioLanes.tools().markers);
+    const r1 = await page.evaluate(() => window.CurioEngine.state().rows[1].id);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = [{ row: id, color: "blue", note: "my own note" }]; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); }, r1);
+    /* The feeling: joyful for the first half of the film, anxious for the rest (one undo step, taken back below). */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotion")); const half = Math.floor(st.rows.length / 2); E.send({ type: "batch", label: "test feeling", commands: st.rows.map((r, j) => ({ type: "setPoint", row: r.id, track: t.id, curiosity: "emotion", value: j < half ? "joyful" : "anxious" })) }); window.CurioScreen.setRow(0); });
+    const rHalf = await page.evaluate(() => window.CurioEngine.state().rows[Math.floor(window.CurioEngine.state().rows.length / 2)].id);
+    await page.click('[data-act="marker-list"]');
+    ok(!!(await page.$('.sl-marklist [data-l="mark-turns"]')) && !(await page.$('.sl-marklist [data-l="clear-auto"]')), "Markers ▾ offers Mark the turns (and no Clear auto markers before there are any)");
+    await page.click('.sl-marklist [data-l="mark-turns"]');
+    const after = await MK();
+    const auto = after.filter((m) => m.auto);
+    console.log("     auto markers: " + auto.map((m) => m.color + " " + m.note).join(" | "));
+    ok(auto.length >= 2 && auto.every((m) => m.note && ["purple", "red", "yellow"].includes(m.color)), "Mark the turns puts markers on the sample film, each with a color by kind and a note (" + auto.length + ")");
+    const half = after.find((m) => m.row === rHalf);
+    ok(half && half.auto && /feeling turns from joyful to anxious/.test(half.note), "where the feeling changes, the note says so in plain words (" + (half && half.note) + ")");
+    ok(auto.some((m) => m.color === "purple" && /^attention moves from \S+.* to \S/.test(m.note)), "where attention moves to something else, a purple marker says from what to what");
+    const own = after.find((m) => m.row === r1);
+    ok(own && !own.auto && own.note === "my own note" && own.color === "blue" && after.filter((m) => m.row === r1).length === 1, "a marker of your own on a turn is kept as it is, not doubled");
+    ok((await page.$$(".sl-topsvg .sl-marker")).length === after.length, "every auto marker is drawn as a flag on the ruler");
+    ok(!!(await page.$(".sl-marklist .sl-mkauto")) && !!(await page.$('.sl-marklist [data-l="clear-auto"]')), "the list tags the auto markers and now offers Clear auto markers");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9c-auto-markers.png") });
+    await page.click('.sl-marklist [data-l="mark-turns"]');
+    ok((await MK()).length === after.length, "pressing Mark the turns again does not add duplicates");
+    await page.click('.sl-marklist [data-l="clear-auto"]');
+    const left = await MK();
+    ok(left.length === 1 && left[0].row === r1 && left[0].note === "my own note", "Clear auto markers takes off only the auto ones; your marker survives");
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => { window.CurioEngine.undo(); const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+  }
+
+  /* The Attention track (CapCut's waveform under the clips, for attention): a band right under My film's clip
+     track with a colored block per moment, a filled line, a key; a click jumps there; the toolbar toggle hides it.
+     Momentum's own Attention lane takes its place when it is docked, so it is taken off for these checks. */
+  {
+    const momLane = await page.evaluate(() => !!(window.CurioMomentumLane && window.CurioMomentumLane.attached && window.CurioMomentumLane.attached()));
+    if (momLane) {
+      ok(await page.evaluate(() => !document.querySelector(".sl-topsvg .sl-att") && !document.querySelector('[data-act="attention-track"]')), "with Momentum's Attention lane docked, the band and its toggle step aside (attention shows once)");
+      await page.evaluate(() => { window.CurioMomentumLane.detach(); window.dispatchEvent(new Event("resize")); });
+    }
+    const band = () => page.evaluate(() => {
+      const g = document.querySelector(".sl-topsvg .sl-att");
+      if (!g) return null;
+      const bg = g.querySelector(".sl-attbg").getBoundingClientRect();
+      const mine = [...document.querySelectorAll(".sl-topsvg .sl-clip.mine rect")].map((r) => r.getBoundingClientRect());
+      const ruler = document.querySelector(".sl-topsvg .sl-rulerbg");
+      const blocks = [...g.querySelectorAll(".sl-attblock")];
+      return { state: g.dataset.attTrack, top: bg.top, bottom: bg.bottom, mineBottom: mine.length ? Math.max(...mine.map((r) => r.bottom)) : null, rulerTop: ruler ? ruler.getBoundingClientRect().top : null, blocks: blocks.length, families: [...new Set(blocks.map((b) => b.dataset.family))], w: blocks[0] ? blocks[0].getBoundingClientRect().width : 0, title: blocks[0] ? blocks[0].querySelector("title").textContent : "", line: !!g.querySelector(".sl-attline") && !!g.querySelector(".sl-attarea"), html: g.innerHTML, keys: [...document.querySelectorAll(".sl-atthead .sl-attkey")].map((k) => k.textContent), note: (g.querySelector(".sl-attnote") || {}).textContent || "" };
+    });
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); delete t.attention; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+    const b0 = await band();
+    ok(b0 && b0.state === "on" && b0.blocks > 0 && b0.line, "the Attention track is on by default: colored blocks and a filled line (" + (b0 && b0.blocks) + " blocks)");
+    ok(b0 && b0.mineBottom != null && b0.top >= b0.mineBottom - 1 && b0.bottom <= b0.rulerTop + 1, "it sits right under My film's clip track, above the ruler");
+    ok(b0 && b0.keys.length === b0.families.length && b0.keys.length > 0 && /attention is on .+\. How strongly the film pulls forward: \d+%/.test(b0.title), "the key names each family shown, and a block's tooltip names what holds attention (" + (b0 && b0.keys.join(", ")) + ")");
+    const target = await page.evaluate(() => { const bl = [...document.querySelectorAll(".sl-topsvg .sl-attblock")].map((b) => Number(b.dataset.att)); return bl.find((j) => j >= 2) ?? bl[bl.length - 1]; });
+    await page.click(`.sl-topsvg .sl-attblock[data-att="${target}"]`);
+    ok((await page.evaluate(() => window.CurioScreen.row())) === target, "clicking the Attention track moves the playhead to that moment (" + target + ")");
+    /* It follows zoom like the other tracks. */
+    await page.click('[data-act="zoom-in"]');
+    const bz = await band();
+    ok(bz && bz.w > b0.w * 1.2, "zooming in widens its blocks with the moments (" + Math.round(b0.w) + "px to " + Math.round(bz.w) + "px)");
+    await page.click('[data-act="zoom-fit"]');
+    /* It redraws when nodes change: a feeling that swings every moment moves attention to Feeling. */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotion")); E.send({ type: "batch", label: "test attention", commands: st.rows.map((r, j) => ({ type: "setPoint", row: r.id, track: t.id, curiosity: "emotion", value: j % 2 ? "joyful" : "anxious" })) }); });
+    const b1 = await band();
+    ok(b1 && b1.html !== bz.html && b1.families.includes("feeling"), "it redraws when nodes change (now: " + (b1 && b1.families.join(", ")) + ")");
+    await page.evaluate(() => window.CurioEngine.undo());
+    await page.screenshot({ path: path.join(SHOTS, "screen-9d-attention-track.png") });
+    /* The toolbar toggle, kept in the timeline tools. */
+    ok(await page.evaluate(() => document.querySelector('[data-act="attention-track"]').getAttribute("aria-pressed") === "true"), "the toolbar's Attention toggle shows it is on");
+    await page.click('[data-act="attention-track"]');
+    ok(!(await band()) && !(await page.$(".sl-atthead")) && (await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).attention === false)), "Attention off hides the track and is kept in curiosities-screen-tools-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    if (momLane) {
+      await page.waitForFunction(() => window.CurioMomentumLane && window.CurioMomentumLane.attached(), null, { timeout: 15000 });
+      await page.evaluate(() => { window.CurioMomentumLane.detach(); window.dispatchEvent(new Event("resize")); });
+    }
+    ok(!(await band()), "it stays hidden after a reload");
+    await page.click('[data-act="attention-track"]');
+    ok((await band()).state === "on", "Attention on brings it back");
+    /* Without the momentum code: nothing drawn, one plain line. */
+    await page.evaluate(() => { window.__att = window.CurioAttention; delete window.CurioAttention; });
+    await page.click('[data-act="attention-track"]');
+    await page.click('[data-act="attention-track"]');
+    const bn = await band();
+    ok(bn && bn.state === "none" && bn.blocks === 0 && !bn.line && /isn't loaded/.test(bn.note), "without the momentum code it draws nothing and says so in one line");
+    await page.evaluate(() => { window.CurioAttention = window.__att; delete window.__att; window.CurioScreen.setRow(0); });
+    if (momLane) await page.evaluate(() => { window.CurioMomentumLane.attach(); window.dispatchEvent(new Event("resize")); });
+  }
+
+  /* Film lines: the inspiration film picked in the Player drawn as a faint dashed line in each lane (stretched
+     to My film's length); they follow the picked film, the toolbar toggle hides them (kept across a reload), and
+     Take from the film writes the film's settings into a selected area as nodes, one undo step. */
+  {
+    /* The picked film, read the way the Screen reads it: the viewer picked in the Player, else the first. */
+    const expected = () => page.evaluate(() => {
+      const p = JSON.parse(localStorage.getItem("curiosities-screen-v1"));
+      let list = window.CuriosityStudy && window.CuriosityStudy.studies ? window.CuriosityStudy.studies() : [];
+      list = (list.length ? list : window.CuriosityDB.data.scenes).filter((f) => f && Array.isArray(f.beats) && f.beats.length);
+      const v = p.insp.find((x) => x.id === p.focus) || p.insp[0];
+      const f = list.find((x) => x.id === v.film) || list[0];
+      const n = window.CurioEngine.state().rows.length;
+      const name = String(f.title || f.name || f.id).replace(/^Model scene: /, "");
+      const lanes = [...document.querySelectorAll(".sl-heads [data-pick]")].map((b) => b.dataset.pick);
+      const want = {};
+      lanes.forEach((cur) => { const k = window.CurioLanes.filmLine(f.beats, n, cur).filter((x) => x != null).length; if (k) want[cur] = k; });
+      return { id: f.id, name, lanes, want };
+    });
+    const drawn = () => page.evaluate(() => [...document.querySelectorAll(".sl-svg .sl-film")].map((p) => ({ cur: p.dataset.filmLine, pts: (p.getAttribute("d").match(/[ML]/g) || []).length, title: p.querySelector("title").textContent, dash: getComputedStyle(p).strokeDasharray })));
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); delete t.filmLines; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+    let ex = await expected();
+    let d = await drawn();
+    ok(ex.lanes.length > 0 && Object.keys(ex.want).length > 0 && d.length === Object.keys(ex.want).length, "Film lines are on by default: one dashed line per lane the inspiration film sets (" + d.length + " of " + ex.lanes.length + " lanes)");
+    ok(d.every((x) => ex.want[x.cur] === x.pts && x.title.startsWith(ex.name) && x.dash !== "none"), "each line has a point at every moment the film has a setting, stretched to My film's length, named after " + ex.name);
+    ok(ex.lanes.filter((c) => !ex.want[c]).every((c) => !d.some((x) => x.cur === c)), "a lane the film has no setting for draws no line (" + ex.lanes.filter((c) => !ex.want[c]).length + " such lanes)");
+    const tip = await page.$eval('[data-act="film-lines"]', (b) => ({ t: b.title, on: b.getAttribute("aria-pressed"), text: b.textContent.trim() }));
+    ok(tip.text === "Film lines" && tip.on === "true" && tip.t.includes(ex.name), "the toolbar's Film lines toggle is on and names the film in its tooltip");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9e-film-lines.png") });
+    /* Pick another film in the Player: a second viewer on a different film, then its Inspect. */
+    const firstId = ex.id;
+    if ((await page.$$(".sc-viewer.insp")).length < 2) await page.click('[data-act="add-insp"]');
+    const v2 = await page.$$eval(".sc-viewer.insp", (vs) => vs[1].dataset.viewer);
+    await page.click(`[data-focus="${v2}"].sc-vname`);
+    await page.waitForTimeout(100);
+    ex = await expected();
+    d = await drawn();
+    ok(ex.id !== firstId && d.length === Object.keys(ex.want).length && d.every((x) => ex.want[x.cur] === x.pts && x.title.startsWith(ex.name)), "picking another inspiration film in the Player redraws the lines from that film (" + ex.name + ")");
+    ok((await page.$eval('[data-act="film-lines"]', (b) => b.title)).includes(ex.name), "the tooltip follows the picked film");
+    /* The toggle, kept in the timeline tools across a reload. */
+    await page.click('[data-act="film-lines"]');
+    ok((await drawn()).length === 0 && (await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).filmLines === false)), "Film lines off hides every line and is kept in curiosities-screen-tools-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    ok((await drawn()).length === 0 && (await page.$eval('[data-act="film-lines"]', (b) => b.getAttribute("aria-pressed"))) === "false", "they stay hidden after a reload");
+    await page.click('[data-act="film-lines"]');
+    ok((await drawn()).length === Object.keys((await expected()).want).length, "Film lines on brings them back");
+    /* Take from the film: select moments 1 to 4 of a lane the film sets, then press it. */
+    ex = await expected();
+    const cur = Object.keys(ex.want)[0];
+    const box = await page.evaluate((c) => {
+      const sc = document.querySelector(".sl-scroll");
+      sc.scrollLeft = 0;
+      const ly = document.querySelector(`.sl-svg .sl-film[data-film-line="${c}"]`).getBoundingClientRect();
+      const bg = [...document.querySelectorAll(".sl-svg .sl-bg")].find((b) => { const r = b.getBoundingClientRect(); return r.top <= ly.top + 1 && r.bottom >= ly.bottom - 1; });
+      sc.scrollTop = Math.max(0, bg.getBBox().y);
+      const r = bg.getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length };
+    }, cur);
+    const cw = box.w / box.n;
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    await page.mouse.move(box.x + cw * 0.1, box.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + cw * 3.9, box.y + box.h - 2, { steps: 8 });
+    await page.mouse.up();
+    const takeBtn = await page.$('.sl [data-act="area-take"]');
+    ok(!!takeBtn && (await takeBtn.textContent()).trim() === "Take from the film" && (await takeBtn.getAttribute("title")).includes(ex.name), "a selected area shows Take from the film, naming the film");
+    const filmNow = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const before = await filmNow();
+    await page.click('.sl [data-act="area-take"]');
+    const got = await page.evaluate(({ c, id }) => {
+      const st = window.CurioEngine.state();
+      const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + c));
+      let list = window.CuriosityStudy && window.CuriosityStudy.studies ? window.CuriosityStudy.studies() : [];
+      list = (list.length ? list : window.CuriosityDB.data.scenes).filter((f) => f && Array.isArray(f.beats) && f.beats.length);
+      const f = list.find((x) => x.id === id);
+      const line = window.CurioLanes.filmLine(f.beats, st.rows.length, c);
+      return { line: line.slice(0, 4).map(String), pts: st.rows.slice(0, 4).map((r) => (lk && st.lanes[lk].points[r.id] != null ? String(st.lanes[lk].points[r.id]) : "none")), msg: document.querySelector(".sl-msg").textContent };
+    }, { c: cur, id: ex.id });
+    ok(got.line.some((v) => v !== "null") && got.line.every((v, j) => v === "null" || v === got.pts[j]), "Take from the film writes the film's settings as nodes in the selection (" + got.pts.join(",") + " for " + got.line.join(",") + ")");
+    ok(/^Took .+ Undo takes it back/.test(got.msg), "it says what it did in plain words (" + got.msg + ")");
+    await page.keyboard.press("Control+z");
+    ok((await filmNow()) === before, "one ⌘Z takes it all back");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+  }
+
+  /* Export ▾ (CapCut's Export button): the storyboard sheet in a new tab, this frame as PNG and SVG, the
+     settings list as CSV. The anchor's click is stubbed so each download is recorded with its name and content. */
+  {
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, href: this.href, size: 0, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.blob()).then(async (b) => { rec.size = b.size; rec.type = b.type; if (!/png/.test(b.type)) rec.text = await b.text(); });
+      };
+    });
+    const r1 = await page.evaluate(() => window.CurioEngine.state().rows[1].id);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = [{ row: id, color: "green", note: 'cut, then <b>"pause"</b>' }]; window.CurioScreen.setRow(1); }, r1);
+    ok(!!(await page.$('.sc-bar [data-act="export"]')) && (await page.$eval('.sc-bar [data-act="export"]', (b) => b.textContent.trim())) === "Export ▾", "the top bar has an Export ▾ button");
+    await page.click('.sc-bar [data-act="export"]');
+    ok(await page.$eval(".sc-export-menu", (m) => !m.hidden && ["sheet", "png", "svg", "csv"].every((k) => m.querySelector(`[data-export="${k}"]`))), "Export ▾ opens a menu: Storyboard sheet, PNG, SVG, Settings list");
+    await page.screenshot({ path: path.join(SHOTS, "screen-10-export-menu.png") });
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const info = await sheet.evaluate(() => ({ figs: document.querySelectorAll("figure.f").length, svgs: document.querySelectorAll("figure.f svg").length, notes: [...document.querySelectorAll(".mk")].map((p) => p.textContent), bold: document.querySelectorAll(".mk b").length, print: !!document.querySelector("[data-print]"), m2: (document.querySelectorAll("figure.f")[1] || {}).textContent || "" }));
+    ok(info.figs === n && info.svgs === n, `the storyboard sheet opens in a new tab with one frame per moment (${info.figs} of ${n})`);
+    ok(info.notes.length === 1 && info.notes[0] === 'cut, then <b>"pause"</b>' && info.bold === 0 && /Moment 2/.test(info.m2), "the marker's note shows on its moment, as plain text");
+    await sheet.click('[data-per="2"]');
+    ok(info.print && (await sheet.evaluate(() => getComputedStyle(document.querySelector(".grid")).gridTemplateColumns.split(" ").length)) === 2, "the sheet has a Print button and 2, 3 or 4 frames per row");
+    await sheet.screenshot({ path: path.join(SHOTS, "screen-10b-storyboard-sheet.png") });
+    await sheet.close();
+    ok(await page.$eval(".sc-export-menu", (m) => m.hidden), "the menu closes after a pick");
+    for (const k of ["svg", "png", "csv"]) {
+      await page.click('.sc-bar [data-act="export"]');
+      await page.click(`[data-export="${k}"]`);
+    }
+    await page.waitForFunction(() => window.__dl.length >= 3, null, { timeout: 10000 });
+    await page.evaluate(() => Promise.all(window.__dl.map((d) => d.done)));
+    const dl = await page.evaluate(() => window.__dl.map(({ name, href, size, type, text }) => ({ name, href, size, type, text })));
+    console.log("     downloads: " + dl.map((d) => d.name + " (" + d.size + " bytes)").join(", "));
+    const by = (ext) => dl.find((d) => d.name.endsWith("." + ext));
+    ok(dl.every((d) => /^curiomatic-[a-z0-9-]+\.(svg|png|csv)$/.test(d.name) && d.href.startsWith("blob:")), "each download is a blob saved under a name starting with curiomatic-");
+    ok(by("svg") && /moment-2\.svg$/.test(by("svg").name) && /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/.test(by("svg").text), "This frame as SVG saves the current moment's frame");
+    ok(by("png") && /moment-2\.png$/.test(by("png").name) && by("png").type === "image/png" && by("png").size > 2000, "This frame as PNG saves a picture of it");
+    const rows = by("csv") ? by("csv").text.replace(/^﻿/, "").trim().split("\r\n") : [];
+    ok(rows.length === n + 1 && /^Moment,Time,Marker note,/.test(rows[0]) && rows[2].includes('"cut, then <b>""pause""</b>"'), "the settings list has a header and one row per moment, with the marker note quoted (" + (rows[0] || "").slice(0, 80) + "…)");
+    ok(rows[0].includes("Shot size") && !rows[0].includes("shotSize"), "the header uses plain labels, not code names");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; window.CurioScreen.setRow(0); });
+  }
+
+  /* History ▾ (the History panel of editing apps): the steps you can undo, newest first, under Now, and the steps
+     you can redo over it. Clicking one presses undo or redo that many times, through the same path as ⌘Z. */
+  {
+    const rowsOf = () => page.evaluate(() => { const ts = [...document.querySelector(".sc-bar").children].filter((c) => !c.classList.contains("sc-what")).map((c) => Math.round(c.getBoundingClientRect().top)); return ts.sort((a, b) => a - b).filter((t, i, a) => i === 0 || t - a[i - 1] > 16).length; });
+    ok(!!(await page.$('.sc-bar [data-act="history"]')) && (await page.$eval('.sc-bar [data-act="history"]', (b) => b.textContent.trim())) === "History ▾", "the top bar has a History ▾ button");
+    ok((await rowsOf()) <= 2, "at 1440px the top bar still fits on two rows with History ▾ in it (" + (await rowsOf()) + ")");
+    const fps = await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const track = (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id;
+      const out = [E.fingerprint()];
+      ["wide", "close", "insert"].forEach((v, i) => {
+        E.send({ type: "setPoint", row: st.rows[2].id, track, curiosity: "shotSize", value: v, label: "History test " + "ABC"[i] });
+        out.push(E.fingerprint());
+      });
+      return out;
+    });
+    const store = await page.evaluate(() => !!(window.CurioStore && window.CurioStore.external));
+    await page.click('.sc-bar [data-act="history"]');
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-hist-menu"); return { hidden: m.hidden, cur: (m.querySelector(".sc-hist-cur") || {}).textContent || "", undo: [...m.querySelectorAll('[data-hist^="undo"]')].map((b) => b.textContent), redo: [...m.querySelectorAll('[data-hist^="redo"]')].map((b) => b.textContent), text: m.textContent, now: !!m.querySelector(".sc-hist-now") }; });
+    let mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test C" && mm.undo[0] === "History test B" && mm.undo[1] === "History test A" && mm.now, "History ▾ lists the steps newest first under Now, by their plain names (" + [mm.cur].concat(mm.undo.slice(0, 3)).join(" | ") + ")" + (store ? ", from the app-wide undo list" : ""));
+    ok(!/Engine:/.test(mm.text), "the engine's steps show without a code prefix");
+    const redoBefore = await page.evaluate(() => (window.CurioStore && window.CurioStore.external ? window.CurioStore : window.CurioEngine).history().redo.length);
+    await page.click('.sc-hist-menu [data-hist="undo:2"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[1], "clicking an older step goes back to just after it (two undos: the film is as it was after A)");
+    ok((await page.evaluate(() => (window.CurioStore && window.CurioStore.external ? window.CurioStore : window.CurioEngine).history().redo.length)) === redoBefore + 2, "it pressed undo exactly twice on the same undo list ⌘Z uses");
+    mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test A" && mm.redo.slice(-2).join() === "History test C,History test B", "the menu stays open and shows the redo part over Now, the next one nearest (" + mm.redo.slice(-2).join(" | ") + ")");
+    await page.screenshot({ path: path.join(SHOTS, "screen-11-history.png") });
+    await page.click('.sc-hist-menu [data-hist="redo:2"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[3] && (await menu()).cur === "History test C" && !(await menu()).redo.length, "clicking a redo step goes forward to just after it (two redos)");
+    await page.click('.sc-hist-menu [data-hist="undo:1"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[2], "one step back is one undo");
+    await page.keyboard.press("Control+Shift+z");
+    await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "History test C", null, { timeout: 2000 }).catch(() => {});
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[3] && (await menu()).cur === "History test C", "⇧⌘Z redoes it and the open list follows");
+    /* Refresh while open: a change to the film, and a step on the app-wide list from outside the Screen. */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); E.send({ type: "setPoint", row: st.rows[3].id, track: (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id, curiosity: "shotSize", value: "wide", label: "History test D" }); });
+    await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "History test D", null, { timeout: 3000 }).catch(() => {});
+    mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test D" && mm.undo[0] === "History test C", "the open list refreshes when the film changes");
+    if (store) {
+      await page.evaluate(() => window.CurioStore.external("test", { label: "A change somewhere else", undo: () => true, redo: () => true }));
+      await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "A change somewhere else", null, { timeout: 3000 }).catch(() => {});
+      ok((await menu()).cur === "A change somewhere else", "and when a step lands on the app-wide list from elsewhere in the app");
+      await page.evaluate(() => window.CurioStore.undo());
+    }
+    /* Keyboard: Esc closes and gives focus back; Enter opens with focus inside; arrows move. */
+    await page.keyboard.press("Escape");
+    ok((await menu()).hidden, "Esc closes History");
+    await page.focus('.sc-bar [data-act="history"]');
+    await page.keyboard.press("Enter");
+    ok(!(await menu()).hidden && (await page.evaluate(() => !!document.activeElement.closest(".sc-hist-menu"))), "Enter on History ▾ opens it with focus on a step");
+    const f1 = await page.evaluate(() => document.activeElement.dataset.hist);
+    await page.keyboard.press("ArrowDown");
+    const f2 = await page.evaluate(() => document.activeElement.dataset.hist);
+    ok(f1 && f2 && f1 !== f2, "the arrow keys move through the steps (" + f1 + " → " + f2 + ")");
+    await page.keyboard.press("Escape");
+    ok((await menu()).hidden && (await page.evaluate(() => document.activeElement.dataset.act === "history")), "Esc closes it and focus goes back to History ▾");
+    await page.click('.sc-bar [data-act="history"]');
+    await page.mouse.click(700, 600);
+    ok((await menu()).hidden, "a click anywhere else closes it");
+    /* Empty state: nothing on either list. */
+    await page.evaluate(() => { window.__h = [window.CurioStore && window.CurioStore.history, window.CurioEngine.history]; const none = () => ({ undo: [], redo: [] }); if (window.CurioStore) window.CurioStore.history = none; window.CurioEngine.history = none; });
+    await page.click('.sc-bar [data-act="history"]');
+    mm = await menu();
+    ok(!mm.hidden && mm.text.trim() === "Nothing to undo yet." && !mm.undo.length && !mm.redo.length, "with nothing to undo it says so plainly");
+    await page.evaluate(() => { if (window.CurioStore) window.CurioStore.history = window.__h[0]; window.CurioEngine.history = window.__h[1]; });
+    await page.keyboard.press("Escape");
+  }
+
+  /* Transitions between moments (CapCut's Transitions tab, for My film's joins): a ◇ on My film's clip track at
+     each join opens a chooser; Details has a Transition row for the join into the playhead's moment; Use on every
+     join; each change is one undo step; it plays (the picture going out over the new one, in its style) when Play
+     or a scrub steps across the join; it is kept across a reload; Export lists it. */
+  {
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    if ((await page.$eval('[data-act="play"]', (b) => b.textContent)) !== "Play") await page.$eval('[data-act="play"]', (b) => b.click());
+    const T = (into) => page.evaluate((j) => window.CurioScreen.transitions.at(j), into);
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    ok(n >= 5, `my film has enough moments for the transition checks (${n})`);
+    /* Moments 2, 3 and 4 look different, so a frame mid-transition shows two different pictures. */
+    await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const track = (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id;
+      E.send({ type: "batch", label: "Transition test shots", commands: [["wide", 1], ["close", 2], ["wide", 3], ["close", 4]].map(([v, j]) => ({ type: "setPoint", row: st.rows[j].id, track, curiosity: "shotSize", value: v })) });
+      window.CurioScreen.transitions.all("cut");
+      window.CurioScreen.setRow(0);
+    });
+    ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.transitions.now())) === '{"joins":{}}', "every join starts as a Cut");
+    ok((await page.$$(".sl-top .sl-join[data-join]")).length === n - 1 && !(await page.$(".sl-top .sl-join.set")), `a ◇ sits on My film's clip track at each of the ${n - 1} joins`);
+    ok(/from moment 2 into 3: Cut/.test(await page.$eval('.sl-top [data-join="2"] title', (t) => t.textContent)), "the ◇'s tooltip names the join and its transition");
+    /* The ◇: click to choose. */
+    await page.click('.sl-top [data-join="2"]');
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-tr-menu"); return m ? { text: m.textContent, kinds: [...m.querySelectorAll("[data-tr-kind]")].map((b) => b.textContent + "|" + b.title), on: (m.querySelector("[data-tr-kind].on") || {}).dataset?.trKind, len: (m.querySelector("[data-tr-len]") || {}).value, focus: m.contains(document.activeElement) } : null; });
+    let mm = await menu();
+    ok(mm && /Moment 2 → 3/.test(mm.text) && mm.kinds.length === 6 && mm.on === "cut" && mm.focus, "clicking the ◇ opens a chooser for that join, with focus inside it");
+    ok(mm && mm.kinds.every((k) => { const [l, t] = k.split("|"); return t.startsWith(l + ": "); }) && mm.kinds.some((k) => k === "Fade|Fade: the picture melts into the next one."), "each choice has a one-line tooltip in plain words (" + (mm ? mm.kinds.map((k) => k.split("|")[0]).join(", ") : "") + ")");
+    await page.screenshot({ path: path.join(SHOTS, "screen-12-transition-menu.png") });
+    await page.click('.sc-tr-menu [data-tr-kind="fade"]');
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.5 && (await T(2)).kind === "cut", "picking Fade sets the join into moment 3 only (half a moment to start)");
+    ok(!!(await page.$('.sl-top .sl-join.set[data-join="2"][data-kind="fade"]')) && (await page.$$(".sl-top .sl-join.set")).length === 1, "its ◇ fills in on the timeline");
+    mm = await menu();
+    ok(mm && mm.on === "fade" && /melts/.test(mm.text), "the chooser stays open, showing Fade and what it does");
+    await page.selectOption(".sc-tr-menu [data-tr-len]", "0.25");
+    ok((await T(3)).len === 0.25, "the length can be set: a quarter of a moment");
+    await page.keyboard.press("Escape");
+    ok(!(await menu()), "Esc closes the chooser");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    /* One undo step per change, on the same list as ⌘Z and History ▾. */
+    const store = await page.evaluate(() => !!(window.CurioStore && window.CurioStore.part));
+    ok(store, "the page has the app-wide undo list for transitions to join");
+    ok(await page.evaluate(() => window.CurioStore.history().undo.slice(-1)[0] === "Transition into moment 3: Fade, a quarter of a moment"), "the change is named plainly on the undo list (History ▾)");
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.5, "one ⌘Z takes back only the length");
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "cut" && !(await page.$(".sl-top .sl-join.set")), "another takes back the Fade, and the ◇ empties");
+    await page.keyboard.press("Control+Shift+z");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25, "⇧⌘Z redoes both");
+    /* Details: the Transition row for the join into the playhead's moment. */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    ok(/no join before it/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "on moment 1 Details says there is no join before it");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    ok(!!(await page.$('.sc-inspector .sc-trrow[data-tr-row="5"] [data-tr-kind="cut"].on')) && /moment 4 hands over to moment 5: Cut/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "on moment 5 Details shows the Transition row for the join into it");
+    await page.click('.sc-inspector .sc-trrow [data-tr-kind="push"]');
+    ok((await T(5)).kind === "push" && !!(await page.$('.sc-inspector .sc-trrow [data-tr-kind="push"].on')) && !!(await page.$('.sl-top .sl-join.set[data-join="4"][data-kind="push"]')), "picking Push in Details sets the join into moment 5, and its ◇ fills in");
+    /* Use on every join, one undo step. */
+    await page.click('.sc-inspector .sc-trrow [data-tr-all]');
+    const every = await page.evaluate(() => window.CurioScreen.transitions.now());
+    ok(Object.keys(every.joins).length === n - 1 && Object.values(every.joins).every((t) => t.kind === "push" && t.len === 0.5) && (await page.$$(".sl-top .sl-join.set")).length === n - 1, `Use on every join gives all ${n - 1} joins Push`);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25 && (await T(5)).kind === "push" && (await T(2)).kind === "cut", "one ⌘Z takes Use on every join back");
+    await page.evaluate(() => window.CurioScreen.transitions.set(4, "match"));
+    /* It plays: a frame mid-transition shows both moments, in the transition's style. */
+    const mid = (into, p) => page.evaluate(([j, q]) => {
+      const r = window.CurioScreen.transitions.preview(j, q);
+      const fr = document.querySelector(".sc-viewer.mine .sc-frame");
+      const o = fr.querySelector(":scope > .sc-tr");
+      const cur = fr.querySelector(":scope > svg");
+      const cs = o ? getComputedStyle(o) : null;
+      return { r, row: window.CurioScreen.row(), tr: o ? o.dataset.tr : null, has: !!(o && o.querySelector("svg")), same: o && cur ? o.querySelector("svg").outerHTML === cur.outerHTML : null, opacity: cs ? Number(cs.opacity) : null, transform: cs ? cs.transform : "", clip: cs ? cs.clipPath : "", curT: cur ? cur.style.transform : "", sub: (document.querySelector(".sc-viewer.mine .sc-vsub") || {}).textContent || "" };
+    }, [into, p]);
+    let g = await mid(3, 0.5);
+    ok(g.r && g.r.kind === "fade" && g.row === 2 && g.tr === "fade" && g.has && g.same === false, "halfway through the Fade into moment 3, the Player shows moment 2's picture over moment 3's (two different pictures)");
+    ok(Math.abs(g.opacity - 0.5) < 0.02, `and moment 2's picture is half melted away (opacity ${g.opacity})`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-12b-transition-fade.png") });
+    g = await mid(5, 0.5);
+    ok(g.tr === "push" && /matrix\(1, 0, 0, 1, -\d/.test(g.transform) && /translateX\(50%\)/.test(g.curT), `halfway through the Push the old picture is shoved half out and the new one half in (${g.transform}; ${g.curT})`);
+    g = await mid(4, 0.5);
+    ok(g.tr === "match" && g.has && g.opacity === 1 && g.transform === "none", "Match holds the drawing still (no fade, no move) and redraws only the settings that change");
+    g = await mid(2, 0.5);
+    ok(g.r && g.r.kind === "cut" && g.tr === null, "a Cut shows only the new moment");
+    /* While playing: Play steps across the join and the Fade plays, then goes away. */
+    if (await page.$('[data-act="range-clear"]')) await page.$eval('[data-act="range-clear"]', (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    ok(!(await page.$(".sc-viewer.mine .sc-tr")), "moving off a held preview clears it");
+    await page.$eval('[data-act="play"]', (b) => b.click());
+    const seen = await page.waitForFunction(() => { const p = window.CurioScreen.transitions.playing(); const o = document.querySelector(".sc-viewer.mine .sc-frame > .sc-tr"); return p && p.into === 3 && p.kind === "fade" && o && o.dataset.tr === "fade" && Number(getComputedStyle(o).opacity) < 1 ? true : null; }, null, { timeout: 4000, polling: "raf" }).then(() => true).catch(() => false);
+    await page.$eval('[data-act="play"]', (b) => b.click());
+    ok(seen, "while Play runs, stepping from moment 2 into 3 plays the Fade over the new picture");
+    /* Scrubbing across a join plays it too, and it ends on its own after its length. */
+    await page.evaluate(() => { window.CurioScreen.setRow(3); window.CurioScreen.setRow(4); });
+    ok(await page.evaluate(() => { const p = window.CurioScreen.transitions.playing(); return !!(p && p.into === 5 && p.kind === "push" && document.querySelector('.sc-viewer.mine .sc-tr[data-tr="push"]')); }), "scrubbing from moment 4 to 5 shows the Push");
+    const ended = await page.waitForFunction(() => !window.CurioScreen.transitions.playing() && !document.querySelector(".sc-viewer.mine .sc-tr"), null, { timeout: 4000 }).then(() => true).catch(() => false);
+    ok(ended, "and it ends by itself, leaving the plain picture");
+    await page.evaluate(() => { window.CurioScreen.setRow(4); window.CurioScreen.setRow(2); });
+    ok(!(await page.evaluate(() => window.CurioScreen.transitions.playing())), "a jump of more than one moment just cuts");
+    /* Saved with the Screen's own settings, across a reload. */
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-transitions-v1")));
+    ok(saved && saved.joins["3"].kind === "fade" && saved.joins["3"].len === 0.25 && saved.joins["4"].kind === "match" && saved.joins["5"].kind === "push", "the transitions are kept in curiosities-screen-transitions-v1, by the moment each join leads into");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25 && (await T(4)).kind === "match" && (await T(5)).kind === "push", "they come back after a reload");
+    ok(!!(await page.$('.sl-top .sl-join.set[data-join="2"][data-kind="fade"]')) && /Fade, a quarter of a moment/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "the ◇ and Details show them after the reload");
+    /* Export lists them: the settings list and the storyboard sheet. */
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.text()).then((t) => (rec.text = t));
+      };
+    });
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="csv"]');
+    await page.waitForFunction(() => window.__dl.length >= 1, null, { timeout: 10000 });
+    const csv = await page.evaluate(async () => (await window.__dl[0].done, window.__dl[0].text));
+    const lines = csv.replace(/^﻿/, "").trim().split("\r\n");
+    ok(/^Moment,Time,Marker note,Transition in,/.test(lines[0]) && /^3,[^,]*,,"Fade, a quarter of a moment",/.test(lines[3]) && /^5,[^,]*,,"Push, half a moment",/.test(lines[5]) && /^2,[^,]*,,Cut,/.test(lines[2]), "the settings list has a Transition in column naming each join's transition (" + (lines[3] || "").slice(0, 60) + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const trs = await sheet.evaluate(() => [...document.querySelectorAll("figure.f")].map((f, i) => (f.querySelector(".tr") ? i + 1 + ":" + f.querySelector(".tr").textContent : "")).filter(Boolean));
+    await sheet.close();
+    ok(trs.join(" | ") === "3:Comes in with: Fade, a quarter of a moment | 4:Comes in with: Match, half a moment | 5:Comes in with: Push, half a moment", "the storyboard sheet says how each moment comes in (" + trs.join(" | ") + ")");
+    /* Leave every join a Cut for the checks after this. */
+    await page.evaluate(() => { window.CurioScreen.transitions.all("cut"); window.CurioScreen.setRow(0); });
+    ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.transitions.now())) === '{"joins":{}}', "Use on every join with Cut puts every join back to a plain cut");
+  }
+
+  /* Words on the frame (CapCut's Text tab, for a storyboard): T Text in the Player adds words at the playhead and
+     opens a small editor; they show only on their moments, in one of 9 spots, in a style (Title, Lower third,
+     Sign / Insert, Sound effect, Thought), size and fade; drag them on the picture to another spot; bars on a Text
+     row under My film's clip track change their moments; Delete removes them; each change is one undo step; kept
+     in curiosities-screen-text-v1 across a reload; the Export draws them and lists them; never under a caption. */
+  {
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    if ((await page.$eval('[data-act="play"]', (b) => b.textContent)) !== "Play") await page.$eval('[data-act="play"]', (b) => b.click());
+    if (await page.$('[data-act="range-clear"]')) await page.$eval('[data-act="range-clear"]', (b) => b.click());
+    const TX = () => page.evaluate(() => window.CurioScreen.text.now());
+    const one = async () => (await TX()).items[0];
+    const undoN = () => page.evaluate(() => window.CurioStore.history().undo.length);
+    const lastUndo = () => page.evaluate(() => window.CurioStore.history().undo.slice(-1)[0]);
+    const words = () => page.$$eval(".sc-viewer.mine .sc-frame .sc-txt", (ls) => ls.map((l) => l.dataset.txt + ":" + l.querySelector(".sc-txt-w").textContent));
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-txt-menu"); return m ? { for: m.dataset.txtFor, text: m.textContent, focus: document.activeElement && document.activeElement.dataset ? Object.keys(document.activeElement.dataset)[0] || "" : "", styles: [...m.querySelectorAll("[data-txt-style]")].map((b) => b.textContent + "|" + b.title), spots: m.querySelectorAll("[data-txt-spot]").length, sub: !!m.querySelector("[data-txt-sub]") } : null; });
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    ok(n >= 7, `my film has enough moments for the text checks (${n})`);
+    await page.evaluate(() => { window.CurioScreen.text.now().items.forEach((t) => window.CurioScreen.text.remove(t.id)); window.CurioScreen.text.edit(null); window.CurioScreen.setRow(2); });
+    ok((await TX()).items.length === 0 && !(await page.$(".sl-top .sl-txt")) && !(await page.$(".sc-viewer.mine .sc-txt")), "no words on the frame to start, and no Text row on the timeline");
+    const tb = await page.$('.sc-transport [data-act="txt-add"]');
+    ok(!!tb && (await tb.textContent()) === "T Text" && /words on your film's picture/.test(await tb.getAttribute("title")), "the Player's transport bar has T Text, with a plain tooltip");
+    /* T Text: a Title at the playhead, bottom centre, and its editor open with the words picked. */
+    const u0 = await undoN();
+    await page.click('.sc-transport [data-act="txt-add"]');
+    let t = await one();
+    ok(t && t.from === 3 && t.to === 3 && t.style === "title" && t.spot === "bc" && t.size === "m" && t.words === "Title" && !t.fade, "T Text adds a Title at the playhead's moment (3), bottom centre, medium");
+    ok((await undoN()) === u0 + 1 && (await lastUndo()) === "Add text at moment 3", "adding it is one undo step, named plainly");
+    let mm = await menu();
+    ok(mm && mm.for === t.id && mm.focus === "txtWords" && (await page.evaluate(() => { const i = document.activeElement; return i.selectionStart === 0 && i.selectionEnd === i.value.length; })), "its editor opens with the words picked, ready to type over");
+    ok(mm && mm.styles.length === 5 && mm.styles.every((s) => { const [l, tip] = s.split("|"); return tip.startsWith(l.replace(" / Insert", " or insert") + ": ") || tip.startsWith(l + ": "); }) && mm.styles.some((s) => s === "Lower third|Lower third: a name and job in the bottom corner, like the news.") && mm.spots === 9, "the five styles each have a one-line tooltip in plain words, and the place is a 9-spot grid (" + (mm ? mm.styles.map((s) => s.split("|")[0]).join(", ") : "") + ")");
+    ok(JSON.stringify(await words()) === JSON.stringify([t.id + ":Title"]), "the words show on my film's frame");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13-text-added.png") });
+    /* Typing in the editor never reaches the Screen's shortcuts (Space plays, M adds a marker, A, B, S...). */
+    const marks0 = await page.evaluate(() => window.CurioLanes.tools().markers.length);
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const u1 = await undoN();
+    await page.keyboard.type("Space Monkeys mask", { delay: 15 });
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("3");
+    t = await one();
+    ok(t.words === "Space Monkeys 3", "typing changes the words (" + t.words + ")");
+    ok((await page.$eval('[data-act="play"]', (b) => b.textContent)) === "Play" && (await page.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0 && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && (await TX()).items.length === 1 && (await page.evaluate(() => window.CurioScreen.row())) === 2, "typing Space, M, S, A, K or Backspace in the editor plays nothing, adds no marker, deletes nothing and leaves the film alone");
+    ok((await undoN()) === u1 + 1, "a burst of typing is one undo step");
+    ok(JSON.stringify(await words()) === JSON.stringify([t.id + ":Space Monkeys 3"]), "the frame shows the new words as you type");
+    /* Style, size, fade: one undo step each. */
+    await page.click('.sc-txt-menu [data-txt-style="lower"]');
+    t = await one();
+    ok(t.style === "lower" && t.spot === "bl" && t.sub === "Job" && t.words === "Space Monkeys 3" && (await menu()).sub, "Lower third moves it to the bottom left (its own place) and asks for a job or role; your words stay");
+    await page.fill(".sc-txt-menu [data-txt-sub]", "Director");
+    await page.click('.sc-txt-menu [data-txt-size="l"]');
+    t = await one();
+    ok(t.sub === "Director" && t.size === "l", "the job and the size (L) can be set");
+    ok(await page.evaluate((id) => { const b = document.querySelector(`.sc-viewer.mine .sc-txt[data-txt="${id}"]`); return b && b.dataset.style === "lower" && b.dataset.size === "l" && b.querySelector(".sc-txt-sub").textContent === "Director" && b.closest(".sc-txt-spot").dataset.spot === "bl"; }, t.id), "the frame draws it as a lower third, large, bottom left, with the job under the name");
+    await page.click(".sc-txt-menu [data-txt-fade]");
+    ok((await one()).fade === true, "Fade in and out can be turned on");
+    await page.keyboard.press("Escape");
+    ok(!(await menu()), "Esc closes the editor");
+    const u2 = await undoN();
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
+    ok((await one()).fade === false && (await one()).size === "l" && (await undoN()) === u2 - 1, "one ⌘Z takes back only the fade");
+    await page.keyboard.press("Control+z");
+    ok((await one()).size === "m" && (await one()).sub === "Director", "another takes back only the size");
+    await page.keyboard.press("Control+Shift+z");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await one()).size === "l" && (await one()).fade === true, "⇧⌘Z redoes both");
+    /* Click the words on the frame to edit them; set the moments it shows on. */
+    await page.click(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`);
+    mm = await menu();
+    ok(mm && mm.for === t.id, "clicking the words on the frame opens their editor");
+    await page.fill(".sc-txt-menu [data-txt-to]", "4");
+    await page.press(".sc-txt-menu [data-txt-to]", "Enter");
+    t = await one();
+    ok(t.from === 3 && t.to === 4 && (await lastUndo()) === "Lower third “Space Monkeys 3”: moments 3 to 4", "it can show from moment 3 to moment 4 (one undo step: " + (await lastUndo()) + ")");
+    await page.keyboard.press("Escape");
+    const showsOn = [];
+    for (let j = 0; j < 6; j++) {
+      await page.evaluate((j) => window.CurioScreen.setRow(j), j);
+      if ((await words()).length) showsOn.push(j + 1);
+    }
+    ok(showsOn.join() === "3,4", "the words show only on their moments (" + showsOn.join(", ") + ")");
+    /* Drag them on the picture to another spot: the top right. */
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const fr = await page.$eval(".sc-viewer.mine .sc-frame", (f) => { const r = f.getBoundingClientRect(); return { l: r.left, t: r.top, w: r.width, h: r.height }; });
+    const wb = await page.$eval(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`, (b) => { const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const u3 = await undoN();
+    await page.mouse.move(wb.x, wb.y);
+    await page.mouse.down();
+    await page.mouse.move(wb.x + 20, wb.y - 10, { steps: 3 });
+    await page.mouse.move(fr.l + fr.w * 0.85, fr.t + fr.h * 0.15, { steps: 8 });
+    const grid = await page.evaluate(() => { const g = document.querySelector(".sc-viewer.mine .sc-txt-drop"); return g ? { cells: g.querySelectorAll("[data-drop]").length, on: (g.querySelector("[data-drop].on") || {}).dataset?.drop } : null; });
+    ok(grid && grid.cells === 9 && grid.on === "tr", "while dragging, the 9 spots show and the one under the pointer lights up (" + (grid && grid.on) + ")");
+    await page.mouse.up();
+    t = await one();
+    ok(t.spot === "tr" && (await undoN()) === u3 + 1 && (await page.$eval(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`, (b) => b.closest(".sc-txt-spot").dataset.spot)) === "tr" && !(await page.$(".sc-txt-drop")), "letting go moves the words to the top right, in one undo step");
+    ok(!(await menu()), "a drag does not open the editor");
+    await page.keyboard.press("Control+z");
+    ok((await one()).spot === "bl", "⌘Z puts them back bottom left");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await one()).spot === "tr", "⇧⌘Z moves them again");
+    /* The Text row on the timeline: a bar over moments 3 to 4, its ends drag to change them. */
+    const bar = () => page.evaluate((id) => { const g = document.querySelector(`.sl-top .sl-txtbar[data-txt-bar="${id}"]`); if (!g) return null; const r = g.querySelector(".sl-txtbody").getBoundingClientRect(); const mine = [...document.querySelectorAll(".sl-topsvg .sl-clip.mine rect")].map((x) => x.getBoundingClientRect()); const head = document.querySelector(".sl-corner .sl-txthead"); return { j0: Number(g.dataset.j0), j1: Number(g.dataset.j1), l: r.left, r: r.right, t: r.top, b: r.bottom, y: r.top + r.height / 2, mineBottom: Math.max(...mine.map((x) => x.bottom)), head: head ? head.textContent : "", title: g.querySelector("title").textContent }; }, t.id);
+    let bb = await bar();
+    ok(bb && bb.j0 === 2 && bb.j1 === 3 && bb.t >= bb.mineBottom - 1 && bb.t - bb.mineBottom < 12 && /T Text/.test(bb.head), "a thin bar on a Text row, just under My film's clip track, covers moments 3 to 4");
+    ok(bb && /Drag an end/.test(bb.title), "the bar's tooltip says how to change it");
+    const col = await page.evaluate(() => { const s = document.querySelector(".sl-svg").getBoundingClientRect(); return s.width / window.CurioEngine.state().rows.length; });
+    const u4 = await undoN();
+    await page.mouse.move(bb.r - 3, bb.y);
+    await page.mouse.down();
+    await page.mouse.move(bb.r - 3 + col * 2, bb.y, { steps: 6 });
+    await page.mouse.up();
+    t = await one();
+    ok(t.from === 3 && t.to === 6 && (await undoN()) === u4 + 1, "dragging the bar's right end two moments later makes it show on moments 3 to 6, in one undo step");
+    bb = await bar();
+    await page.mouse.move(bb.l + 3, bb.y);
+    await page.mouse.down();
+    await page.mouse.move(bb.l + 3 - col, bb.y, { steps: 6 });
+    await page.mouse.up();
+    t = await one();
+    ok(t.from === 2 && t.to === 6 && (await undoN()) === u4 + 2, "dragging its left end one moment earlier makes it start on moment 2");
+    bb = await bar();
+    ok(bb.j0 === 1 && bb.j1 === 5, "the bar follows (moments 2 to 6)");
+    await page.keyboard.press("Control+z");
+    ok((await one()).from === 3 && (await one()).to === 6, "⌘Z takes back only the last drag");
+    await page.keyboard.press("Control+Shift+z");
+    bb = await bar();
+    await page.mouse.click(bb.l + (bb.r - bb.l) / 2, bb.y);
+    mm = await menu();
+    ok(mm && mm.for === t.id && (await page.evaluate(() => window.CurioScreen.row())) >= 1, "clicking the bar opens the words' editor");
+    await page.keyboard.press("Escape");
+    /* A second one from the library's Text tab; Delete removes it, ⌘Z brings it back, the editor's Delete too. */
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    await page.click('[data-icat="text"]');
+    ok(!!(await page.$(".sc-grid [data-txt-add]")), "the library's Text tab has a button for words on the frame");
+    await page.click(".sc-grid [data-txt-add]");
+    let d = await TX();
+    const t2 = d.items[1];
+    ok(d.items.length === 2 && t2.from === 5 && t2.to === 5 && t2.id !== t.id, "it adds words at the playhead too (moment 5)");
+    await page.click(`.sc-txt-menu [data-txt-style="sfx"]`);
+    ok((await TX()).items[1].style === "sfx" && (await TX()).items[1].words === "POW!" && (await TX()).items[1].spot === "mc", "Sound effect turns the example words into POW!, in the middle");
+    ok((await page.$$(".sl-top .sl-txtbar")).length === 2 && (await page.evaluate(() => { const r = [...document.querySelectorAll(".sl-top .sl-txtbody")].map((x) => x.getBoundingClientRect()); return r[0].top !== r[1].top; })), "two texts on the same moments get their own rows on the Text row, so the bars never overlap");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13b-text-two.png") });
+    await page.keyboard.press("Escape");
+    await page.focus(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`);
+    await page.keyboard.press("Delete");
+    ok((await TX()).items.length === 1 && !(await page.$(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`)) && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "Delete on the words removes them (and nothing else)");
+    ok((await lastUndo()) === "Delete Sound effect “POW!”", "the delete is named on the undo list");
+    await page.keyboard.press("Control+z");
+    ok((await TX()).items.length === 2, "⌘Z brings them back");
+    await page.click(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`);
+    await page.click(".sc-txt-menu [data-txt-del]");
+    ok((await TX()).items.length === 1 && !(await menu()), "the editor's Delete removes them too, and closes the editor");
+    /* Kept across a reload. */
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-text-v1")));
+    ok(saved && saved.items.length === 1 && saved.items[0].words === "Space Monkeys 3" && saved.items[0].sub === "Director" && saved.items[0].from === 2 && saved.items[0].to === 6 && saved.items[0].spot === "tr", "the words are kept in curiosities-screen-text-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    t = await one();
+    ok(t && t.words === "Space Monkeys 3" && t.spot === "tr" && t.from === 2 && t.to === 6 && JSON.stringify(await words()) === JSON.stringify([t.id + ":Space Monkeys 3"]) && !!(await bar()), "they come back after a reload, on the frame and on the Text row");
+    /* Export: the settings list has a Text column, the storyboard sheet and the frame picture draw the words. */
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.text()).then((x) => (rec.text = x));
+      };
+    });
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="csv"]');
+    await page.waitForFunction(() => window.__dl.length >= 1, null, { timeout: 10000 });
+    const csv = await page.evaluate(async () => (await window.__dl[0].done, window.__dl[0].text));
+    const lines = csv.replace(/^﻿/, "").trim().split("\r\n");
+    const heads = lines[0].split(",");
+    const tcol = heads.indexOf("Text");
+    ok(tcol === 3 && lines[2].includes("Lower third: Space Monkeys 3 (Director)") && lines[6].includes("Lower third: Space Monkeys 3 (Director)") && !lines[7].includes("Space Monkeys"), "the settings list has a Text column naming the words on each moment (" + (lines[2] || "").slice(0, 70) + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="svg"]');
+    await page.waitForFunction(() => window.__dl.length >= 2, null, { timeout: 10000 });
+    const svgFile = await page.evaluate(async () => (await window.__dl[1].done, window.__dl[1].text));
+    const said = ((svgFile.match(/<g class="cf-txt" data-txt="[^"]+" data-style="lower">[\s\S]*?<\/g>/) || [""])[0].match(/<tspan[^>]*>([^<]*)<\/tspan>/g) || []).map((x) => x.replace(/<[^>]+>/g, "")).join(" ");
+    ok(said === "Space Monkeys 3 Director", "the frame as a picture (SVG) draws the words (" + said + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const sh = await sheet.evaluate(() => [...document.querySelectorAll("figure.f")].map((f, i) => (f.querySelector('svg g.cf-txt[data-style="lower"]') && /On the frame: Lower third: Space Monkeys 3 \(Director\)/.test((f.querySelector(".tx") || {}).textContent || "") ? i + 1 : 0)).filter(Boolean));
+    await sheet.close();
+    ok(sh.join() === "2,3,4,5,6", "the storyboard sheet draws the words on moments 2 to 6 and names them under each frame (" + sh.join(", ") + ")");
+    /* Captions: words at the bottom step up above a caption while one shows, so they never overlap. */
+    await page.evaluate((id) => window.CurioScreen.text.set(id, { spot: "bc", size: "l" }), t.id);
+    const rid = await page.evaluate(() => window.CurioEngine.state().rows[3].id);
+    const marksSaved = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    await page.evaluate((r) => { const tl = window.CurioLanes.tools(); tl.markers = tl.markers.filter((m) => m.row !== r).concat([{ row: r, color: "blue", note: "the long note that the caption shows here, long enough to wrap onto a second line in the frame at the bottom" }]); }, rid);
+    const capWasOn = await page.evaluate(() => window.CurioScreen.captions.now().on);
+    if (!capWasOn) await page.click('.sc-transport [data-act="captions"]');
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    const gap = () => page.evaluate((id) => { const c = document.querySelector(".sc-viewer.mine .sc-cap p"); const w = document.querySelector(`.sc-viewer.mine .sc-txt[data-txt="${id}"]`); if (!c || !w) return null; const a = c.getBoundingClientRect(); const b = w.getBoundingClientRect(); const f = w.closest(".sc-frame").getBoundingClientRect(); return { overlap: !(b.bottom <= a.top || b.top >= a.bottom || b.right <= a.left || b.left >= a.right), above: b.bottom <= a.top, inside: b.top >= f.top - 1 }; }, t.id);
+    let g = await gap();
+    ok(g && !g.overlap && g.above && g.inside, "with a caption showing, words at the bottom sit above it, never on it");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13c-text-caption.png") });
+    await page.evaluate((id) => window.CurioScreen.text.set(id, { spot: "bl", size: "m" }), t.id);
+    g = await gap();
+    ok(g && !g.overlap, "bottom left too");
+    if (!capWasOn) await page.click('.sc-transport [data-act="captions"]');
+    await page.evaluate((m) => { window.CurioLanes.tools().markers = JSON.parse(m); }, marksSaved);
+    /* Leave no words for the checks after this. */
+    await page.evaluate(() => { window.CurioScreen.text.now().items.forEach((x) => window.CurioScreen.text.remove(x.id)); window.CurioScreen.setRow(0); });
+    ok((await TX()).items.length === 0 && !(await page.$(".sl-top .sl-txt")), "with every text deleted, the Text row goes away");
+  }
+
+  /* Quick find (⌘K, Ctrl+K on Windows; the 🔍 in the top bar): one box, typed words, results in groups
+     (Curiosities, Suites, Actions, Moments and markers); arrows and Enter pick, Esc closes; the last 8 picks show
+     when the box is empty; no key typed in it reaches the film. */
+  {
+    const FK = "curiosities-screen-find-v1";
+    const isOpen = () => page.evaluate(() => window.CurioScreenFind.isOpen() && !!document.querySelector(".sc-page .sc-find .sc-find-q"));
+    const inBox = () => page.evaluate(() => !!document.activeElement && document.activeElement.classList.contains("sc-find-q"));
+    const opts = () => page.$$eval(".sc-find-o", (ls) => ls.map((l) => ({ id: l.dataset.findId, label: l.querySelector("b").textContent, sub: (l.querySelector("small") || {}).textContent || "", kbd: (l.querySelector("kbd") || {}).textContent || "", on: l.classList.contains("on") && l.getAttribute("aria-selected") === "true" })));
+    const heads = () => page.$$eval(".sc-find-h > span", (hs) => hs.map((h) => h.textContent));
+    const typeIn = async (q) => {
+      await page.fill(".sc-find-q", q);
+      await page.waitForTimeout(30);
+    };
+    const findOpen = async () => {
+      if (!(await isOpen())) await page.keyboard.press("Control+k");
+    };
+    await page.evaluate((k) => { localStorage.removeItem(k); window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); document.activeElement && document.activeElement.blur(); }, FK);
+    const selBefore = await page.evaluate(() => window.CurioScreen.state().sel);
+
+    /* The 🔍 button and the key. */
+    const rowsOf = () => page.evaluate(() => { const ts = [...document.querySelector(".sc-bar").children].filter((c) => !c.classList.contains("sc-what")).map((c) => Math.round(c.getBoundingClientRect().top)); return ts.sort((a, b) => a - b).filter((t, i, a) => i === 0 || t - a[i - 1] > 16).length; });
+    ok(!!(await page.$('.sc-bar [data-act="find"]')) && (await page.$eval('.sc-bar [data-act="find"]', (b) => b.textContent.trim() === "🔍" && /Quick find/.test(b.getAttribute("aria-label")))), "the top bar has a 🔍 Quick find button");
+    ok((await rowsOf()) <= 2, "at 1440px the top bar still fits on two rows with 🔍 in it (" + (await rowsOf()) + ")");
+    await page.click('.sc-bar [data-act="find"]');
+    ok((await isOpen()) && (await inBox()), "the 🔍 button opens Quick find, with the typing in its box");
+    const h0 = await heads();
+    ok(h0.length === 1 && /^Try one of these/.test(h0[0]) && (await opts()).length >= 3, "with nothing typed and nothing picked yet, it offers a few things to try (" + h0.join(", ") + ")");
+    await page.keyboard.press("Escape");
+    ok(!(await isOpen()) && (await page.evaluate(() => document.activeElement && document.activeElement.dataset.act === "find")), "Esc closes it and gives the focus back to 🔍");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+k");
+    ok((await isOpen()) && (await inBox()), "Ctrl+K opens it (⌘K on a Mac)");
+    await page.keyboard.press("Control+k");
+    ok(!(await isOpen()), "pressed again, it closes");
+    await page.keyboard.press("Meta+k");
+    ok(await isOpen(), "⌘K opens it too");
+    await page.keyboard.press("Escape");
+    await page.click("[data-lib-search]");
+    await page.keyboard.press("Control+k");
+    ok((await isOpen()) && (await inBox()), "it opens while typing in the library's search box too");
+    await page.keyboard.press("Escape");
+    ok(await page.evaluate(() => document.activeElement && "libSearch" in document.activeElement.dataset), "and Esc puts the focus back where it was");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+
+    /* Keys typed while it is open stay in the box: nothing moves, plays, adds, undoes or opens behind it. */
+    {
+      const snap = () => page.evaluate(() => ({ row: window.CurioScreen.row(), fp: window.CurioEngine.fingerprint() + JSON.stringify(window.CurioEngine.state().lanes), marks: window.CurioLanes.tools().markers.length, tool: window.CurioLanes.tools().tool, zoom: window.CurioLanes.tools().zoom, undo: window.CurioEngine.history().undo.length, play: document.querySelector('[data-act="play"]').textContent, keys: !!document.querySelector(".sc-keys"), ghost: window.CurioScreen.state().ghost }));
+      await page.evaluate(() => window.CurioScreen.setRow(2));
+      const s0 = await snap();
+      await page.keyboard.press("Control+k");
+      for (const k of ["ArrowRight", "ArrowLeft", "Space", "m", "b", "g", "l", "j", "Shift+BracketRight", "Shift+Z", "Control+b", "Control+Equal", "Control+z", "Shift+Slash", "Backspace", "Delete"]) await page.keyboard.press(k);
+      await page.keyboard.type("i o p");
+      const typed = await page.$eval(".sc-find-q", (i) => i.value);
+      /* A key sent from a result row, and a key while nothing inside has focus: still the box's. */
+      await page.evaluate(() => {
+        const li = document.querySelector(".sc-find-o") || document.querySelector(".sc-find-list");
+        li.dispatchEvent(new KeyboardEvent("keydown", { key: "m", code: "KeyM", bubbles: true, cancelable: true }));
+        document.activeElement.blur();
+      });
+      await page.keyboard.press("m");
+      await page.keyboard.press("ArrowRight");
+      const s1 = await snap();
+      ok(JSON.stringify(s1) === JSON.stringify(s0) && (await isOpen()), "while it is open, arrows, Space, M, B, J, L, ⇧], ⌘B, ⌘+, ⌘Z, ?, ⌫ and the rest never reach the film, the timeline or the Player (" + JSON.stringify(s0) + (JSON.stringify(s1) === JSON.stringify(s0) ? "" : " → " + JSON.stringify(s1)) + ")");
+      ok(typed.length >= 3 && /i o p$/.test(typed), "the letters land in the box instead (" + JSON.stringify(typed) + ")");
+      await page.evaluate(() => document.activeElement.blur());
+      await page.keyboard.press("Escape");
+      ok(!(await isOpen()), "Esc closes it even when nothing inside has focus");
+      await page.evaluate(() => document.activeElement && document.activeElement.blur());
+      await page.keyboard.press("m");
+      ok((await page.evaluate(() => window.CurioLanes.tools().markers.length)) === s0.marks + 1, "once it is closed the Screen's keys work again (M adds a marker)");
+      await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); });
+    }
+
+    /* Find a curiosity by plain words and pick it: the library, Details and the timeline follow, as a card's pick does,
+       and its folded lane group opens. */
+    {
+      const info = await page.evaluate(() => {
+        const L = window.CurioLevels;
+        const c = L.get("curiosity", "emotionIntensity");
+        return { label: c.label, plain: c.plain || "", cat: L.categoryOf("emotionIntensity") };
+      });
+      await page.evaluate((cat) => { const t = window.CurioLanes.tools(); t.folds = t.folds || {}; t.folds[cat] = true; window.CurioScreen.state(); document.querySelector('[data-icat="camera"]').click(); }, info.cat);
+      await page.keyboard.press("Control+k");
+      await typeIn(info.label.toLowerCase().split(" ").filter((w) => w.length > 3).reverse().join(" "));
+      const o = await opts();
+      await page.screenshot({ path: path.join(SHOTS, "screen-11-quick-find.png") });
+      ok(o[0] && o[0].id === "cur:emotionIntensity" && o[0].on, "typing its words in any order finds the curiosity first, lit (" + (o[0] ? o[0].label : "nothing") + ")");
+      ok(!!info.plain && o[0] && o[0].sub === info.plain, "each curiosity shows its short plain description (" + (o[0] ? o[0].sub : "") + ")");
+      ok((await heads())[0] === "Curiosities", "under the Curiosities heading");
+      await page.keyboard.press("Enter");
+      const after = await page.evaluate((cat) => {
+        const st = window.CurioScreen.state();
+        const t = window.CurioLanes.tools();
+        const lk = Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|emotionIntensity"));
+        return { sel: st.sel, cat: st.cat, tab: st.libTab, card: !!document.querySelector('.sc-grid .sc-card.on[data-id="emotionIntensity"]'), details: !!document.querySelector('.sc-inspector .sc-cur.sel [data-select-cur="emotionIntensity"]'), open: !(t.folds && t.folds[cat]), lane: !!document.querySelector(".sl-heads .sl-head [data-pick=\"emotionIntensity\"]") || (!!lk && !!document.querySelector(`.sl-heads .sl-head [data-lk="${lk}"]`)), closed: !window.CurioScreenFind.isOpen() };
+      }, info.cat);
+      ok(after.closed && after.sel.level === "curiosity" && after.sel.id === "emotionIntensity", "Enter picks it: the Screen looks through it and the box closes");
+      ok(after.cat === info.cat && !after.tab && after.card, "the library moves to its category with its card picked");
+      ok(after.details, "Details shows it picked");
+      ok(after.open && after.lane, "its folded lane group opens and its lane shows on the timeline (" + JSON.stringify({ open: after.open, lane: after.lane }) + ")");
+    }
+
+    /* Run actions: one from the Screen's shortcuts (its key shown), one from a menu, one from the transport bar. */
+    {
+      await page.keyboard.press("Control+k");
+      await typeIn("add marker");
+      const o = await opts();
+      const am = o.find((x) => x.id === "act:key:Add marker");
+      ok(!!am && am.kbd === "M" && o[0].id === am.id && (await heads())[0] === "Actions", "an action shows its shortcut (Add marker, M), under Actions");
+      const m0 = await page.evaluate(() => window.CurioLanes.tools().markers.length);
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioLanes.tools().markers.length)) === m0 + 1 && !(await isOpen()), "Enter runs it, the same as pressing M (a marker at the playhead)");
+      await page.evaluate(() => (window.CurioLanes.tools().markers = []));
+      await page.keyboard.press("Control+k");
+      await typeIn("compare turn on");
+      ok((await opts())[0].id === "act:compare", "Compare is found by its name");
+      await page.keyboard.press("Enter");
+      ok(await page.evaluate(() => window.CurioScreen.compare.now().on && !!document.querySelector(".sc-viewer.mine .sc-cmp")), "running it turns Compare on in the Player, as its button does");
+      await page.keyboard.press("Control+k");
+      await typeIn("compare");
+      const off = (await opts()).find((x) => x.id === "act:compare");
+      ok(!!off && /turn off/.test(off.label), "the action now offers to turn it off (" + (off ? off.label : "") + ")");
+      await page.click('.sc-find-o[data-find-id="act:compare"]');
+      ok(await page.evaluate(() => !window.CurioScreen.compare.now().on && !document.querySelector(".sc-cmp")), "clicking a result runs it too (Compare off again)");
+      await page.keyboard.press("Control+k");
+      await typeIn("export");
+      await page.waitForSelector('.sc-find-o[data-find-id="act:export-menu"]');
+      const ids = (await opts()).map((x) => x.id);
+      ok(["act:export-menu", "act:export-sheet", "act:export-png", "act:export-csv"].every((id) => ids.includes(id)), "the Export ▾ items are actions");
+      await page.click('.sc-find-o[data-find-id="act:export-menu"]');
+      ok(await page.evaluate(() => !document.querySelector(".sc-export-menu").hidden), "Export ▾ opens from the box");
+      await page.keyboard.press("Escape");
+      ok(await page.evaluate(() => document.querySelector(".sc-export-menu").hidden), "and its own Esc closes it as before");
+      /* Arrow keys move the light, and Enter runs the lit one. */
+      await page.keyboard.press("Control+k");
+      await typeIn("layout");
+      const l0 = await opts();
+      await page.keyboard.press("ArrowDown");
+      const l1 = await opts();
+      const lit = l1.findIndex((x) => x.on);
+      ok(l0.findIndex((x) => x.on) === 0 && lit === 1 && (await page.$eval(".sc-find-q", (i) => i.getAttribute("aria-activedescendant"))) === "sc-find-o-1", "↓ moves the light to the next result");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("ArrowUp");
+      ok((await opts()).findIndex((x) => x.on) === l1.length - 1, "↑ from the top wraps to the bottom");
+      await page.keyboard.press("Escape");
+    }
+
+    /* Jump the playhead to a marker by its note, or to "moment 3". */
+    {
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the zebra lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      await page.keyboard.press("Control+k");
+      await typeIn("zebra"); /* a word no curiosity uses, so the marker is the only match */
+      const o = await opts();
+      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the zebra lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "Enter jumps the playhead to it");
+      await page.keyboard.press("Control+k");
+      await typeIn("moment 3");
+      ok(/^Moment 3(:|$)/.test((await opts())[0].label), "\"moment 3\" finds moment 3 first");
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioScreen.row())) === 2, "and jumps there");
+      await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); });
+    }
+
+    /* The last 8 picks, newest first, at the top when the box is empty; kept in curiosities-screen-find-v1. */
+    {
+      for (const q of ["moment 1", "moment 2", "layout player in the middle", "lens highlight"]) {
+        await page.keyboard.press("Control+k");
+        await typeIn(q);
+        await page.keyboard.press("Enter");
+      }
+      await page.keyboard.press("Control+k");
+      const h = await heads();
+      const o = await opts();
+      const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).recent, FK);
+      ok(h[0] === "Recent" && o[0].id === "act:lens-highlight" && o[1].id === "act:layout-center" && saved.length === 8 && saved[0] === "act:lens-highlight", "with the box empty the recent picks come first, newest on top, at most 8 (" + saved.join(", ") + ")");
+      ok(saved.includes("cur:emotionIntensity") === false && saved.filter((x) => x.startsWith("moment:")).length === 4, "older picks fall off the end once there are 8");
+      await page.keyboard.press("Enter");
+      ok(!(await isOpen()) && (await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).recent[0], FK)) === "act:lens-highlight", "a recent pick runs again from there");
+      await page.reload();
+      await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await page.keyboard.press("Control+k");
+      ok((await heads())[0] === "Recent" && (await opts())[0].id === "act:lens-highlight", "the recent picks survive a reload");
+      await page.keyboard.press("Escape");
+    }
+
+    /* Listed in the Shortcuts window. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.click('[data-act="shortcuts"]');
+    ok((await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent))).some((t) => /^⌘KQuick find/.test(t)), "the Shortcuts window lists ⌘K Quick find");
+    await page.keyboard.press("Escape");
+    /* Look through what was picked before again, so the tests after this see the same Screen. */
+    await page.click(`[data-level="${selBefore.level}"]`);
+    await page.selectOption("[data-pick-item]", selBefore.id);
+    await page.evaluate((k) => { localStorage.removeItem(k); const t = window.CurioLanes.tools(); Object.keys(t.folds || {}).forEach((f) => delete t.folds[f]); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); }, FK);
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');
@@ -564,10 +2587,26 @@ const ok = (cond, msg) => {
   await page.click("#lib-btn");
   await page.click('#lib-menu [data-screen="screen"]');
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "on a phone the Library opens the Screen");
-  await page.click('[data-view="screen"]');
+  await page.click('button[data-view="screen"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-6-phone.png") });
   const overflow = await page.evaluate(() => document.querySelector(".sc-page").scrollWidth - window.innerWidth);
   ok(overflow <= 1, "no sideways scroll on a phone (" + overflow + ")");
+  const phoneHeads = await page.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => { const c = h.querySelector(".sl-gcount"); const b = h.querySelector(".sl-fold"); return { text: h.textContent.replace(/\s+/g, " ").trim(), w: Math.round(h.getBoundingClientRect().width), fits: c.getBoundingClientRect().right <= h.getBoundingClientRect().right + 0.5 && c.scrollWidth <= c.clientWidth + 1, name: b.getBoundingClientRect().width, size: parseFloat(getComputedStyle(c).fontSize) }; }));
+  ok(phoneHeads.length >= 1 && phoneHeads.every((h) => h.fits && h.name >= 24 && h.size >= 10), "on a phone the group headers still fit their narrower name column, counts in full and the name readable (" + phoneHeads.map((h) => h.text + " @" + h.w + "px").join(" | ") + ")");
+  /* Pop-ups on a phone stay on screen: Guides ▾ and Suite clips ▾ never make the page scroll sideways. */
+  {
+    const sideways = () => page.evaluate(() => document.querySelector(".sc-page").scrollWidth - window.innerWidth);
+    await page.click('[data-act="guides-menu"]');
+    const gm = await page.evaluate(() => { const r = document.querySelector(".sc-guides-menu").getBoundingClientRect(); return { l: r.left, r: r.right }; });
+    ok(gm.l >= 0 && gm.r <= 390 && (await sideways()) <= 1, "on a phone Guides ▾ opens on screen (" + Math.round(gm.l) + "–" + Math.round(gm.r) + "px)");
+    await page.click('[data-act="guides-menu"]');
+    await page.click('.sl [data-act="suite-list"]');
+    await page.waitForTimeout(100);
+    const sl = await page.evaluate(() => { const p = document.querySelector(".sl-suitelist").getBoundingClientRect(), s = document.querySelector(".sl").getBoundingClientRect(); return { r: p.right, edge: s.right }; });
+    ok(sl.r <= sl.edge + 1 && (await sideways()) <= 1, "on a phone Suite clips ▾ stays inside the timeline (" + Math.round(sl.r) + " ≤ " + Math.round(sl.edge) + "px)");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+  }
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   /* Reload: the Screen comes back, the film is the same. */
@@ -575,10 +2614,2191 @@ const ok = (cond, msg) => {
   await page.reload();
   await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
   ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp, "the film survives a reload");
+  /* The suite clip saved earlier is still there after the reload; Delete asks once more, then takes it off. */
+  {
+    const names = await page.evaluate(() => window.CurioLanes.suiteClips().map((c) => c.name));
+    ok(names.join() === "the slower reveal" && (await page.evaluate(() => /Suite clips 1 ▾/.test(document.querySelector('[data-act="suite-list"]').textContent))), "the suite clip survives a reload (" + names.join(",") + ")");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-delete]");
+    ok((await page.$$(".sl-suitelist li")).length === 1 && (await page.$eval(".sl-suitelist [data-suite-delete]", (b) => b.textContent)) === "Delete for good?", "Delete asks once more before taking a clip off");
+    await page.click(".sl-suitelist [data-suite-delete]");
+    ok((await page.$$(".sl-suitelist li")).length === 0 && JSON.parse(await page.evaluate(() => localStorage.getItem("curiosities-suite-clips-v1"))).length === 0 && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp, "Delete takes the suite clip off the list and leaves the film alone");
+    await page.keyboard.press("Escape");
+  }
   await page.click('[data-act="close"]');
   ok(await page.evaluate(() => !window.CurioScreen.isOpen()), "Back to the app closes it");
   await page.click("[data-screen]");
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "the bar's Screen button opens it");
+
+  /* ---------- Templates (CapCut's Templates, curiosity-centric): save a stretch from an area with a name and a note,
+     find it in the library's Templates tab with a preview, use it at the playhead (one undo), drag it onto the
+     timeline, skip a locked lane, stretch it to a selected area, rename, export, delete, import, keep across a
+     reload. In its own browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    const TK = "curiosities-screen-templates-v1";
+    const CURS = ["shotSize", "emotionIntensity"];
+    for (const [cur, words] of [["shotSize", "Shot size"], ["emotionIntensity", "Strength of the feeling"]]) {
+      await p.fill("[data-lib-search]", words);
+      await p.click(`.sc-grid [data-add-card="curiosity|${cur}"]`);
+    }
+    await p.fill("[data-lib-search]", "");
+    /* Four moments of shape on each lane: shot size climbs, the feeling rises and falls. */
+    const setup = await p.evaluate((curs) => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const st = E.state();
+      const shapes = { shotSize: [0, 0.34, 0.67, 1], emotionIntensity: [0.2, 0.9, 0.5, 0.1] };
+      const cmds = [];
+      curs.forEach((cur) => {
+        const t = st.tracks.find((x) => x.curiosities.includes(cur));
+        st.rows.forEach((r) => st.lanes[t.id + "|" + cur] && st.lanes[t.id + "|" + cur].points[r.id] != null && cmds.push({ type: "removePoint", row: r.id, track: t.id, curiosity: cur }));
+        shapes[cur].forEach((pp, j) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: cur, value: Sc.fix(cur, Sc.at(cur, pp)) }));
+      });
+      const r = E.send({ type: "batch", label: "Template test setup", commands: cmds });
+      window.CurioScreen.setRow(0);
+      return { ok: r.ok, n: st.rows.length };
+    }, CURS);
+    ok(setup.ok && setup.n >= 8, "templates: two lanes with four moments of shape to save");
+    const pts = (cur) => p.evaluate((c) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + c)); return st.rows.map((r) => (st.lanes[lk].points[r.id] == null ? null : String(st.lanes[lk].points[r.id]))); }, cur);
+    const orig = { shotSize: await pts("shotSize"), emotionIntensity: await pts("emotionIntensity") };
+    const film = () => p.evaluate(() => window.CurioEngine.fingerprint());
+    const msg = () => p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    /* Drag an area across both lanes, moments a to b. */
+    const selectArea = async (a, b) => {
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      const g = await p.evaluate(() => {
+        const names = [...document.querySelectorAll(".sl-heads .sl-head")].map((h) => h.textContent);
+        const ix = [names.findIndex((t) => /Shot size/.test(t)), names.findIndex((t) => /Strength of the feeling/.test(t))];
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        const bgs = document.querySelectorAll(".sl-bg");
+        sc.scrollTop = Math.max(0, bgs[Math.min(...ix)].getBBox().y);
+        const r0 = bgs[Math.min(...ix)].getBoundingClientRect();
+        const r1 = bgs[Math.max(...ix)].getBoundingClientRect();
+        return { ix, x: r0.x, y0: r0.y, y1: r1.y + r1.height, w: r0.width, n: window.CurioEngine.state().rows.length };
+      });
+      const cw = g.w / g.n;
+      await p.mouse.move(g.x + cw * (a + 0.1), g.y0 + 2);
+      await p.mouse.down();
+      await p.mouse.move(g.x + cw * (b + 0.9), g.y1 - 2, { steps: 8 });
+      await p.mouse.up();
+      return g;
+    };
+    const g0 = await selectArea(0, 3);
+    ok(g0.ix.every((i) => i >= 0) && !!(await p.$('.sl .sl-areatools [data-act="tpl-save"]')), "a selected area's tools offer Save as template");
+    const before = { tools: await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet])), fp: await film(), row: await p.evaluate(() => window.CurioScreen.row()) };
+    await p.click('.sl [data-act="tpl-save"]');
+    ok(await p.evaluate(() => { const pop = document.querySelector(".sl-tplpop"); return !!pop && document.activeElement === pop.querySelector("[data-tpl-name]") && !!pop.querySelector("[data-tpl-note]"); }), "it asks for a name and an optional note in a small pop-up, ready to type");
+    await p.keyboard.press("Control+a");
+    /* Typed letters include Screen shortcuts (s, b, n, l, m, p): none of them may reach the Screen. */
+    await p.keyboard.type("slow-burn reveal pm");
+    await p.focus(".sl-tplpop [data-tpl-note]");
+    await p.keyboard.type("hold wide, then push in");
+    const typedSafe = (await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet]))) === before.tools && (await film()) === before.fp && (await p.evaluate(() => window.CurioScreen.row())) === before.row;
+    ok(typedSafe, "typing in the name and note boxes doesn't trigger Screen shortcuts");
+    await p.keyboard.press("Enter");
+    const kept = await p.evaluate((k) => JSON.parse(localStorage.getItem(k) || "[]"), TK);
+    ok(kept.length === 1 && kept[0].name === "slow-burn reveal pm" && kept[0].note === "hold wide, then push in" && kept[0].span === 3 && CURS.every((c) => kept[0].curiosities.includes(c)) && !(await p.$(".sl-tplpop")), "Enter saves it in curiosities-screen-templates-v1 with its name, note, length and curiosities");
+    ok(/Saved the template "slow-burn reveal pm"/.test(await msg()), "the status line says it was saved");
+    /* The library's Templates tab: My templates on top, with the card and its preview. */
+    const openTab = async () => { if ((await p.evaluate(() => window.CurioScreen.state().libTab)) !== "templates") await p.click('[data-libtab="templates"]'); };
+    await openTab();
+    const card = await p.evaluate(() => { const c = document.querySelector(".sc-mytpl .sc-tplcard"); return c && { name: c.querySelector("strong").textContent, note: (c.querySelector(".sc-tpl-note") || {}).textContent, what: c.querySelector(".sc-tpl-what").textContent, lines: c.querySelectorAll(".sc-tpl-pic svg polyline").length, lanes: [...c.querySelectorAll(".sc-tpl-pic polyline")].map((x) => x.dataset.tplLane), drag: c.getAttribute("draggable"), acts: [...c.querySelectorAll("[data-tpl-act]")].map((b) => b.textContent) }; });
+    const plain = await p.evaluate(() => window.CurioScale.label("emotionIntensity"));
+    ok(card && card.name === "slow-burn reveal pm" && card.note === "hold wide, then push in" && /^4 moments · /.test(card.what) && card.what.includes(plain) && card.what.includes("Shot size"), "My templates shows a card with the name, note, how many moments and which curiosities (" + (card ? card.what : "none") + ")");
+    ok(card && card.lines === kept[0].lanes.length && CURS.every((c) => card.lanes.includes(c)) && card.drag === "true", "the card has a tiny preview with one line per lane, and can be dragged");
+    ok(card && ["Use at the playhead", "Rename", "Delete", "Export"].every((t) => card.acts.includes(t)) && (await p.$$('.sc-card[data-card="suite"]')).length >= 1, "each card offers Use at the playhead, Rename, Delete and Export; the ready-made suites are still there below");
+    const shot = await p.$(".sc-lib");
+    if (shot) await shot.screenshot({ path: path.join(SHOTS, "screen-8-my-templates.png") });
+    /* Use at the playhead (moment 5): the same shapes, shifted by four moments, as one undo step. */
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    const fp0 = await film();
+    const hist0 = await p.evaluate(() => (window.CurioEngine.history ? window.CurioEngine.history().undo.length : 0));
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const used = { shotSize: await pts("shotSize"), emotionIntensity: await pts("emotionIntensity") };
+    ok(CURS.every((c) => [0, 1, 2, 3].every((j) => used[c][4 + j] === orig[c][j]) && JSON.stringify(used[c].slice(0, 4)) === JSON.stringify(orig[c].slice(0, 4))), "Use at the playhead writes the same shapes starting at moment 5 (" + used.shotSize.join(",") + ")");
+    ok(/Used the template "slow-burn reveal pm" at moment 5/.test(await msg()) && /Undo takes it back/.test(await msg()), "the status line says what it did");
+    const hist1 = await p.evaluate(() => (window.CurioEngine.history ? window.CurioEngine.history().undo.length : 0));
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0 && (!hist0 && !hist1 || hist1 === hist0 + 1), "it is one undo step: one ⌘Z takes it all back");
+    /* Drag the card onto the timeline at moment 3. */
+    const dropAt = await p.evaluate((j) => {
+      const card = document.querySelector(".sc-tplcard");
+      const svg = document.querySelector(".sl-svg");
+      const n = window.CurioEngine.state().rows.length;
+      const r = svg.getBoundingClientRect();
+      const x = r.left + (r.width / n) * (j + 0.5);
+      const y = r.top + 40;
+      const dt = new DataTransfer();
+      card.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: dt }));
+      const over = new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y });
+      svg.dispatchEvent(over);
+      svg.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y }));
+      return { accepted: over.defaultPrevented, types: [...dt.types] };
+    }, 2);
+    const dragged = await pts("shotSize");
+    ok(dropAt.accepted && [0, 1, 2, 3].every((j) => dragged[2 + j] === orig.shotSize[j]), "dragging a card onto the timeline uses it at the moment it lands on (moment 3: " + dragged.join(",") + ")");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes the drop back");
+    /* A locked lane is skipped and named. */
+    const lk = await p.evaluate(() => Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|emotionIntensity")));
+    await p.evaluate((l) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${l}"]`).click(), lk);
+    ok(await p.evaluate((l) => window.CurioLanes.isLocked(l), lk), "the feeling's lane is locked");
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const lockShot = await pts("shotSize");
+    const lockFeel = await pts("emotionIntensity");
+    ok(lockShot[4] === orig.shotSize[0] && lockShot[7] === orig.shotSize[3] && JSON.stringify(lockFeel) === JSON.stringify(orig.emotionIntensity), "with a lane locked, the template writes only the other lanes");
+    ok(/Skipped .*locked/.test(await msg()) && (await msg()).includes(plain), "and the status line names the locked lane it skipped");
+    await p.keyboard.press("Control+z");
+    await p.evaluate((l) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${l}"]`).click(), lk);
+    ok((await film()) === fp0 && !(await p.evaluate((l) => window.CurioLanes.isLocked(l), lk)), "one ⌘Z takes it back, and the lane is unlocked again");
+    /* Stretch to the selected area: moments 1 to 7 (seven moments) take the four-moment template at 0, 2, 4, 6. */
+    await selectArea(0, 6);
+    await p.check(".sc-mytpl [data-tpl-stretch]");
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const st7 = await pts("shotSize");
+    const o = orig.shotSize;
+    ok(st7[0] === o[0] && st7[2] === o[1] && st7[4] === o[2] && st7[6] === o[3] && st7[1] == null && st7[3] == null && st7[5] == null, "Stretch to the selected area spreads the template over the seven selected moments (" + st7.join(",") + ")");
+    ok(/now fills the selected 7/.test(await msg()), "the status line says it was stretched to fit");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "one ⌘Z takes the stretched use back");
+    await p.uncheck(".sc-mytpl [data-tpl-stretch]");
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    /* Rename in a small pop-up beside the card (typing there doesn't reach the Screen either). */
+    await p.click('.sc-tplcard [data-tpl-act="rename"]');
+    ok(await p.evaluate(() => { const pop = document.querySelector(".sc-tplpop"); return !!pop && document.activeElement === pop.querySelector("[data-tplpop-name]") && pop.querySelector("[data-tplpop-name]").value === "slow-burn reveal pm"; }), "Rename opens a small pop-up with its name, ready to type");
+    await p.keyboard.press("Control+a");
+    await p.keyboard.type("comedy double take");
+    await p.keyboard.press("Enter");
+    ok((await p.evaluate((k) => JSON.parse(localStorage.getItem(k))[0].name, TK)) === "comedy double take" && (await p.$eval(".sc-tplcard strong", (s) => s.textContent)) === "comedy double take" && !(await p.$(".sc-tplpop")) && (await film()) === fp0, "Rename changes its name on the card and in storage, and not the film");
+    /* Export: a .json file through a download link. */
+    const [dl] = await Promise.all([p.waitForEvent("download"), p.click('.sc-tplcard [data-tpl-act="export"]')]);
+    const file = path.join(SHOTS, "curiomatic-template-test.json");
+    await dl.saveAs(file);
+    const json = JSON.parse(fs.readFileSync(file, "utf8"));
+    ok(/^curiomatic-template-comedy-double-take\.json$/.test(dl.suggestedFilename()) && json.format === "curiomatic-templates" && json.templates.length === 1 && json.templates[0].name === "comedy double take", "Export saves the template as a .json file (" + dl.suggestedFilename() + ")");
+    /* Delete asks once more, then takes it off. */
+    await p.click('.sc-tplcard [data-tpl-act="delete"]');
+    ok((await p.$eval('.sc-tplcard [data-tpl-act="delete"]', (b) => b.textContent)) === "Delete for good?", "Delete asks once more");
+    await p.click('.sc-tplcard [data-tpl-act="delete"]');
+    ok(!(await p.$(".sc-tplcard")) && (await p.evaluate((k) => JSON.parse(localStorage.getItem(k)).length, TK)) === 0 && (await film()) === fp0, "then the template is gone and the film is unchanged");
+    /* Import the exported file back through the file box: the same template, the same nodes. */
+    await p.setInputFiles(".sc-mytpl [data-tpl-file]", file);
+    await p.waitForFunction((k) => JSON.parse(localStorage.getItem(k) || "[]").length === 1, TK, { timeout: 5000 }).catch(() => {});
+    const back = await p.evaluate((k) => JSON.parse(localStorage.getItem(k) || "[]"), TK);
+    ok(back.length === 1 && back[0].name === "comedy double take" && JSON.stringify(back[0].lanes) === JSON.stringify(json.templates[0].lanes) && !!(await p.$(".sc-tplcard")), "Import brings the exported file back with the same nodes");
+    const rt = await p.evaluate(() => { const T = window.CurioScreen.templates; const text = T.exportJson(); const id = T.list()[0].id; T.remove(id); const r = T.importJson(text); return { ok: r.ok, n: T.list().length, same: JSON.stringify(JSON.parse(text).templates[0].lanes) === JSON.stringify(T.list()[0].lanes), again: T.importJson(text).added.length }; });
+    ok(rt.ok && rt.n === 1 && rt.same && rt.again === 0, "the export JSON round-trips through the import function, and importing it twice adds nothing");
+    /* Quick find lists Save as template (with an area) and each template's Use. */
+    const finds = await p.evaluate(() => window.CurioScreenFind.items().filter((x) => /^act:tpl-/.test(x.id)).map((x) => x.label));
+    ok(finds.some((l) => l === "Use template: comedy double take"), "Quick find (⌘K) lists each template's Use (" + finds.join(", ") + ")");
+    /* Kept across a reload. */
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await openTab();
+    ok((await p.$$eval(".sc-tplcard strong", (x) => x.map((s) => s.textContent))).join() === "comedy double take", "My templates are kept across a reload");
+    await ctx.close();
+  }
+
+  /* ---------- A template used as an analogy: the card's Use as an analogy and ⌘K's "Use template as an analogy"
+     open a small preview listing where each lane's shape lands ("Shot size → Lens length", and its values), with
+     Apply and Cancel. Apply writes the cousins with the template's shape (one undo step); Cancel writes nothing;
+     keys typed in the preview never reach the film; it stays on screen at 1280×800 and 390px wide. In its own
+     browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    await p.fill("[data-lib-search]", "Shot size");
+    await p.click('.sc-grid [data-add-card="curiosity|shotSize"]');
+    await p.fill("[data-lib-search]", "");
+    /* A four-moment template: shot size climbs from insert to wide. Saved straight into My templates. */
+    const setup = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const CL = window.CurioLanes;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const cmds = [];
+      st.rows.forEach((r) => st.lanes[t.id + "|shotSize"] && st.lanes[t.id + "|shotSize"].points[r.id] != null && cmds.push({ type: "removePoint", row: r.id, track: t.id, curiosity: "shotSize" }));
+      [0, 0.34, 0.67, 1].forEach((pp, j) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: "shotSize", value: Sc.fix("shotSize", Sc.at("shotSize", pp)) }));
+      const r = E.send({ type: "batch", label: "Analogy test setup", commands: cmds });
+      const tpl = CL.template(CL.copyArea(E.state(), [{ track: t.id, cur: "shotSize", lk: t.id + "|shotSize" }], { i0: 0, i1: 0, j0: 0, j1: 3 }), "slow climb", "insert to wide");
+      CL.saveTemplates([tpl]);
+      window.CurioScreen.setRow(4);
+      return { ok: r.ok && !!tpl, id: tpl && tpl.id, n: E.state().rows.length };
+    });
+    ok(setup.ok && setup.n >= 8, "analogy: a saved template whose shot size climbs over four moments");
+    if ((await p.evaluate(() => window.CurioScreen.state().libTab)) !== "templates") await p.click('[data-libtab="templates"]');
+    const acts = await p.$$eval('.sc-tplcard [data-tpl-act]', (bs) => bs.map((b) => b.textContent));
+    ok(acts.includes("Use at the playhead") && acts.includes("Use as an analogy"), "a template card offers Use as an analogy next to Use at the playhead (" + acts.join(", ") + ")");
+    const film = () => p.evaluate(() => window.CurioEngine.fingerprint());
+    const lensPts = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|lensLength")); return st.rows.map((r) => (lk && st.lanes[lk].points[r.id] != null ? String(st.lanes[lk].points[r.id]) : null)); });
+    const shotPts = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|shotSize")); return st.rows.map((r) => (st.lanes[lk].points[r.id] == null ? null : String(st.lanes[lk].points[r.id]))); });
+    const pop = () => p.evaluate(() => {
+      const el = document.querySelector(".sc-tplpop.sc-tplan");
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return {
+        rows: [...el.querySelectorAll("[data-tplan-row]")].map((li) => ({ from: li.querySelector("strong").textContent, to: li.querySelector("select") ? li.querySelector("select").selectedOptions[0].textContent : "", vals: li.querySelector(".sc-tplan-vals").textContent, line: li.querySelector(".sc-tplan-map").firstChild.textContent + " → " + (li.querySelector("select") ? li.querySelector("select").selectedOptions[0].textContent : "") })),
+        btns: [...el.querySelectorAll("[data-tplpop]")].map((b) => b.textContent),
+        box: { l: r.left, t: r.top, r: r.right, b: r.bottom },
+        vw: window.innerWidth,
+        vh: window.innerHeight,
+        focus: el.contains(document.activeElement),
+      };
+    });
+    const onScreen = (q) => !!q && q.box.l >= 0 && q.box.t >= 0 && q.box.r <= q.vw && q.box.b <= q.vh;
+    const shot0 = await shotPts();
+    const fp0 = await film();
+    const lens0 = await lensPts();
+    /* The preview: Shot size → Lens length, with each value's new place, and Apply / Cancel. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    const q1 = await pop();
+    ok(!!q1 && q1.rows.length === 1 && q1.rows[0].line === "Shot size → Lens length", "Use as an analogy opens a preview listing the mapping (" + (q1 ? q1.rows.map((r) => r.line).join("; ") : "none") + ")");
+    ok(q1 && q1.rows[0].vals === "insert → wide, close → normal, medium → normal, wide → long", "it lists what each value becomes, keeping its place on the scale (" + (q1 ? q1.rows[0].vals : "") + ")");
+    ok(q1 && q1.btns.join() === "Cancel,Apply" && q1.focus, "with Cancel and Apply, the focus inside it");
+    ok(onScreen(q1), "the preview stays on screen at 1280×800 (" + JSON.stringify(q1 && q1.box) + ")");
+    ok((await film()) === fp0, "opening the preview writes nothing");
+    /* Keys typed in it stay in it: Screen shortcuts and ⌘Z never reach the film behind it. */
+    const tools0 = await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet, window.CurioLanes.tools().markers.length, window.CurioScreen.row()]));
+    await p.focus('.sc-tplan [data-tplpop="cancel"]');
+    for (const k of ["m", "b", "s", "n", "p", "ArrowRight", "Control+z", "Shift+Slash"]) await p.keyboard.press(k);
+    const tools1 = await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet, window.CurioLanes.tools().markers.length, window.CurioScreen.row()]));
+    ok(tools1 === tools0 && (await film()) === fp0 && !!(await pop()), "keys typed in the preview never reach the film or the timeline");
+    /* Cancel writes nothing. */
+    await p.click('.sc-tplan [data-tplpop="cancel"]');
+    ok(!(await pop()) && (await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "Cancel closes it and writes nothing");
+    /* Esc cancels too. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    await p.keyboard.press("Escape");
+    ok(!(await pop()) && (await film()) === fp0, "Esc closes it and writes nothing too");
+    /* Apply: Lens length takes Shot size's shape from the playhead (moment 5); Shot size is untouched; one undo. */
+    const hist0 = await p.evaluate(() => window.CurioEngine.history().undo.length);
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const lens1 = await lensPts();
+    const shot1 = await shotPts();
+    const hist1 = await p.evaluate(() => window.CurioEngine.history().undo.length);
+    const msg = await p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    ok(!(await pop()) && lens1[4] === "wide" && lens1[5] === "normal" && lens1[6] === "normal" && lens1[7] === "long", "Apply writes Lens length with the template's shape from moment 5 (" + lens1.join(",") + ")");
+    ok(JSON.stringify(shot1) === JSON.stringify(shot0), "Shot size itself is left as it was");
+    ok(/as an analogy at moment 5/.test(msg) && /Shot size → Lens length/.test(msg) && /Undo takes it back/.test(msg), "the status line says what moved where (" + msg + ")");
+    ok(hist1 === hist0 + 1, "it is one undo step (" + hist0 + " → " + hist1 + ")");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "one ⌘Z takes it all back");
+    /* A different cousin picked in the preview is the one written. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    const other = await p.evaluate(() => { const s = document.querySelector(".sc-tplan [data-tplan-pick]"); const o = [...s.options].find((x) => x.value && x.value !== "lensLength"); return o && { value: o.value, label: o.textContent }; });
+    await p.selectOption(".sc-tplan [data-tplan-pick]", other.value);
+    const q2 = await pop();
+    ok(!!q2 && q2.rows[0].to === other.label && q2.rows[0].line === "Shot size → " + other.label, "picking another cousin updates the preview (" + (q2 ? q2.rows[0].line + ": " + q2.rows[0].vals : "") + ")");
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const wrote = await p.evaluate((cur) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + cur)); return !!lk && st.lanes[lk].points[st.rows[4].id] != null; }, other.value);
+    ok(wrote && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "Apply writes the picked cousin instead of Lens length");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes that back");
+    /* A locked lane is skipped. */
+    const lensLk = await p.evaluate(() => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes("lensLength")); return t ? t.id + "|lensLength" : null; });
+    if (lensLk) {
+      await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), lensLk);
+      await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+      await p.click('.sc-tplan [data-tplpop="ok"]');
+      const m2 = await p.evaluate(() => document.querySelector(".sl-msg").textContent);
+      ok((await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0) && /locked/.test(m2), "with Lens length locked, nothing is written and it says why (" + m2 + ")");
+      await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], lensLk);
+    }
+    /* ⌘K: "Use template as an analogy: slow climb" sits next to "Use template: slow climb" and opens the preview. */
+    const finds = await p.evaluate(() => window.CurioScreenFind.items().filter((x) => /^act:tpl-/.test(x.id)).map((x) => x.label));
+    const iu = finds.indexOf("Use template: slow climb");
+    ok(iu >= 0 && finds[iu + 1] === "Use template as an analogy: slow climb", "Quick find (⌘K) lists Use template as an analogy right after Use template (" + finds.join(", ") + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "Use template as an analogy");
+    await p.waitForTimeout(40);
+    const first = await p.$eval(".sc-find-o", (l) => l.querySelector("b").textContent).catch(() => "");
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(60);
+    const q3 = await pop();
+    ok(first === "Use template as an analogy: slow climb" && !!q3 && q3.rows[0].line === "Shot size → Lens length" && !(await p.evaluate(() => window.CurioScreenFind.isOpen())), "picking it in ⌘K opens the same preview (" + first + ")");
+    ok(onScreen(q3) && q3.focus && (await film()) === fp0, "from ⌘K it opens on screen with the focus in it, and writes nothing yet");
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const lens3 = await lensPts();
+    ok(lens3[4] === "wide" && lens3[7] === "long", "Apply from the ⌘K preview writes the cousin too");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes it back");
+    /* On a phone (390px wide) the preview still fits on screen. */
+    await p.setViewportSize({ width: 390, height: 800 });
+    await p.waitForTimeout(120);
+    await p.evaluate((id) => window.CurioScreen.templates.preview(id), setup.id);
+    const q4 = await pop();
+    ok(onScreen(q4) && q4.box.r - q4.box.l <= 390 - 16, "at 390px wide the preview fits on screen (" + JSON.stringify(q4 && q4.box) + ")");
+    const btnH = await p.$$eval(".sc-tplan [data-tplpop]", (bs) => bs.map((b) => b.getBoundingClientRect()).every((r) => r.right <= window.innerWidth && r.bottom <= window.innerHeight));
+    ok(btnH, "and its Apply and Cancel are on screen");
+    await p.keyboard.press("Escape");
+    ok(!(await pop()) && (await film()) === fp0, "Esc closes it on a phone too, writing nothing");
+    await ctx.close();
+  }
+
+  /* ---------- Ripple: Add a moment here, Duplicate moments and Take out moments (CapCut's Split and Delete with
+     ripple, for whole moments). Nodes on every lane, markers, transitions and words on the frame all move together,
+     nothing jumps, and one undo (⌘Z, the toolbar's Undo) takes all of it back; a locked lane is never changed.
+     In its own browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    for (const [cur, words] of [["shotSize", "Shot size"], ["emotionIntensity", "Strength of the feeling"]]) {
+      await p.fill("[data-lib-search]", words);
+      await p.click(`.sc-grid [data-add-card="curiosity|${cur}"]`);
+    }
+    await p.fill("[data-lib-search]", "");
+    const setup = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const st = E.state();
+      const tr = (cur) => st.tracks.find((x) => x.curiosities.includes(cur)).id;
+      const cmds = [];
+      ["shotSize", "emotionIntensity"].forEach((cur) => {
+        const lane = st.lanes[tr(cur) + "|" + cur];
+        if (lane) Object.keys(lane.points).forEach((r) => cmds.push({ type: "removePoint", row: r, track: tr(cur), curiosity: cur }));
+      });
+      const at = (cur, j, pp) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: tr(cur), curiosity: cur, value: Sc.fix(cur, Sc.at(cur, pp)) });
+      at("shotSize", 2, 0.75);
+      at("shotSize", 5, 0);
+      at("emotionIntensity", 1, 0.1);
+      at("emotionIntensity", 6, 0.9);
+      const r = E.send({ type: "batch", label: "Ripple test setup", commands: cmds });
+      window.CurioLanes.setMarkers([{ row: st.rows[2].id, color: "red", note: "the joke lands" }, { row: st.rows[5].id, color: "blue", note: "the turn" }]);
+      window.CurioScreen.transitions.set(4, "fade");
+      window.CurioScreen.transitions.set(7, "wipe");
+      window.CurioScreen.setRow(5);
+      const t = window.CurioScreen.text.add();
+      window.CurioScreen.text.edit(null);
+      window.CurioScreen.text.span(t.id, 6, 7);
+      window.CurioScreen.setRow(3);
+      document.activeElement && document.activeElement.blur();
+      return { ok: r.ok, n: st.rows.length, store: !!window.CurioStore };
+    });
+    ok(setup.ok && setup.n >= 8 && setup.store, "ripple: two lanes with nodes, two markers, two transitions and words on moments 6 to 7");
+    const snap = () =>
+      p.evaluate(() => {
+        const E = window.CurioEngine;
+        const st = E.state();
+        const ix = {};
+        st.rows.forEach((r, i) => (ix[r.id] = i));
+        const tr = (c) => st.tracks.find((x) => x.curiosities.includes(c)).id;
+        const lanes = {};
+        ["shotSize", "emotionIntensity"].forEach((c) => { const l = st.lanes[tr(c) + "|" + c]; lanes[c] = st.rows.map((r) => (l && l.points[r.id] != null ? String(l.points[r.id]) : null)); });
+        return {
+          n: st.rows.length,
+          lanes,
+          plays: st.rows.map((r) => ["shotSize", "emotionIntensity"].map((c) => String(E.value(r.id, tr(c), c))).join("/")),
+          /* What the lanes' own nodes and lines play (links that react to a change are laid on after). */
+          lanePlays: st.rows.map((r, i) => ["shotSize", "emotionIntensity"].map((c) => String(window.CurioScreenRipple.laneValues(st.rows.map((x) => x.id), st.lanes[tr(c) + "|" + c], c, window.CurioScale)[i])).join("/")),
+          markers: window.CurioLanes.tools().markers.map((m) => [ix[m.row] + 1, m.note]),
+          joins: window.CurioScreen.transitions.now().joins,
+          texts: window.CurioScreen.text.now().items.map((t) => [t.from, t.to]),
+          steps: window.CurioStore.history().undo.length,
+          savedMarks: (JSON.parse(localStorage.getItem("curiosities-screen-tools-v1") || "{}").markers || []).length,
+          savedJoins: Object.keys((JSON.parse(localStorage.getItem("curiosities-screen-transitions-v1") || "{}").joins) || {}).sort().join(),
+          row: window.CurioScreen.row(),
+          msg: (document.querySelector(".sl-msg") || {}).textContent || "",
+        };
+      });
+    const film = (s) => JSON.stringify({ n: s.n, lanes: s.lanes, plays: s.plays, markers: s.markers, joins: s.joins, texts: s.texts });
+    const s0 = await snap();
+    ok(s0.markers.length === 2 && Object.keys(s0.joins).join() === "4,7" && JSON.stringify(s0.texts) === "[[6,7]]", "ripple: the setup is in place (" + JSON.stringify([s0.markers, s0.joins, s0.texts]) + ")");
+
+    /* + Moment in the timeline toolbar: a copy of moment 4 right after it. */
+    ok(!!(await p.$('.sl-tools [data-act="ripple-add"]')) && !!(await p.$('.sl-tools [data-act="ripple-delete"]')), "the timeline toolbar has + Moment and − Moment");
+    await p.click('.sl-tools [data-act="ripple-add"]');
+    const s1 = await snap();
+    ok(s1.n === s0.n + 1 && JSON.stringify(s1.plays) === JSON.stringify(s0.plays.slice(0, 4).concat([s0.plays[3]], s0.plays.slice(4))), "+ Moment adds a copy of the playhead's moment right after it, and nothing jumps (every moment plays what it did)");
+    ok(JSON.stringify(s1.lanes.shotSize.slice(6)) === JSON.stringify(s0.lanes.shotSize.slice(5)) && s1.lanes.emotionIntensity[7] === s0.lanes.emotionIntensity[6], "the nodes after it slid one moment later on every lane");
+    ok(JSON.stringify(s1.markers) === JSON.stringify([[3, "the joke lands"], [7, "the turn"]]) && s1.savedMarks === 2, "the marker after it slid along too (moment 6 → 7), and the markers are saved");
+    ok(Object.keys(s1.joins).join() === "4,8" && s1.joins["8"].kind === "wipe" && s1.savedJoins === "4,8", "the transition after it moved with its moment (into 7 → into 8); the copy comes in on a cut");
+    ok(JSON.stringify(s1.texts) === "[[7,8]]", "the words on moments 6 to 7 now show on 7 to 8");
+    ok(s1.steps === s0.steps + 1, "it is one undo step on the app-wide list (" + s0.steps + " → " + s1.steps + ")");
+    ok(s1.row === 4 && /Added moment 5, a copy of moment 4/.test(s1.msg) && /Undo takes it back/.test(s1.msg), "the playhead moves to the copy and the toolbar says what happened in plain words (" + s1.msg.slice(0, 90) + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    const u1 = await snap();
+    ok(film(u1) === film(s0) && u1.steps === s0.steps && u1.savedMarks === 2 && u1.savedJoins === "4,7", "one ⌘Z takes all of it back: the moment, the nodes, the markers, the transitions and the words");
+    await p.keyboard.press("Control+Shift+z");
+    ok(film(await snap()) === film(s1), "⇧⌘Z puts all of it back again");
+    await p.click('.sl-tools [data-act="undo"]');
+    ok(film(await snap()) === film(s0), "the timeline toolbar's Undo takes back the whole step too");
+
+    /* The keys: ⌥M adds, ⌥⌫ takes out the playhead's moment. */
+    await p.evaluate(() => { window.CurioScreen.setRow(3); document.activeElement && document.activeElement.blur(); });
+    await p.keyboard.press("Alt+m");
+    const k1 = await snap();
+    ok(k1.n === s0.n + 1 && k1.row === 4, "⌥M adds a moment here");
+    await p.keyboard.press("Alt+Backspace");
+    const k2 = await snap();
+    ok(k2.n === s0.n && JSON.stringify(k2.plays) === JSON.stringify(s0.plays) && JSON.stringify([k2.markers, k2.joins, k2.texts]) === JSON.stringify([s0.markers, s0.joins, s0.texts]), "⌥⌫ takes the playhead's moment out again and everything slides back");
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "two undos go back to where it started");
+
+    /* A stretch: select moments 2 to 4 on the lanes, then Duplicate moments and Take out moments. */
+    const box = await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; const bg = document.querySelectorAll(".sl-bg")[0]; const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; });
+    const cw = box.w / box.n;
+    const select = async () => {
+      await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; });
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      await p.mouse.move(box.x + cw * 1.1, box.y + 2);
+      await p.mouse.down();
+      await p.mouse.move(box.x + cw * 3.9, box.y + box.h - 2, { steps: 8 });
+      await p.mouse.up();
+    };
+    await select();
+    ok(!!(await p.$('.sl-areatools [data-act="ripple-duplicate"]')) && !!(await p.$('.sl-areatools [data-act="ripple-delete"]')), "a selected stretch shows Duplicate moments and Take out moments in the area tools");
+    await p.click('.sl-areatools [data-act="ripple-duplicate"]');
+    const d1 = await snap();
+    ok(d1.n === s0.n + 3 && JSON.stringify(d1.lanePlays) === JSON.stringify(s0.lanePlays.slice(0, 4).concat(s0.lanePlays.slice(1, 4), s0.lanePlays.slice(4))), "Duplicate moments copies moments 2 to 4 right after them; on every lane the copies play the same and nothing else changes");
+    ok(JSON.stringify(d1.markers) === JSON.stringify([[3, "the joke lands"], [9, "the turn"]]) && Object.keys(d1.joins).join() === "4,7,10" && JSON.stringify(d1.texts) === "[[9,10]]", "markers, transitions and words after the stretch slide 3 moments later; the transition inside it is copied (" + JSON.stringify([d1.markers, d1.joins, d1.texts]) + ")");
+    ok(d1.steps === s0.steps + 1 && /Duplicated moments 2 to 4: the copy is moments 5 to 7/.test(d1.msg) && (await p.evaluate(() => !!document.querySelector(".sl-area"))), "one undo step, a plain message, and the copies are selected");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "one undo takes the duplicate back");
+    await select();
+    await p.click('.sl-areatools [data-act="ripple-delete"]');
+    const t1 = await snap();
+    ok(t1.n === s0.n - 3 && JSON.stringify(t1.lanePlays) === JSON.stringify([s0.lanePlays[0]].concat(s0.lanePlays.slice(4))), "Take out moments takes moments 2 to 4 out of every lane; on every lane each moment left plays what it did");
+    ok(JSON.stringify(t1.markers) === JSON.stringify([[3, "the turn"]]) && JSON.stringify(t1.joins) === JSON.stringify({ 4: s0.joins["7"] }) && JSON.stringify(t1.texts) === "[[3,4]]", "everything after slides back 3 moments; the marker and the transition on the moments taken out go (" + JSON.stringify([t1.markers, t1.joins, t1.texts]) + ")");
+    ok(t1.steps === s0.steps + 1 && /Took out moments 2 to 4/.test(t1.msg) && /1 marker/.test(t1.msg), "one undo step, and the message says what went with them (" + t1.msg.slice(0, 120) + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    const t2 = await snap();
+    ok(film(t2) === film(s0) && t2.savedMarks === 2, "one undo shifts it all back, the marker and transition on those moments included");
+
+    /* A locked lane: never changed. */
+    const lockRes = await p.evaluate(() => {
+      const st = window.CurioEngine.state();
+      const lk = Object.keys(st.lanes).find((k) => k.endsWith("|shotSize"));
+      window.CurioLanes.tools().locks[lk] = true;
+      window.CurioScreen.setRow(2);
+      const del = window.CurioScreen.ripple("delete");
+      const n = window.CurioEngine.state().rows.length;
+      const add = window.CurioScreen.ripple("add");
+      const st2 = window.CurioEngine.state();
+      const pts = st2.rows.map((r) => (st2.lanes[lk].points[r.id] != null ? String(st2.lanes[lk].points[r.id]) : null));
+      const msg = document.querySelector(".sl-msg").textContent;
+      return { lk, del, n, add: add.ok, pts, msg };
+    });
+    ok(lockRes.del.ok === false && /locked/.test(lockRes.del.error) && lockRes.n === s0.n, "taking out a moment with a node on a locked lane is refused with a plain reason, and nothing changes");
+    ok(lockRes.add && lockRes.pts[3] === null && lockRes.pts[2] === s0.lanes.shotSize[2] && lockRes.pts[6] === s0.lanes.shotSize[5] && /locked/.test(lockRes.msg), "adding a moment still works: the locked lane gets no node on the copy, its nodes slide along, and the message says so");
+    await p.evaluate((lk) => { delete window.CurioLanes.tools().locks[lk]; document.activeElement && document.activeElement.blur(); }, lockRes.lk);
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "one undo takes that back too");
+
+    /* ⌘K: the actions by name, with their keys. */
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "add a moment");
+    await p.waitForTimeout(40);
+    const fo = await p.$$eval(".sc-find-o", (ls) => ls.map((l) => ({ label: l.querySelector("b").textContent, kbd: (l.querySelector("kbd") || {}).textContent || "" })));
+    ok(fo.length && fo[0].label === "Add a moment here" && fo[0].kbd === "⌥M", "Quick find has Add a moment here, with its key (" + JSON.stringify(fo.slice(0, 2)) + ")");
+    await p.keyboard.press("Enter");
+    ok((await snap()).n === s0.n + 1, "picking it adds the moment");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "take out moments");
+    await p.waitForTimeout(40);
+    ok((await p.$$eval(".sc-find-o b", (bs) => bs.map((b) => b.textContent))).includes("Take out moments"), "and Take out moments");
+    await p.keyboard.press("Escape");
+    await ctx.close();
+  }
+
+  /* ---------- Small screens: a short laptop with the Momentum dock, and tap-sized group headers on a phone ----------
+     Each check opens the Screen fresh in its own browser context (its own window size and storage). */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      return { ctx, p };
+    };
+    /* Both viewers keep a usable height with the Momentum column docked beside the Player: each whole frame is in
+       view without scrolling the viewers, and the docked column is still there beside them. */
+    const viewerGeo = (p) =>
+      p.evaluate(() => {
+        const r = (e) => e.getBoundingClientRect();
+        const v = document.querySelector(".sc-player > .sc-viewers");
+        const vr = r(v);
+        const frames = [...v.querySelectorAll(".sc-viewer .sc-frame")].map((f) => { const b = r(f); return { w: Math.round(b.width), h: Math.round(b.height), inView: b.top >= vr.top - 1 && b.bottom <= vr.bottom + 1 }; });
+        const dock = document.querySelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]');
+        const col = document.querySelector(".sc-player > .sc-docks");
+        const pl = r(document.querySelector(".sc-player"));
+        return { frames, vh: Math.round(vr.height), spill: v.scrollHeight - v.clientHeight, dock: !!dock, dockH: col ? Math.round(r(col).height) : 0, beside: col ? r(col).left >= vr.right - 1 : false, colTop: col ? Math.round(r(col).top - pl.top) : -1 };
+      });
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1280, height: 800 } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      const g = await viewerGeo(p);
+      await p.screenshot({ path: path.join(SHOTS, "screen-7-laptop-1280x800.png") });
+      ok(g.dock && g.beside && g.dockH >= 150, `at 1280×800 the Momentum panel stays docked beside the viewers (${g.dockH}px tall)`);
+      ok(g.frames.length === 2 && g.frames.every((f) => f.inView && f.h >= 80 && f.w >= 140) && g.spill <= 8 && g.vh >= 190, `at 1280×800 with the Momentum dock both frames are whole and in view (viewers ${g.vh}px tall, frames ${g.frames.map((f) => f.w + "×" + f.h).join(", ")}, ${g.spill}px to scroll)`);
+      await ctx.close();
+    }
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1440, height: 1000 } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      const g = await viewerGeo(p);
+      ok(g.dock && g.beside && g.colTop <= 1 && g.frames.every((f) => f.inView && f.h >= 100), `at 1440×1000 the Momentum column still runs the Player's full height beside the viewers (frames ${g.frames.map((f) => f.w + "×" + f.h).join(", ")})`);
+      await ctx.close();
+    }
+    /* On a phone a lane group's header row is at least 32px, in the name column and in the picture alike, and the
+       first lane under it starts where the header ends. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      await p.evaluate(() => [...document.querySelectorAll('[data-add-card^="curiosity|"]')].slice(0, 2).forEach((b) => b.click()));
+      await p.click('[data-icat="transitions"]');
+      await p.click('[data-add-card="curiosity|transitionKind"]');
+      await p.waitForTimeout(200);
+      const gg = await p.evaluate(() => {
+        const heads = [...document.querySelectorAll(".sl-heads .sl-ghead")];
+        const h0 = heads[0];
+        const next = h0 && h0.nextElementSibling;
+        return {
+          n: heads.length,
+          rows: heads.map((h) => Math.round(h.getBoundingClientRect().height)),
+          fold: heads.map((h) => Math.round(h.querySelector(".sl-fold").getBoundingClientRect().height)),
+          bands: [...document.querySelectorAll(".sl-svg .sl-gbg")].map((r) => Number(r.getAttribute("height"))),
+          gh: window.CurioLanes.GROUP_H,
+          joined: !!next && next.classList.contains("sl-head") && Math.abs(next.getBoundingClientRect().top - h0.getBoundingClientRect().bottom) <= 1,
+        };
+      });
+      const tl = await p.$(".sc-timeline");
+      if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-7-phone-groups.png") });
+      ok(gg.n >= 1 && gg.gh >= 32 && gg.rows.every((h) => h >= 32) && gg.fold.every((h) => h >= 28), `on a phone the lane group headers are big enough to tap (rows ${gg.rows.join(", ")}px, fold buttons ${gg.fold.join(", ")}px)`);
+      ok(gg.bands.length === gg.n && gg.bands.every((h) => h === gg.gh) && gg.joined, "on a phone the group rows in the picture match the headers, and the lanes start where each header ends");
+      await ctx.close();
+    }
+  }
+
+  /* ---------- Look check of tonight's features (Captions, Look ▾, Transitions, Quick find, My templates, Words on
+     the frame) at 1440×1000, 1280×800 with the Momentum dock, and a 390px touch phone. Each in its own context. ---------- */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await p.click('button[data-view="screen"]');
+      await p.waitForTimeout(200);
+      return { ctx, p };
+    };
+    const frame2 = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    /* Drag across the first lanes, moments 1 to 3, so the area tools (Save as template) show. */
+    const dragArea = async (p) => {
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      const g = await p.evaluate(() => {
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        sc.scrollTop = 0;
+        const bgs = document.querySelectorAll(".sl-bg");
+        const r0 = bgs[0].getBoundingClientRect();
+        const r1 = bgs[Math.min(1, bgs.length - 1)].getBoundingClientRect();
+        return { x: r0.x, y0: r0.y, y1: r1.y + r1.height, w: r0.width, n: window.CurioEngine.state().rows.length };
+      });
+      const cw = g.w / g.n;
+      await p.mouse.move(g.x + cw * 0.1, g.y0 + 2);
+      await p.mouse.down();
+      await p.mouse.move(g.x + cw * 2.9, g.y1 - 2, { steps: 8 });
+      await p.mouse.up();
+    };
+    /* 1280×800 with the Momentum dock: the Save as template pop-up opens low in a short timeline; it is lifted so
+       all of it, Save included, is on screen and inside the timeline panel. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1280, height: 800 } });
+      await dragArea(p);
+      ok(!!(await p.$('.sl .sl-areatools [data-act="tpl-save"]')), "look check: at 1280×800 a selected area offers Save as template");
+      await p.click('.sl [data-act="tpl-save"]');
+      await frame2(p);
+      const g = await p.evaluate(() => {
+        const pop = document.querySelector(".sl-tplpop");
+        if (!pop) return null;
+        const r = pop.getBoundingClientRect();
+        const tl = document.querySelector(".sc-timeline").getBoundingClientRect();
+        const save = pop.querySelector('[data-l="ok"]').getBoundingClientRect();
+        const hit = document.elementFromPoint(save.left + save.width / 2, save.top + save.height / 2);
+        return { t: Math.round(r.top), b: Math.round(r.bottom), tlt: Math.round(tl.top), tlb: Math.round(tl.bottom), saveHit: !!hit && !!hit.closest('[data-l="ok"]'), focus: document.activeElement === pop.querySelector("[data-tpl-name]") };
+      });
+      await p.screenshot({ path: path.join(SHOTS, "screen-14-laptop-template-pop.png") });
+      ok(g && g.b <= 800 && g.b <= g.tlb && g.t >= g.tlt && g.saveHit && g.focus, `look check: at 1280×800 the Save as template pop-up is wholly on screen inside the timeline, Save can be clicked, the name has the focus (${g ? g.t + "–" + g.b + "px, timeline " + g.tlt + "–" + g.tlb : "no pop-up"})`);
+      await p.keyboard.press("Escape");
+      ok(!(await p.$(".sl-tplpop")), "look check: Esc still closes it");
+      await ctx.close();
+    }
+    /* 1440×1000: one pop-up at a time (Look ▾, the words editor, the ◇ chooser, Quick find), and the editor keeps
+       "Shows on moments" boxes together on one line. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1440, height: 1000 } });
+      const open = () => p.evaluate(() => ({ tr: !!document.querySelector(".sc-tr-menu"), txt: !!document.querySelector(".sc-txt-menu"), look: !!document.querySelector(".sc-mlook-menu"), find: window.CurioScreenFind.isOpen() }));
+      await p.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+      await p.click(".sc-inspector [data-look-menu]");
+      ok((await open()).look, "look check: Look ▾ opens");
+      await p.click('.sc-transport [data-act="txt-add"]');
+      let o = await open();
+      ok(o.txt && !o.look, "look check: T Text opens the words editor and closes Look ▾ (they overlapped over Details)");
+      const span = await p.evaluate(() => [...document.querySelectorAll(".sc-txt-menu .sc-txt-span input")].map((i) => Math.round(i.getBoundingClientRect().top)));
+      ok(span.length === 2 && span[0] === span[1], `look check: the editor's two moment boxes sit on one line (${span.join(", ")})`);
+      await p.focus('.sl-top [data-join="2"]');
+      await p.keyboard.press("Enter");
+      o = await open();
+      ok(o.tr && !o.txt, "look check: Enter on a ◇ opens its chooser and closes the words editor");
+      await p.keyboard.press("Control+k");
+      o = await open();
+      ok(o.find && !o.tr && !o.txt, "look check: Quick find closes the chooser rather than leaving it behind");
+      await p.keyboard.press("Escape");
+      await p.click('.sl-top [data-join="2"]');
+      await p.click('.sc-transport [data-act="txt-add"]');
+      o = await open();
+      ok(o.txt && !o.tr, "look check: T Text closes an open chooser");
+      await ctx.close();
+    }
+    /* A 390px touch phone: the new controls are at least 28px to tap (the ◇ 24px wide), the 9-spot grid is a grid,
+       and every pop-up opens wholly on screen. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      const small = (sel) => p.$$eval(sel, (bs) => bs.filter((b) => b.getClientRects().length).map((b) => { const r = b.getBoundingClientRect(); return { t: (b.textContent || b.getAttribute("aria-label") || b.tagName).trim().slice(0, 16), w: Math.round(r.width), h: Math.round(r.height) }; }).filter((x) => x.h < 27.5 || x.w < 27.5));
+      const onScreen = (sel) => p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { ok: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, at: [r.left, r.top, r.right, r.bottom].map(Math.round).join(",") }; }, sel);
+      const fmt = (l) => l.map((x) => x.t + " " + x.w + "×" + x.h).join(", ");
+      let s = await small('.sc-transport [data-act="captions"], .sc-transport [data-act="txt-add"], .sc-bar [data-act="find"], .sc-inspector [data-look-menu]');
+      ok(s.length === 0, "look check: on a phone Captions, T Text, 🔍 and Look ▾ are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sc-transport [data-act="captions"]');
+      s = await small(".sc-transport [data-captions-mode]");
+      ok(s.length === 0, "look check: on a phone the captions select is at least 28px tall" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sc-transport [data-act="txt-add"]');
+      await frame2(p);
+      s = await small(".sc-txt-menu button:not([data-txt-spot]), .sc-txt-menu input:not([type=checkbox])");
+      ok(s.length === 0, "look check: on a phone the words editor's buttons and boxes are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      const g9 = await p.evaluate(() => {
+        const grid = document.querySelector(".sc-txt-grid9").getBoundingClientRect();
+        const bs = [...document.querySelectorAll(".sc-txt-grid9 [data-txt-spot]")].map((b) => b.getBoundingClientRect());
+        const inside = bs.every((r) => r.top >= grid.top - 0.5 && r.bottom <= grid.bottom + 0.5 && r.left >= grid.left - 0.5 && r.right <= grid.right + 0.5);
+        const apart = bs.every((a, i) => bs.every((b, k) => k <= i || a.right <= b.left + 0.5 || b.right <= a.left + 0.5 || a.bottom <= b.top + 0.5 || b.bottom <= a.top + 0.5));
+        return { n: bs.length, inside, apart, h: Math.round(Math.min(...bs.map((r) => r.height))), w: Math.round(Math.min(...bs.map((r) => r.width))), rows: new Set(bs.map((r) => Math.round(r.top))).size };
+      });
+      ok(g9.n === 9 && g9.inside && g9.apart && g9.rows === 3 && g9.h >= 28 && g9.w >= 28, `look check: on a phone the editor's 9-spot grid is three rows of 28px spots inside its box, none on top of another (${g9.w}×${g9.h}, ${g9.rows} rows)`);
+      let os = await onScreen(".sc-txt-menu");
+      ok(os && os.ok, "look check: on a phone the words editor opens wholly on screen (" + (os && os.at) + ")");
+      await p.screenshot({ path: path.join(SHOTS, "screen-14-phone-text-editor.png") });
+      await p.keyboard.press("Escape");
+      const jw = await p.evaluate(() => Math.round(document.querySelector('.sl-top [data-join="2"] .sl-joinhit').getBoundingClientRect().width));
+      ok(jw >= 24, `look check: on a phone a ◇ is ${jw}px wide to tap`);
+      await p.click('.sl-top [data-join="2"]');
+      await frame2(p);
+      s = await small(".sc-tr-menu button, .sc-tr-menu select");
+      os = await onScreen(".sc-tr-menu");
+      ok(s.length === 0 && os && os.ok, "look check: on a phone the ◇ chooser is on screen and its buttons are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.keyboard.press("Escape");
+      await p.click(".sc-inspector [data-look-menu]");
+      os = await onScreen(".sc-mlook-menu");
+      ok(os && os.ok, "look check: on a phone Look ▾ opens on screen (" + (os && os.at) + ")");
+      await p.keyboard.press("Escape");
+      await p.click('.sc-bar [data-act="find"]');
+      os = await onScreen(".sc-find-in");
+      ok(os && os.ok, "look check: on a phone Quick find opens on screen (" + (os && os.at) + ")");
+      await p.keyboard.press("Escape");
+      await dragArea(p);
+      s = await small(".sl-areatools button");
+      ok(s.length === 0, "look check: on a phone the area tools, Save as template included, are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sl [data-act="tpl-save"]');
+      await frame2(p);
+      s = await small(".sl-tplpop button, .sl-tplpop input");
+      os = await onScreen(".sl-tplpop");
+      ok(s.length === 0 && os && os.ok, "look check: on a phone the template name pop-up is on screen and its buttons are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.keyboard.press("Escape");
+      await p.click('[data-libtab="templates"]');
+      s = await small(".sc-mytpl-tools button");
+      ok(s.length === 0, "look check: on a phone the Templates tab's Export all and Import… are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      ok((await p.evaluate(() => document.querySelector(".sc-page").scrollWidth - innerWidth)) <= 1, "look check: on a phone none of it makes the page scroll sideways");
+      await ctx.close();
+    }
+  }
+
+  /* ---------- Look check leftovers (decisions 104 and 113): the transport bar beside the Momentum dock stays at
+     most two rows with Captions on (⋯ More and Captions ▾ hold the rest, every control reachable by mouse and
+     keys), the library's category tabs can all be reached at 1280 and 1440 wide, and on a 390px phone the older
+     controls are 28px to tap. Each in its own context. ---------- */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await p.click('button[data-view="screen"]');
+      await p.waitForTimeout(200);
+      return { ctx, p };
+    };
+    /* Rows of the bar: visible controls grouped by their middle line; an open menu doesn't count. */
+    const bar = (p) =>
+      p.evaluate(() => {
+        const t = document.querySelector(".sc-transport");
+        const ys = [...t.querySelectorAll("button, select, .sc-tc")].filter((e) => e.getClientRects().length && !e.closest(".sc-trpop.open")).map((e) => { const r = e.getBoundingClientRect(); return r.top + r.height / 2; }).sort((a, b) => a - b);
+        let rows = 0;
+        let last = -1e9;
+        for (const y of ys) if (y - last > 8) (rows++, (last = y));
+        const tr = t.getBoundingClientRect();
+        const col = document.querySelector(".sc-player > .sc-docks");
+        const f = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect();
+        return { rows, h: Math.round(tr.height), compact: t.classList.contains("sc-tr-compact"), underDock: !!col && col.getClientRects().length > 0 && tr.right > col.getBoundingClientRect().left + 1 && tr.bottom > col.getBoundingClientRect().top + 1 && tr.top < col.getBoundingClientRect().bottom - 1, frame: [Math.round(f.width), Math.round(f.height)] };
+      });
+    /* A control can be clicked where it is: on screen and not covered. */
+    const hittable = (p, sel) =>
+      p.evaluate((s) => {
+        const e = document.querySelector(s);
+        if (!e || !e.getClientRects().length) return false;
+        const r = e.getBoundingClientRect();
+        if (r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > innerHeight) return false;
+        const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!at && (at === e || e.contains(at) || (e.tagName === "SELECT" && at.closest("label") === e.closest("label")));
+      }, sel);
+    /* Which step the bar is on, and whether it needs it: each step is taken only when the one before takes more than
+       two rows. */
+    const level = (p) =>
+      p.evaluate(() => {
+        const t = document.querySelector(".sc-transport");
+        const rows = () => {
+          const ys = [...t.querySelectorAll("button, select, .sc-tc")].filter((e) => e.getClientRects().length && !e.closest(".sc-trpop.open")).map((e) => { const r = e.getBoundingClientRect(); return r.top + r.height / 2; }).sort((a, b) => a - b);
+          let n = 0;
+          let last = -1e9;
+          for (const y of ys) if (y - last > 8) (n++, (last = y));
+          return n;
+        };
+        const c = t.classList.contains("sc-tr-compact");
+        const s = t.classList.contains("sc-tr-short");
+        let needC = null;
+        let needS = null;
+        if (c) {
+          t.classList.remove("sc-tr-compact", "sc-tr-short");
+          needC = rows() > 2;
+          t.classList.add("sc-tr-compact");
+          if (s) {
+            needS = rows() > 2;
+            t.classList.add("sc-tr-short");
+          }
+        }
+        return { c, s, needC, needS };
+      });
+    let inlineSeen = false;
+    for (const [w, h] of [[1440, 1000], [1280, 800]]) {
+      const { ctx, p } = await fresh({ viewport: { width: w, height: h } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      await p.click('.sc-transport [data-act="captions"]');
+      await p.waitForTimeout(100);
+      const g = await bar(p);
+      await p.screenshot({ path: path.join(SHOTS, `screen-15-transport-${w}.png`) });
+      ok(g.rows <= 2 && !g.underDock, `leftovers: at ${w}×${h} with the Momentum dock and Captions on, the play bar is ${g.rows} rows (${g.h}px), not under the dock; My film's frame ${g.frame.join("×")}`);
+      ok(g.frame[0] >= 140 && g.frame[1] >= 80, `leftovers: at ${w}×${h} My film's frame keeps its size (${g.frame.join("×")})`);
+      const direct = ['[data-act="prev"]', '[data-act="play"]', '[data-act="next"]', "[data-speed]", '[data-wins="1"]', '[data-wins="2"]', '[data-wins="3"]', '[data-act="add-insp"]', '[data-act="guides-menu"]', '[data-act="compare"]', '[data-act="captions"]', '[data-act="txt-add"]'];
+      const miss = [];
+      for (const s of direct) if (!(await hittable(p, ".sc-transport " + s))) miss.push(s);
+      ok(miss.length === 0, `leftovers: at ${w}×${h} the play controls, windows, Inspiration film, Guides, Compare, Captions and T Text stay on the bar` + (miss.length ? " (hidden: " + miss.join(", ") + ")" : ""));
+      ok((await p.$eval('.sc-transport [data-act="txt-add"]', (b) => b.textContent)) === "T Text" && (await p.$eval('.sc-transport [data-act="play"]', (b) => b.textContent)) === "Play", "leftovers: the short labels keep their full names (T Text, Play) for screen readers and tests");
+      if (g.compact) {
+        /* ⋯ More by keyboard: Enter opens it with the focus on its first control, Tab moves through it, Esc closes it and
+           gives the focus back. */
+        await p.focus('.sc-transport [data-act="tr-more"]');
+        await p.keyboard.press("Enter");
+        await p.waitForTimeout(50);
+        const m = await p.evaluate(() => ({ open: !!document.querySelector(".sc-more-menu.open"), exp: document.querySelector('[data-act="tr-more"]').getAttribute("aria-expanded"), focus: document.activeElement.dataset.arr || "" }));
+        ok(m.open && m.exp === "true" && m.focus === "side", `leftovers: at ${w}×${h} Enter on ⋯ More opens it with the focus on Side (${JSON.stringify(m)})`);
+        const inMore = ['[data-arr="side"]', '[data-arr="stack"]', "select[data-ratio]", "select[data-compare-with]"];
+        const missM = [];
+        for (const s of inMore) if (!(await hittable(p, ".sc-transport .sc-more-menu " + s))) missM.push(s);
+        ok(missM.length === 0, `leftovers: at ${w}×${h} ⋯ More holds Side, Stack, Ratio and what Compare shows, all on screen and clickable` + (missM.length ? " (not: " + missM.join(", ") + ")" : ""));
+        await p.keyboard.press("Tab");
+        ok((await p.evaluate(() => document.activeElement.dataset.arr)) === "stack", "leftovers: Tab moves on to Stack inside the menu");
+        await p.keyboard.press("Tab");
+        ok((await p.evaluate(() => "ratio" in document.activeElement.dataset)) === true, "leftovers: and on to Ratio");
+        await p.selectOption(".sc-transport select[data-ratio]", "square 1:1");
+        await p.waitForTimeout(100);
+        const r1 = await p.evaluate(() => ({ shape: document.querySelector(".sc-viewer.mine .sc-frame").dataset.shape, open: !!document.querySelector(".sc-more-menu.open"), focus: "ratio" in document.activeElement.dataset }));
+        ok(r1.shape === "square" && r1.open && r1.focus, `leftovers: Ratio works from ⋯ More, and the menu stays open with the focus on it (${JSON.stringify(r1)})`);
+        await p.keyboard.press("Escape");
+        await p.waitForTimeout(50);
+        const m2 = await p.evaluate(() => ({ open: !!document.querySelector(".sc-trpop.open"), focus: document.activeElement.dataset.act || "" }));
+        ok(!m2.open && m2.focus === "tr-more", `leftovers: Esc closes ⋯ More and the focus goes back to it (${JSON.stringify(m2)})`);
+        await p.click('.sc-transport [data-act="tr-more"]');
+        await p.click('.sc-transport .sc-more-menu [data-arr="stack"]');
+        ok((await p.evaluate(() => window.CurioScreen.state().arrange)) === "stack", "leftovers: Stack works from ⋯ More with the mouse");
+        await p.click('.sc-transport .sc-more-menu [data-arr="side"]');
+        await p.mouse.click(5, h - 5);
+        ok(!(await p.$(".sc-trpop.open")), "leftovers: a click elsewhere closes ⋯ More");
+        /* Captions ▾: the captions mode in a small menu on the Captions button. */
+        await p.click('.sc-transport [data-act="cap-pop"]');
+        const c = await p.evaluate(() => ({ open: !!document.querySelector(".sc-cap-pop.open"), focus: "captionsMode" in document.activeElement.dataset }));
+        ok(c.open && c.focus && (await hittable(p, ".sc-transport select[data-captions-mode]")), `leftovers: Captions ▾ opens the captions mode, on screen, with the focus on it (${JSON.stringify(c)})`);
+        await p.selectOption(".sc-transport select[data-captions-mode]", "changes");
+        await p.waitForTimeout(50);
+        ok((await p.evaluate(() => window.CurioScreen.captions.now().mode)) === "changes", "leftovers: picking a mode there changes what the captions show");
+        await p.keyboard.press("Escape");
+        ok(!(await p.$(".sc-trpop.open")) && (await p.evaluate(() => document.activeElement.dataset.act)) === "cap-pop", "leftovers: Esc closes Captions ▾ and the focus goes back to ▾");
+        ok((await bar(p)).rows <= 2, "leftovers: still two rows after using the menus");
+      } else ok(false, `leftovers: at ${w}×${h} the bar goes compact beside the dock`);
+      let lv = await level(p);
+      ok(lv.c && lv.needC && (!lv.s || lv.needS), `leftovers: at ${w}×${h} the bar takes the least compact step that fits two rows (${lv.s ? "menus and short labels" : "menus, full labels"}; ${JSON.stringify(lv)})`);
+      /* On a wide screen the bar steps back: full labels, and with Captions off every control inline as before. */
+      await p.setViewportSize({ width: 2560, height: h });
+      await p.waitForTimeout(250);
+      const wideOn = await bar(p);
+      lv = await level(p);
+      ok(wideOn.rows <= 2 && !lv.s && (!lv.c || lv.needC), `leftovers: at 2560 wide with Captions on the bar is ${wideOn.rows} rows with full labels (${JSON.stringify(lv)})`);
+      await p.click('.sc-transport [data-act="captions"]');
+      await p.waitForTimeout(100);
+      const wide = await bar(p);
+      const inline = await p.evaluate(() => {
+        const vis = (s) => { const e = document.querySelector(".sc-transport " + s); return !!e && e.getClientRects().length > 0; };
+        const cw = document.querySelector(".sc-transport [data-compare-with]").getBoundingClientRect();
+        const cb = document.querySelector('.sc-transport [data-act="compare"]').getBoundingClientRect();
+        return { all: ['[data-arr="side"]', "select[data-ratio]", "select[data-compare-with]"].every(vis), more: vis('[data-act="tr-more"]') || vis('[data-act="cap-pop"]'), nextTo: Math.abs(cw.top - cb.top) < 6 && cw.left > cb.left && cw.left - cb.right < 12 };
+      });
+      lv = await level(p);
+      if (!wide.compact) {
+        inlineSeen = true;
+        ok(wide.rows <= 2 && inline.all && !inline.more && inline.nextTo, `leftovers: at 2560×${h} with Captions off the bar keeps every control inline as before, what Compare shows right after Compare ◐ (${wide.rows} rows, ${JSON.stringify(inline)})`);
+      } else ok(wide.rows <= 2 && lv.needC && !lv.s, `leftovers: at 2560×${h} with Captions off the bar still needs ⋯ More, with full labels (${JSON.stringify(lv)})`);
+      await ctx.close();
+    }
+    ok(inlineSeen, "leftovers: with room to spare (2560×800, Captions off) the bar is not compact at all");
+    /* The library's category tabs: › and ‹ scroll the strip until every tab has been wholly in view, clear of the
+       ADVANCED tab pinned at the right; a tab reached with the keyboard is scrolled clear of it too. */
+    for (const w of [1280, 1440]) {
+      const { ctx, p } = await fresh({ viewport: { width: w, height: 800 } });
+      await p.waitForTimeout(200);
+      const strip = () =>
+        p.evaluate(() => {
+          const nav = document.querySelector(".sc-icons");
+          const n = nav.getBoundingClientRect();
+          const adv = nav.querySelector(".sc-adv").getBoundingClientRect();
+          const [l, r] = [...document.querySelectorAll(".sc-icons-arr")];
+          const whole = [...nav.querySelectorAll("button")].filter((b) => { const q = b.getBoundingClientRect(); const right = b.classList.contains("sc-adv") ? n.right : adv.left; return q.left >= n.left - 0.5 && q.right <= right + 0.5; }).map((b) => b.dataset.icat || b.dataset.libtab);
+          return { whole, all: [...nav.querySelectorAll("button")].map((b) => b.dataset.icat || b.dataset.libtab), l: l.hidden ? "hidden" : l.disabled ? "off" : "on", r: r.hidden ? "hidden" : r.disabled ? "off" : "on", lw: Math.round(l.getBoundingClientRect().width), x: nav.scrollLeft };
+        });
+      let s = await strip();
+      await p.locator(".sc-lib").screenshot({ path: path.join(SHOTS, `screen-15-library-tabs-${w}.png`) });
+      ok(s.l === "off" && s.r === "on", `leftovers: at ${w} wide the category strip shows a › (and a greyed ‹) because ${s.all.length - s.whole.length} tabs don't fit`);
+      const seen = new Set(s.whole);
+      for (let i = 0; i < 12 && s.r === "on"; i++) {
+        await p.click('.sc-icons-arr[data-icons-scroll="1"]');
+        await p.waitForTimeout(450);
+        s = await strip();
+        s.whole.forEach((x) => seen.add(x));
+      }
+      const never = s.all.filter((x) => !seen.has(x));
+      ok(never.length === 0 && s.r === "off" && s.l === "on", `leftovers: at ${w} wide › brings every category tab wholly into view, one stretch at a time` + (never.length ? " (never whole: " + never.join(", ") + ")" : ""));
+      await p.click('.sc-icons-arr[data-icons-scroll="-1"]');
+      await p.waitForTimeout(450);
+      ok((await strip()).x < s.x, "leftovers: ‹ scrolls back");
+      await p.evaluate(() => (document.querySelector(".sc-icons").scrollLeft = 0));
+      const lastCat = s.all[s.all.length - 2];
+      await p.focus(`.sc-icons [data-icat="${lastCat}"]`);
+      await p.waitForTimeout(100);
+      ok((await strip()).whole.includes(lastCat), `leftovers: at ${w} wide a tab reached with the keyboard (${lastCat}) is scrolled clear of ADVANCED`);
+      await p.keyboard.press("Enter");
+      await p.waitForTimeout(100);
+      ok((await p.evaluate((c) => document.querySelector(`.sc-icons [data-icat="${c}"]`).classList.contains("on"), lastCat)) && (await strip()).whole.includes(lastCat), "leftovers: and Enter picks it, still in view");
+      const x0 = (await strip()).x;
+      await p.evaluate(() => (document.querySelector(".sc-icons").scrollLeft = 0));
+      await p.hover(".sc-icons");
+      await p.mouse.wheel(0, 300);
+      await p.waitForTimeout(150);
+      ok((await strip()).x > 0, `leftovers: at ${w} wide the mouse wheel scrolls the strip sideways (was at ${Math.round(x0)}px)`);
+      await ctx.close();
+    }
+    /* A 390px phone: every control is about 28px to tap, apart from the lane heads' 24px Off/Solo/Lock and ⧉ (the
+       names need the room), the timeline group rows and the frames, which keep their own sizes. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      await p.waitForTimeout(200);
+      const small = () =>
+        p.$$eval(".sc-page button, .sc-page select", (bs) =>
+          bs
+            .filter((b) => b.getClientRects().length && !b.closest(".sl-heads, .sc-frames, .sc-ov") && !b.matches(".sl-hb, .sl-win, .sl-fold, .sc-ov-f"))
+            .map((b) => { const r = b.getBoundingClientRect(); return { t: (b.textContent || b.getAttribute("aria-label") || b.tagName).trim().slice(0, 16), w: Math.round(r.width), h: Math.round(r.height) }; })
+            .filter((x) => x.h < 27.5 || x.w < 27.5)
+        );
+      const fmt = (l) => l.slice(0, 8).map((x) => x.t + " " + x.w + "×" + x.h).join(", ") + (l.length > 8 ? " and " + (l.length - 8) + " more" : "");
+      let s = await small();
+      ok(s.length === 0, `leftovers: on a phone every older control is at least 28px to tap (cards' + and ☆, the 1 2 3 windows, lens, Details, timeline tools)` + (s.length ? " (" + fmt(s) + ")" : ""));
+      const sz = await p.evaluate(() => ({ plus: [...document.querySelectorAll(".sc-card .sc-plus")].slice(0, 3).map((b) => Math.round(b.getBoundingClientRect().width)), star: [...document.querySelectorAll(".sc-card .sc-star")].slice(0, 3).map((b) => Math.round(b.getBoundingClientRect().height)), wins: [...document.querySelectorAll(".sc-transport [data-wins]")].map((b) => Math.round(b.getBoundingClientRect().width) + "×" + Math.round(b.getBoundingClientRect().height)) }));
+      ok(sz.plus.every((x) => x >= 28) && sz.star.every((x) => x >= 28) && sz.wins.length === 3, `leftovers: on a phone a card's + is ${sz.plus.join("/")}px, its ☆ ${sz.star.join("/")}px, the windows ${sz.wins.join(", ")}`);
+      await p.click('[data-libtab="templates"]');
+      await p.waitForTimeout(100);
+      const ov = await p.evaluate(() => [...document.querySelectorAll(".sc-card")].filter((c) => c.querySelector(".sc-plus") && c.querySelector(".sc-star")).every((c) => { const a = c.querySelector(".sc-plus").getBoundingClientRect(); const b = c.querySelector(".sc-star").getBoundingClientRect(); return a.right <= b.left + 0.5 || b.right <= a.left + 0.5 || a.bottom <= b.top + 0.5 || b.bottom <= a.top + 0.5; }));
+      ok(ov, "leftovers: on a phone a card's + and ☆ never sit on top of each other (Templates' wide cards too)");
+      s = await small();
+      ok(s.length === 0, "leftovers: on a phone the Templates tab's controls are 28px too" + (s.length ? " (" + fmt(s) + ")" : ""));
+      ok(!(await p.evaluate(() => document.querySelector(".sc-transport").classList.contains("sc-tr-compact"))), "leftovers: on a phone the play bar keeps its controls inline (no ⋯ More)");
+      ok((await p.evaluate(() => Math.max(document.querySelector(".sc-page").scrollWidth, document.documentElement.scrollWidth) - innerWidth)) <= 1, "leftovers: on a phone the bigger controls don't make the page scroll sideways");
+      await p.screenshot({ path: path.join(SHOTS, "screen-15-phone.png") });
+      await ctx.close();
+    }
+  }
+
+  {
+    /* One lane per track, and graded lanes in the pickers (a fresh page). Two character tracks carry Character path
+       in the starter film: each gets its own row named by the track, its own Off, Solo and Lock, and an edit on one
+       leaves the other alone. Arrange's Add a curiosity track offers a curiosity's graded lanes under it, and adding
+       one that every character has puts it on each character track. */
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const T = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      E.reset(window.CurioSeeds.starter());
+      const ch = E.state().tracks.filter((t) => t.kind === "character" && t.curiosities.includes("characterPath"));
+      E.send({ type: "batch", commands: [{ type: "renameTrack", track: ch[0].id, label: "Maya" }, { type: "renameTrack", track: ch[1].id, label: "Sam" }] });
+      return { A: ch[0].id, B: ch[1].id, cat: window.CurioLevels.categoryOf("characterPath") };
+    });
+    await p.click('button[data-view="screen"]');
+    await p.click(`[data-icat="${T.cat}"]`);
+    await p.fill("[data-lib-search]", "Character path");
+    await p.click('[data-add-card="curiosity|characterPath"]');
+    await p.fill("[data-lib-search]", "");
+    await p.waitForTimeout(200);
+    const rows = await p.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-name")].map((b) => b.textContent).filter((t) => /^Character path/.test(t)));
+    ok(rows.includes("Character path · Maya") && rows.includes("Character path · Sam") && rows.length === 2, "two tracks with the same curiosity show two rows, each named by its track (" + rows.join(", ") + ")");
+    const heads = await p.evaluate((T) => [T.A, T.B].map((t) => !!document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${t}|characterPath"]`)), T);
+    ok(heads[0] && heads[1], "each row has its own Lock (and Off and Solo once it has nodes)");
+    const laneOf = (T) => p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => JSON.stringify(l[t + "|characterPath"] ? l[t + "|characterPath"].points : {})); }, T);
+    const nodesOf = (T) => p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => (l[t + "|characterPath"] ? Object.keys(l[t + "|characterPath"].points).length : 0)); }, T);
+    /* Click on Sam's row in the lanes: the node lands on Sam's lane only. */
+    const before = await laneOf(T);
+    const at = await p.evaluate((T) => {
+      const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${T.B}|characterPath"]`));
+      h.scrollIntoView({ block: "center" });
+      const svg = document.querySelector(".sl-svg").getBoundingClientRect();
+      const r = h.getBoundingClientRect();
+      const n = window.CurioEngine.state().rows.length;
+      return { x: svg.left + (svg.width / n) * 2.5, y: r.top + r.height * 0.3 };
+    }, T);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(150);
+    const after1 = await laneOf(T);
+    const n1 = await nodesOf(T);
+    ok(after1[0] === before[0] && after1[1] !== before[1] && n1[1] === 1, `a click on Sam's row puts a node on Sam's lane only (Maya ${n1[0]}, Sam ${n1[1]} nodes)`);
+    const btn = await p.evaluate((T) => [T.A, T.B].map((t) => [!!document.querySelector(`.sl-heads [data-act="lane-solo"][data-lk="${t}|characterPath"]`), !!document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${t}|characterPath"]`)]), T);
+    ok(btn[1][0] && btn[1][1] && (n1[0] > 0) === btn[0][0], "Sam's row, now with a node, has its own Off and Solo");
+    const clickLock = (t) => p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), t + "|characterPath");
+    await clickLock(T.A);
+    const locks = await p.evaluate((T) => [window.CurioLanes.isLocked(T.A + "|characterPath"), window.CurioLanes.isLocked(T.B + "|characterPath")], T);
+    ok(locks[0] && !locks[1], "locking Maya's row leaves Sam's unlocked");
+    await clickLock(T.A);
+    await p.evaluate((T) => document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${T.B}|characterPath"]`).click(), T);
+    const offs = await p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => (l[t + "|characterPath"] ? l[t + "|characterPath"].on : null)); }, T);
+    ok(offs[1] === false && offs[0] !== false, "turning Sam's row off leaves Maya's playing");
+    await p.evaluate((T) => document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${T.B}|characterPath"]`).click(), T);
+    /* Details edits the row picked on the timeline. */
+    await p.click(`.sl-heads .sl-name[data-pick-track="${T.B}"]`);
+    await p.waitForTimeout(150);
+    const det = await p.evaluate(() => ({ head: document.querySelector(".sc-insp-h").textContent, has: !!document.querySelector('.sc-inspector input[data-step-set="characterPath"]') }));
+    ok(/Character path on Sam/.test(det.head), "Details' header says it edits Sam's lane after Sam's row is picked (" + det.head.replace(/\s+/g, " ").slice(0, 120) + ")");
+    ok(det.has, "Details shows Character path's control");
+    if (det.has) {
+      const b2 = await laneOf(T);
+      await p.evaluate(() => { const s = document.querySelector('.sc-inspector input[data-step-set="characterPath"]'); s.value = String((Number(s.value) + 2) % 5); s.dispatchEvent(new Event("change", { bubbles: true })); });
+      await p.waitForTimeout(150);
+      const a2 = await laneOf(T);
+      ok(a2[0] === b2[0] && a2[1] !== b2[1], "a change in Details goes on Sam's lane; Maya's is left alone");
+    }
+    await p.click(`.sl-heads .sl-name[data-pick-track="${T.A}"]`);
+    await p.waitForTimeout(150);
+    ok(/Character path on Maya/.test(await p.$eval(".sc-insp-h", (h) => h.textContent)), "picking Maya's row moves Details to Maya's lane");
+    await p.screenshot({ path: path.join(SHOTS, "screen-15-lane-per-track.png") });
+
+    /* Graded lanes in Arrange's Add a curiosity track. Without the 3D staging lanes in the database, a stand-in
+       slider (Eyelines: Speaking now) shows how one appears; with them, the real ones are used. */
+    const fake = await p.evaluate(() => {
+      const DB = window.CuriosityDB;
+      if (window.CurioScale.known("eyeline.speaking")) return false;
+      const real = DB.get.bind(DB);
+      const speak = { id: "speaking", label: "Speaking now", scale: ["listening", "speaking"] };
+      DB.get = (lv, id) => { const r = real(lv, id); return lv === "curiosity" && id === "eyeline" && r && !r.sliders.some((s) => s.id === "speaking") ? Object.assign({}, r, { sliders: r.sliders.concat([speak]) }) : r; };
+      return true;
+    });
+    await p.click('button[data-view="arrange"]');
+    await p.waitForTimeout(200);
+    const pick = await p.evaluate(() => {
+      const o = [...document.querySelectorAll("[data-add-lane] option")].map((x) => [x.value, x.textContent]);
+      const ix = (v) => o.findIndex((x) => x[0] === v);
+      const has = ["eyeline.setting", "eyeline.speaking", "blocking.together", "blocking.seated", "characterPath.to", "shotSize.who", "setting.place"].filter((k) => ix(k) >= 0);
+      return { setting: ix("eyeline.setting"), speaking: ix("eyeline.speaking"), bare: ix("eyeline"), speakText: (o[ix("eyeline.speaking")] || [])[1], settingText: (o[ix("eyeline.setting")] || [])[1], bareText: (o[ix("eyeline")] || [])[1], has, known: has.every((k) => window.CurioScale.known(k)) };
+    });
+    ok(pick.setting >= 0 && pick.speaking > pick.setting && pick.bare > pick.speaking, `Add a curiosity track offers Eyelines' graded lanes under it, the bare lane last (${pick.settingText} / ${pick.speakText} / ${pick.bareText})`);
+    ok(/Speaking now/i.test(pick.speakText || "") && /bare lane/.test(pick.bareText || "") && (pick.settingText || "").trim() === "Eyelines", "with plain names: Eyelines, ↳ Eyelines: speaking now, ↳ Eyelines (bare lane)");
+    ok(pick.known, "every graded lane offered is one the engine grades (" + pick.has.join(", ") + (fake ? "; Speaking now is a stand-in here" : "") + ")");
+    await p.evaluate(() => { const s = document.querySelector("[data-add-lane]"); s.value = "eyeline.speaking"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    await p.waitForTimeout(200);
+    const add = await p.evaluate((T) => {
+      const st = window.CurioEngine.state();
+      const on = st.tracks.filter((t) => t.curiosities.includes("eyeline.speaking")).map((t) => t.id);
+      const heads = [...document.querySelectorAll(".sl-heads .sl-head")].filter((h) => h.querySelector('[data-lane-cur="eyeline.speaking"]')).map((h) => h.textContent);
+      return { on, heads: heads.length, lanes: window.CurioScreen.state().lanes.includes("eyeline.speaking") };
+    }, T);
+    ok(add.on.includes(T.A) && add.on.includes(T.B) && add.lanes, `adding Eyelines: speaking now puts it on every character track (${add.on.join(", ")})`);
+    ok(add.heads === 2, `and it shows one row per character in Arrange (${add.heads})`);
+    const val = await p.evaluate((T) => {
+      const E = window.CurioEngine;
+      const r = E.state().rows[1].id;
+      E.send({ type: "batch", commands: [{ type: "setPoint", row: r, track: T.A, curiosity: "eyeline.speaking", value: "listening" }, { type: "setPoint", row: r, track: T.B, curiosity: "eyeline.speaking", value: "speaking" }] });
+      return [E.value(r, T.A, "eyeline.speaking"), E.value(r, T.B, "eyeline.speaking")];
+    }, T);
+    ok(val[1] === "speaking" && val[0] === "listening", `each character's Speaking now lane is its own (Maya ${val[0]}, Sam ${val[1]})`);
+    await p.screenshot({ path: path.join(SHOTS, "screen-16-graded-lanes.png") });
+    await ctx.close();
+  }
+
+  /* ---------- Borders you can drag, panels you can fold away, and undo for everything on the Screen (Jeremy,
+     2026-10-04: "Each window should be resizable ... all borders should be draggable ... completely collapse any
+     window ... the cursor become a line along the edge ... a small triangle", and "UNDO - undo should be able to
+     undo absolutely anything. Even dragging windows around."). Its own browser context, so its storage starts
+     empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    await p.waitForTimeout(700);
+    const box = (q) => p.evaluate((q) => { const e = document.querySelector(q); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom }; }, q);
+    const split = (id) => box(`.sc-split[data-split="${id}"]`);
+    const sizes = () => p.evaluate(() => window.CurioScreen.panels.now());
+    const hist = () => p.evaluate(() => window.CurioStore.history());
+    const lastStep = async () => { const h = await hist(); return h.undo[h.undo.length - 1] || ""; };
+    /* Drag a border by (dx, dy) from a point along it (k: 0 to 1 of the way along). */
+    const drag = async (id, dx, dy, k) => {
+      const s = await split(id);
+      const x = s.x + (s.w > 20 ? s.w * (k == null ? 0.5 : k) : s.w / 2);
+      const y = s.y + (s.h > 20 ? s.h * (k == null ? 0.5 : k) : s.h / 2);
+      await p.mouse.move(x, y);
+      await p.mouse.down();
+      await p.mouse.move(x + dx / 2, y + dy / 2, { steps: 4 });
+      await p.mouse.move(x + dx, y + dy, { steps: 4 });
+      await p.mouse.up();
+      await p.waitForTimeout(350);
+    };
+    const borders = await p.evaluate(() => window.CurioScreen.panels.borders());
+    ok(["lib", "insp", "tl", "dock", "side", "ov"].every((b) => borders.includes(b)), "every border between the Screen's panels can be dragged: library, Details, timeline, the side panels column, the library's group list and the whole film strip (" + borders.join(", ") + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sc-split")].every((s) => s.getAttribute("role") === "separator" && s.tabIndex === 0 && /Resize /.test(s.getAttribute("aria-label")))), "each border is a separator you can reach with Tab, named in plain words");
+    /* Hover: the resize cursor and triangles pointing both ways. */
+    let s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.4);
+    await p.waitForTimeout(250);
+    const hover = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="lib"]');
+      const tri = s.querySelector(".sc-split-tri");
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { cursor: getComputedStyle(s).cursor, line: Number(getComputedStyle(s.querySelector(".sc-split-line")).opacity), tri: Number(getComputedStyle(tri).opacity), a: vis(".sc-split-tri .a"), b: vis(".sc-split-tri .b"), text: tri.textContent };
+    });
+    ok(hover.cursor === "col-resize" && hover.line > 0.9, `hovering a border shows the resize cursor and a line along it (${hover.cursor})`);
+    ok(hover.tri > 0.9 && hover.a && hover.b && hover.text === "◂▸", "and small triangles showing it drags both ways (◂ ▸)");
+    const tlHover = await (async () => { const t = await split("tl"); await p.mouse.move(t.x + t.w * 0.3, t.y + t.h / 2); await p.waitForTimeout(200); return p.evaluate(() => { const s = document.querySelector('.sc-split[data-split="tl"]'); return [getComputedStyle(s).cursor, s.querySelector(".sc-split-tri").textContent]; }); })();
+    ok(tlHover[0] === "row-resize" && tlHover[1] === "▴▾", `the timeline's border shows the up and down cursor and ▴ ▾ (${tlHover.join(" ")})`);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17a-border-hover.png") });
+    /* Drag each border. */
+    const g0 = { lib: await box(".sc-lib"), insp: await box(".sc-inspector"), tl: await box(".sc-timeline"), dock: await box(".sc-player > .sc-docks"), side: await box(".sc-lib .sc-side"), ov: await box(".sc-ov-strip") };
+    const n0 = (await hist()).undo.length;
+    await drag("lib", -70, 0);
+    const libW = (await box(".sc-lib")).w;
+    ok(Math.abs(libW - (g0.lib.w - 70)) <= 4, `dragging the library's border 70px left makes it 70px narrower (${Math.round(g0.lib.w)} → ${Math.round(libW)})`);
+    ok((await hist()).undo.length === n0 + 1 && (await lastStep()) === "Resize the library", `the whole drag is one undo step, "${await lastStep()}"`);
+    const playerW = (await box(".sc-player")).w;
+    await drag("insp", -50, 0);
+    ok(Math.abs((await box(".sc-inspector")).w - (g0.insp.w + 50)) <= 4 && Math.abs((await box(".sc-lib")).w - libW) <= 2, "dragging Details' border left makes Details wider and leaves the library alone");
+    ok((await lastStep()) === "Resize Details", "one step: " + (await lastStep()));
+    await drag("tl", 0, -60, 0.3);
+    ok(Math.abs((await box(".sc-timeline")).h - (g0.tl.h + 60)) <= 4, `dragging the timeline's border up 60px makes it taller (${Math.round(g0.tl.h)} → ${Math.round((await box(".sc-timeline")).h)})`);
+    ok((await lastStep()) === "Resize the timeline", "one step: " + (await lastStep()));
+    await drag("dock", 40, 0);
+    ok(Math.abs((await box(".sc-player > .sc-docks")).w - (g0.dock.w - 40)) <= 4, `dragging the side panels' border right makes the Momentum column narrower (${Math.round(g0.dock.w)} → ${Math.round((await box(".sc-player > .sc-docks")).w)})`);
+    await drag("side", 30, 0);
+    ok(Math.abs((await box(".sc-lib .sc-side")).w - (g0.side.w + 30)) <= 4, "dragging the library's group list border widens the list");
+    await drag("ov", 0, -30);
+    ok(Math.abs((await box(".sc-ov-strip")).h - (g0.ov.h + 30)) <= 4, `dragging the top of the whole film strip makes its frames taller (${Math.round(g0.ov.h)} → ${Math.round((await box(".sc-ov-strip")).h)})`);
+    const hNow = await hist();
+    ok(hNow.undo.slice(-3).join(" | ") === "Resize the side panels beside the Player | Resize the library's group list | Resize the whole film strip", "each border has its own plain name: " + hNow.undo.slice(-3).join(" | "));
+    /* Sizes keep their smallest: a short drag stops at the minimum instead of folding. */
+    /* Keyboard: focus a border, arrow keys move it. */
+    const libBefore = (await box(".sc-lib")).w;
+    await p.focus('.sc-split[data-split="lib"]');
+    await p.keyboard.press("ArrowRight");
+    await p.keyboard.press("ArrowRight");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore + 20)) <= 2, `→ twice on the library's border widens it by 20px (${Math.round(libBefore)} → ${Math.round((await box(".sc-lib")).w)})`);
+    await p.keyboard.press("Shift+ArrowLeft");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 2, "Shift+← takes a bigger step (60px)");
+    const kh = await hist();
+    ok(kh.undo[kh.undo.length - 1] === "Resize the library" && kh.undo[kh.undo.length - 2] !== "Resize the library", "key presses close together on one border are one undo step");
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 0, "the arrow keys on a border move the border, not the playhead");
+    /* Fold a panel away: drag past half its smallest size. */
+    await drag("insp", 600, 0, 0.6);
+    ok((await sizes()).shut.insp === true && (await box(".sc-inspector")).w < 2, "dragging Details' border far to the right folds Details away completely");
+    ok((await lastStep()) === "Collapse Details", `one step named "${await lastStep()}"`);
+    const pw = (await box(".sc-player")).w;
+    ok(pw > playerW + 200, `the Player takes the room (${Math.round(playerW)} → ${Math.round(pw)}px)`);
+    s0 = await split("insp");
+    ok(s0 && s0.r >= 1425, "a thin edge is left at the right side of the Screen");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.5);
+    await p.waitForTimeout(250);
+    const edge = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="insp"]');
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { folded: s.classList.contains("folded"), cursor: getComputedStyle(s).cursor, tri: Number(getComputedStyle(s.querySelector(".sc-split-tri")).opacity), left: vis(".sc-split-tri .a"), right: vis(".sc-split-tri .b"), title: s.title, label: s.getAttribute("aria-label") };
+    });
+    ok(edge.folded && edge.cursor === "col-resize" && edge.tri > 0.9, `hovering the folded edge shows the resize cursor and a triangle (${edge.cursor})`);
+    ok(edge.left && !edge.right, "the triangle points the one way to drag it out: ◂ (left)");
+    ok(/drag left, or click, to bring it back/i.test(edge.title) && edge.label === "Bring back Details", "its tooltip says so in plain words: " + edge.title);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17b-details-folded.png") });
+    await p.screenshot({ path: path.join(SHOTS, "screen-17c-folded-edge-zoom.png"), clip: { x: 1300, y: s0.y + s0.h * 0.5 - 60, width: 140, height: 120 } });
+    /* Drag it back out. */
+    await drag("insp", -300, 0, 0.5);
+    ok(!(await sizes()).shut.insp && Math.abs((await box(".sc-inspector")).w - 294) <= 12, `dragging the folded edge out brings Details back at the width you drag to (${Math.round((await box(".sc-inspector")).w)}px)`);
+    ok((await lastStep()) === "Bring back Details", "named " + (await lastStep()));
+    /* The « button folds; a click on the edge brings it back. */
+    s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + 60);
+    await p.waitForTimeout(200);
+    await p.click('.sc-split[data-split="lib"] .sc-split-fold');
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.lib === true && (await box(".sc-lib")).w < 2, "the small « on a border folds its panel away");
+    ok((await lastStep()) === "Collapse the library", "named " + (await lastStep()));
+    s0 = await split("lib");
+    await p.mouse.click(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.lib && Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 3, "a click on the folded edge brings the library back at its old width");
+    /* Enter folds from the keyboard, and Enter again brings it back. */
+    await p.focus('.sc-split[data-split="tl"]');
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.tl === true && (await box(".sc-timeline")).h < 2, "Enter on the timeline's border folds the timeline away");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17d-timeline-folded.png") });
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "and Enter again brings it back");
+    /* Double-click puts a border back to its usual size. */
+    s0 = await split("side");
+    await p.mouse.dblclick(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok((await sizes()).side == null && Math.abs((await box(".sc-lib .sc-side")).w - g0.side.w) <= 2, "a double-click puts the group list back to its usual width");
+    /* Sizes are kept across a reload. */
+    const keep = await sizes();
+    const kept = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.waitForTimeout(900);
+    const after = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    ok(JSON.stringify(await sizes()) === JSON.stringify(keep) && Math.abs(after.lib - kept.lib) <= 2 && Math.abs(after.insp - kept.insp) <= 2 && Math.abs(after.tl - kept.tl) <= 2, `the sizes are kept across a reload (library ${Math.round(after.lib)}, Details ${Math.round(after.insp)}, timeline ${Math.round(after.tl)})`);
+    /* Undo everything on the Screen: a resize, a fold, a window move and a view toggle; redo. */
+    const lib1 = (await box(".sc-lib")).w;
+    await drag("lib", 50, 0);
+    await drag("tl", 0, 900, 0.3);
+    ok((await sizes()).shut.tl === true, "the timeline folds when its border is dragged right down");
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.waitForTimeout(200);
+    await p.click(".sc-title"); /* a click on nothing starts the next gesture */
+    const w0 = await box('.sc-win[data-win="shotSize"]');
+    await p.mouse.move(w0.x + 80, w0.y + 15);
+    await p.mouse.down();
+    await p.mouse.move(w0.x + 180, w0.y + 75, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w1 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w1.x - w0.x - 100) <= 2 && (await lastStep()) === "Move the Shot size window", `dragging a window's title bar is one step, "${await lastStep()}"`);
+    const g = await box('.sc-win[data-win="shotSize"] .sc-win-grip');
+    await p.mouse.move(g.x + g.w / 2, g.y + g.h / 2);
+    await p.mouse.down();
+    await p.mouse.move(g.x + 60, g.y - 100, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w2 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w2.w - w1.w - 52) <= 4 && (await lastStep()) === "Resize the Shot size window", `dragging a window's corner resizes it (${Math.round(w1.w)}×${Math.round(w1.h)} → ${Math.round(w2.w)}×${Math.round(w2.h)}), "${await lastStep()}"`);
+    await p.click('[data-act="compare"]');
+    await p.waitForTimeout(350);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "Compare is on");
+    ok((await lastStep()) === "Turn Compare on", "a view toggle is an undo step: " + (await lastStep()));
+    await p.click('.sc-wins-set [data-wins="3"]');
+    await p.waitForTimeout(350);
+    ok((await lastStep()) === "Add an inspiration film" && (await p.$$(".sc-viewer")).length === 3, "the 1 2 3 windows are an undo step: " + (await lastStep()));
+    /* History lists them, newest first. */
+    await p.click('[data-act="history"]');
+    await p.waitForTimeout(300);
+    const listed = await p.evaluate(() => [...document.querySelectorAll(".sc-hist-menu .sc-hist-cur, .sc-hist-menu [data-hist^='undo']")].map((b) => b.textContent));
+    ok(["Add an inspiration film", "Turn Compare on", "Resize the Shot size window", "Move the Shot size window", "Collapse the timeline", "Resize the library"].every((l, i) => listed[i] === l), "History ▾ lists them by name, newest first: " + listed.slice(0, 6).join(" · "));
+    await p.keyboard.press("Escape");
+    await p.click(".sc-title");
+    /* ⌘Z, one at a time. */
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.$$(".sc-viewer")).length === 2, "⌘Z takes the third window away again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await p.evaluate(() => window.CurioScreen.compare.now().on)), "⌘Z turns Compare off again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).w - w1.w) <= 2, "⌘Z puts the window back to its old size");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).x - w0.x) <= 2, "⌘Z moves the window back where it was");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "⌘Z brings the folded timeline back");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - lib1) <= 2, "⌘Z puts the library back to its width before the drag");
+    /* ⇧⌘Z redoes them, in order. */
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - (lib1 + 50)) <= 2, "⇧⌘Z redoes the resize");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok((await sizes()).shut.tl === true, "⇧⌘Z folds the timeline away again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    const w3 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w3.x - w1.x) <= 2 && Math.abs(w3.w - w2.w) <= 2, "⇧⌘Z moves and resizes the window again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "⇧⌘Z turns Compare on again");
+    /* Closing a window is a step; undo opens it where it was. */
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(350);
+    ok(!(await p.$('.sc-win[data-win="shotSize"]')) && (await lastStep()) === "Close the Shot size window", "closing a window is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    const w4 = await box('.sc-win[data-win="shotSize"]');
+    ok(w4 && Math.abs(w4.x - w1.x) <= 2 && Math.abs(w4.w - w2.w) <= 2, "⌘Z opens it again, same place, same size");
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(300);
+    /* The timeline's own view: zoom, a folded lane group, a marker, a toolbar toggle. */
+    await p.keyboard.press("Control+Shift+z").catch(() => {});
+    if ((await sizes()).shut.tl) {
+      await p.focus('.sc-split[data-split="tl"]');
+      await p.keyboard.press("Enter");
+      await p.waitForTimeout(300);
+    }
+    const z0 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    await p.click('.sl-tools [data-tool="zoomIn"], .sl-tools button[title^="Zoom in"]').catch(() => {});
+    await p.waitForTimeout(350);
+    const z1 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    ok(z1 > z0 && /Zoom in on the timeline/.test(await lastStep()), `zooming the timeline is a step (${z0} → ${z1}), "${await lastStep()}"`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().zoom || 1)) === z0, "⌘Z zooms back out");
+    const mag0 = await p.evaluate(() => !!window.CurioLanes.tools().magnet);
+    await p.click('.sl-tools button:text-is("Magnet")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) !== mag0 && (await lastStep()) === `Turn the magnet ${mag0 ? "off" : "on"}`, "the toolbar's Magnet is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) === mag0 && !!(await p.$('.sl-tools button.on:text-is("Magnet")')) === mag0, "⌘Z turns it back, and the button shows it");
+    const marks0 = await p.evaluate(() => window.CurioLanes.tools().markers.length);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0 + 1 && (await lastStep()) === "Add a marker", "a marker is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "⌘Z takes the marker off");
+    const nm0 = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nm0 + 2, "two markers added one right after the other are two steps, not one");
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "and two ⌘Z take both off");
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    /* A lane from a second category, so the timeline has lane groups to fold. */
+    await p.fill("[data-lib-search]", "Transition style");
+    await p.click('.sc-grid [data-add-card="curiosity|transitionKind"]');
+    await p.fill("[data-lib-search]", "");
+    await p.waitForTimeout(300);
+    const fold = await p.$(".sl-fold");
+    ok(!!fold, "the timeline has lane groups");
+    if (fold) {
+      await fold.click();
+      await p.waitForTimeout(350);
+      ok(/^Fold the .+ lanes$/.test(await lastStep()), "folding a lane group is a step: " + (await lastStep()));
+      await p.keyboard.press("Control+z");
+      await p.waitForTimeout(250);
+      ok(!Object.values(await p.evaluate(() => window.CurioLanes.tools().folds)).some((v) => v), "⌘Z opens it again");
+    }
+    /* What is not a step: the playhead, and picking a card. */
+    const nPlain = (await hist()).undo.length;
+    await p.keyboard.press("ArrowRight");
+    await p.click('[data-pick-card="curiosity|shotSize"]').catch(() => {});
+    await p.waitForTimeout(400);
+    ok((await hist()).undo.length === nPlain, "moving the playhead and picking a card are not undo steps");
+    /* A film change in the same gesture as a view change stays one step: a ripple takes back markers and all. */
+    const st0 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    const nr = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.ripple("add"));
+    await p.click(".sc-title");
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nr + 1, "a ripple (with its markers sliding along) is one step, not a film step and a view step");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    const st1 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    ok(st1[0] === st0[0] && st1[1] === st0[1] + 1, `one ⌘Z takes the whole ripple back and leaves the marker added before it (${st1.join(", ")})`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === st0[1], "and the next ⌘Z takes off that marker");
+    /* Phone: the panels stack and scroll, so there are no borders to drag. */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.waitForTimeout(500);
+    ok(await p.evaluate(() => getComputedStyle(document.querySelector(".sc-splits")).display === "none"), "on a phone the panels stack and scroll, with no borders in the way");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17e-phone.png") });
+    await p.setViewportSize({ width: 1280, height: 800 });
+    await p.waitForTimeout(500);
+    const fits = await p.evaluate(() => { const m = document.querySelector(".sc-main").getBoundingClientRect(); return [".sc-lib", ".sc-player", ".sc-inspector", ".sc-timeline"].every((q) => { const r = document.querySelector(q).getBoundingClientRect(); return r.right <= m.right + 1 && r.left >= m.left - 1; }) && document.querySelector(".sc-player").getBoundingClientRect().width >= 230; });
+    ok(fits, "at 1280×800 the saved sizes still fit, the Player keeps room");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17f-1280.png") });
+    await ctx.close();
+  }
+
+  /* Your own curiosities, suites and proximities (screen/mine.js; Jeremy: "The user should be able to define and
+     create their own curiosities as well as curiosity suites and proximities"). Make a curiosity with named steps
+     from the library, put it in the film, set a node, Details shows and edits it, one undo step, a reload keeps it,
+     a suite and a proximity with it, Quick find finds it, export and import as a file, delete asks first, and its
+     id never clashes with the database's. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    const ID = "my-tension-in-the-room";
+    const lane = () => p.evaluate((id) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + id)); return lk ? st.rows.map((r) => st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id]) : null; }, ID);
+    const formOpen = () => p.evaluate(() => !!document.querySelector(".sc-mydlg[open]"));
+    await p.click('[data-icat="feeling"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="curiosity"]')) && !!(await p.$('.sc-mybar [data-my-act="export"]')) && !!(await p.$('.sc-mybar [data-my-act="import"]')), "the library's category tab starts with + New curiosity, Export mine and Import…");
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    ok(await formOpen(), "+ New curiosity opens a small form over the Screen");
+    ok(await p.evaluate(() => { const t = document.querySelector(".sc-mydlg").textContent; return /What it is/.test(t) && /How it moves the story forward and the audience's attention/.test(t) && /What to try/.test(t) && /Named steps/.test(t) && /A number range/.test(t) && document.querySelector('.sc-mydlg [name="cat"]').value === "feeling"; }), "it asks in plain words: name, what it is, how it moves the story and the audience's attention, what to try, category (the tab you are in) and its scale");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /Give it a name/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "saving with no name says what's missing and keeps the form open");
+    await p.fill('.sc-mydlg [name="label"]', "Tension in the room");
+    await p.fill('.sc-mydlg [name="plain"]', "How wound up everyone in the scene is.");
+    await p.fill('.sc-mydlg [name="story"]', "Rising tension makes the audience lean in and wait for something to break.");
+    await p.fill('.sc-mydlg [name="tryThis"]', "Let it climb for three moments, then drop it to calm at once.");
+    await p.fill('.sc-mydlg [name="steps"]', "calm");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /at least two different steps/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "one step is not a scale: it asks for at least two, in order");
+    await p.fill('.sc-mydlg [name="steps"]', "calm → tense → frantic");
+    await p.click('.sc-mydlg [data-my-do="extra-add"]');
+    await p.fill('.sc-mydlg .sc-myextra [data-x="label"]', "Speed");
+    await p.fill('.sc-mydlg .sc-myextra [data-x="scale"]', "0 to 10 km/h");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17-my-curiosity-form.png") });
+    const u0 = await p.evaluate(() => window.CurioStore.history().undo.length);
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok(!(await formOpen()), "Make it closes the form");
+    const card = await p.evaluate((id) => { const c = document.querySelector(`.sc-grid .sc-card[data-card="curiosity"][data-id="${id}"]`); return c ? { mine: c.classList.contains("mine"), tag: (c.querySelector(".sc-mine-tag") || {}).textContent, edit: !!c.querySelector("[data-my-edit]"), plus: !!c.querySelector("[data-add-card]"), on: c.classList.contains("on") } : null; }, ID);
+    ok(card && card.mine && card.tag === "mine" && card.edit && card.plus && card.on, "it shows in Feeling's cards, picked, with a small mine mark, a ✎ and a + like any card");
+    const hist = await p.evaluate(() => window.CurioStore.history().undo);
+    ok(hist.length === u0 + 1 && /Make the curiosity Tension in the room/.test(hist[hist.length - 1]), "making it is one undo step: " + hist[hist.length - 1]);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioScale.domain(id).options.join() === "calm,tense,frantic" && window.CurioScale.known(id + ".speed") && JSON.parse(localStorage.getItem("curiosities-user-curiosities-v1")).curiosities[0].id === id, ID), "the engine knows its steps and its extra slider, and it is saved in curiosities-user-curiosities-v1");
+    await p.keyboard.press("Control+z");
+    ok(!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id), ID)), "⌘Z takes it back");
+    await p.keyboard.press("Control+Shift+z");
+    ok(!!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "and ⇧⌘Z brings it back");
+    /* Into the film, a node, and Details. */
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    await p.click(`[data-add-card="curiosity|${ID}"]`);
+    let l = await lane();
+    ok(l && l[0] === "calm", "its + puts it on the timeline with a node at the playhead (" + (l && l[0]) + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sl-name")].some((b) => b.textContent === "Tension in the room")), "its lane shows on the timeline by its name");
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.waitForTimeout(100);
+    const det = await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); return i ? { max: i.max, name: [...document.querySelectorAll(".sc-inspector .sc-cur-name")].some((b) => b.textContent === "Tension in the room") } : null; }, ID);
+    ok(det && det.max === "2" && det.name, "Details shows it with its three steps");
+    await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); i.value = "2"; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); }, ID);
+    await p.waitForTimeout(100);
+    l = await lane();
+    ok(l && l[4] === "frantic", "Details writes a node at the playhead: frantic at moment 5");
+    ok(await p.evaluate((id) => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes(id)); return E.value(st.rows[2].id, t.id, id) === "tense"; }, ID), "the engine plays it: between calm and frantic the lane passes tense");
+    ok(/frantic/.test(await p.$eval(`.sc-inspector input[data-step-set="${ID}"] + output`, (o) => o.textContent)), "Details shows the setting at the playhead");
+    await p.screenshot({ path: path.join(SHOTS, "screen-18-my-curiosity.png") });
+    /* A reload keeps it, its lane and its nodes. */
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic", "after a reload it is still known and its nodes are all there (" + JSON.stringify(l && l.slice(0, 5)) + ")");
+    await p.click('[data-icat="feeling"]');
+    const gid = await p.evaluate((id) => "ws:" + window.CuriosityDB.get("curiosity", id).workspace, ID);
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    ok(!!(await p.$(`.sc-grid .sc-card.mine[data-id="${ID}"]`)), "and its card is back in the library");
+    /* A suite with it. */
+    await p.click('.sc-side [data-group="suite"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="suite"].on')), "the Suites group's bar offers + New suite");
+    await p.click('.sc-mybar [data-my-new="suite"]');
+    ok(await formOpen(), "+ New suite opens its form");
+    await p.fill('.sc-mydlg [name="label"]', "The calm before the storm");
+    await p.fill(".sc-mydlg [data-my-filter]", "tension");
+    await p.click(`.sc-mydlg [data-my-pickcur="${ID}"]`);
+    await p.fill(".sc-mydlg [data-my-filter]", "shot size");
+    await p.click('.sc-mydlg [data-my-pickcur="shotSize"]');
+    await p.selectOption(`.sc-mydlg [data-my-member="${ID}"] select`, "calm");
+    await p.selectOption('.sc-mydlg [data-my-member="shotSize"] select', "wide");
+    await p.screenshot({ path: path.join(SHOTS, "screen-19-my-suite-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const SID = await p.evaluate(() => (window.CurioMine.data().suites[0] || {}).id);
+    ok(SID === "my-the-calm-before-the-storm" && !(await formOpen()) && !!(await p.$(`.sc-grid .sc-card.mine[data-card="suite"][data-id="${SID}"]`)), "the suite shows with the category's suites, marked mine (" + SID + ")");
+    await p.evaluate(() => window.CurioScreen.setRow(6));
+    await p.click(`[data-add-card="suite|${SID}"]`);
+    l = await lane();
+    ok(l && l[6] === "calm" && (await p.evaluate(() => { const st = window.CurioEngine.state(); return st.lanes["camera|shotSize"] && st.lanes["camera|shotSize"].points[st.rows[6].id] === "wide"; })), "its + drops each member at its setting at the playhead");
+    /* A proximity with it. */
+    await p.click('.sc-side [data-group="proximity"]');
+    await p.click('.sc-mybar [data-my-new="proximity"]');
+    ok(await formOpen(), "+ New proximity opens its form");
+    await p.selectOption('.sc-mydlg [name="whenCur"]', ID);
+    await p.selectOption('.sc-mydlg [name="whenChange"]', "rises");
+    await p.selectOption('.sc-mydlg [name="thenCur"]', "shotSize");
+    await p.selectOption('.sc-mydlg [name="thenChange"]', "is");
+    await p.selectOption('.sc-mydlg [name="thenIs"]', "close");
+    await p.fill('.sc-mydlg [name="within"]', "2");
+    await p.dispatchEvent('.sc-mydlg [name="within"]', "change");
+    const sent = await p.$eval(".sc-mydlg [data-my-preview]", (e) => e.textContent);
+    ok(sent === "When Tension in the room goes up, Shot size becomes close within 2 moments.", "it reads as a plain sentence while you make it: " + sent);
+    await p.screenshot({ path: path.join(SHOTS, "screen-20-my-proximity-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const PID = await p.evaluate(() => (window.CurioMine.data().proximities[0] || {}).id);
+    ok(!!PID && PID.startsWith("my-") && !!(await p.$(`.sc-grid .sc-card.mine[data-card="proximity"][data-id="${PID}"]`)), "the proximity shows with the category's proximities, marked mine (" + PID + ")");
+    ok(await p.evaluate((pid) => window.CURIOSITY_LINKS.links.some((x) => x.proximity === pid) && window.CurioLevels.resolve("proximity", pid).pairs[0].within === 2, PID), "it is a proximity the levels and the engine's link pack know");
+    const n0 = await p.evaluate(() => window.CurioEngine.state().links.length);
+    await p.click(`[data-add-card="proximity|${PID}"]`);
+    ok(await p.evaluate(({ n0, id }) => { const st = window.CurioEngine.state(); return st.links.length === n0 + 1 && st.links.some((x) => x.from.curiosity === id && x.to.curiosity === "shotSize" && x.does === "set"); }, { n0, id: ID }), "its + adds it to the film as a rule: when Tension rises, Shot size becomes close");
+    /* Quick find. */
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "tension room");
+    await p.waitForTimeout(50);
+    const hit = await p.$eval(`.sc-find-o[data-find-id="cur:${ID}"]`, (li) => ({ label: li.querySelector("b").textContent, tag: (li.querySelector("em") || {}).textContent || "" })).catch(() => null);
+    ok(hit && hit.label === "Tension in the room" && /^Mine/.test(hit.tag), "⌘K Quick find finds it, marked Mine (" + (hit && hit.tag) + ")");
+    await p.fill(".sc-find-q", "calm before storm");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$(`.sc-find-o[data-find-id="suite:${SID}"]`)), "and finds the suite");
+    await p.fill(".sc-find-q", "new curiosity");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$('.sc-find-o[data-find-id="act:my-new-curiosity"]')), "and offers New curiosity as an action");
+    await p.keyboard.press("Escape");
+    /* Change it: one more step, and its nodes keep their place on the new steps. */
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    ok((await formOpen()) && (await p.$eval('.sc-mydlg [name="label"]', (i) => i.value)) === "Tension in the room" && (await p.$eval('.sc-mydlg [name="steps"]', (i) => i.value)) === "calm, tense, frantic", "✎ opens the form with what you made");
+    await p.fill('.sc-mydlg [name="steps"]', "still, calm, tense, frantic, panic");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic" && (await p.evaluate((id) => window.CurioScale.domain(id).options.length === 5, ID)), "Save changes uses the new steps, and the film's nodes are still calm and frantic");
+    /* Export and import as a file. */
+    const [dl] = await Promise.all([p.waitForEvent("download"), p.click('.sc-mybar [data-my-act="export"]')]);
+    const file = fs.readFileSync(await dl.path(), "utf8");
+    const shared = JSON.parse(file);
+    ok(dl.suggestedFilename() === "curiomatic-my-curiosities.json" && shared.format === "curiomatic-my-curiosities" && shared.curiosities.length === 1 && shared.suites.length === 1 && shared.proximities.length === 1, "Export mine saves everything you made as one .json file (" + dl.suggestedFilename() + ")");
+    /* Delete asks first. */
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    const sure = await p.$eval(".sc-mydlg .sc-my-sure", (e) => ({ shown: !e.hidden, text: e.querySelector("p").textContent }));
+    ok(sure.shown && /^Delete Tension in the room\?/.test(sure.text) && /in your film on 1 lane/.test(sure.text) && /"The calm before the storm"/.test(sure.text), "Delete… asks first, and says what goes with it: " + sure.text);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && !!window.CurioMine.get("curiosity", id), ID), "nothing is deleted yet");
+    await p.click('.sc-mydlg [data-my-do="keep"]');
+    await p.click('.sc-mydlg [data-my-do="cancel"]');
+    ok(!(await formOpen()) && !!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "Keep it and Cancel leave it as it was");
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    await p.click('.sc-mydlg [data-my-do="delete"]');
+    ok(!(await formOpen()) && !(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id) || !!window.CurioMine.get("curiosity", id), ID)) && (await lane()) === null, "Delete for good takes it out of the library, the engine and the film");
+    /* Import the file again: the curiosity comes back; the suite and proximity you still have are skipped. */
+    await p.setInputFiles(".sc-mybar [data-my-file]", { name: "curiomatic-my-curiosities.json", mimeType: "application/json", buffer: Buffer.from(file) });
+    await p.waitForFunction((id) => !!window.CurioMine.get("curiosity", id), ID, { timeout: 5000 }).catch(() => {});
+    const back = await p.evaluate((id) => ({ c: window.CurioMine.get("curiosity", id), d: window.CurioMine.data(), toast: (document.querySelector(".sc-toast") || {}).textContent || "" }), ID);
+    ok(back.c && back.c.scale.steps.length === 5 && back.d.suites.length === 1 && back.d.proximities.length === 1 && /Brought in 1 curiosity/.test(back.toast) && /2 you already had were skipped/.test(back.toast), "Import… brings it back from the file, skipping what you already have: " + back.toast);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioLevels.categoryOf(id) === "feeling", ID), "and it works again at once");
+    /* Ids never clash: one named like a database curiosity gets its own "my-" id. */
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    await p.fill('.sc-mydlg [name="label"]', "Shot size");
+    await p.check('.sc-mydlg [name="kind"][value="range"]');
+    await p.fill('.sc-mydlg [name="min"]', "0");
+    await p.fill('.sc-mydlg [name="max"]', "100");
+    await p.fill('.sc-mydlg [name="unit"]', "%");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const ids = await p.evaluate(() => { const DB = window.CuriosityDB; const mine = window.CurioMine.data(); const all = [].concat(DB.data.curiosities, DB.data.suites, DB.data.proximities, DB.data.proximitySuites); const seen = {}; let dup = 0; all.forEach((x) => (seen[x.id] ? dup++ : (seen[x.id] = 1))); return { mine: mine.curiosities.map((c) => c.id), dup, dbMy: all.filter((x) => x.id.startsWith("my-")).every((x) => [].concat(mine.curiosities, mine.suites, mine.proximities).some((m) => m.id === x.id)), shot: window.CurioScale.domain("shotSize").options.join(), range: window.CurioScale.domain("my-shot-size") }; });
+    ok(ids.mine.includes("my-shot-size") && ids.dup === 0 && ids.dbMy && ids.shot === "insert,close,medium,wide" && ids.range.kind === "range" && ids.range.max === 100, "one named Shot size is my-shot-size, a number range from 0 to 100; the database's Shot size keeps its own steps and no id is used twice");
+    await p.screenshot({ path: path.join(SHOTS, "screen-21-my-curiosities.png") });
+    await ctx.close();
+  }
+
+  /* Ableton Live's lane editing (Jeremy, 2026-10-04): a click on a line adds a node at the line's own value, a drag on
+     a line moves both of its nodes (one undo, no new node), a double-click on a node removes it (and never adds one
+     first), Alt + drag curves a line, the master lane's ON/OFF and Steps/Lines switches, and the automation group
+     tab that unfolds a lane for every setting in the curiosity's window. Touch works too. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.click('.sc-win [data-win-lane="shotSize"]');
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    const LK = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const S = window.CurioScale;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const r = st.rows;
+      E.send({ type: "batch", label: "test lane", commands: [{ type: "setPoint", row: r[0].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.2) }, { type: "setPoint", row: r[4].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.8) }] });
+      E.send({ type: "laneMode", track: t.id, curiosity: "shotSize", mode: "ramp" });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.laneH = 120;
+      window.CurioScreen.setRow(7);
+      return t.id + "|shotSize";
+    });
+    const nodesOf = (lk) => p.evaluate((lk) => { const st = window.CurioEngine.state(); const l = st.lanes[lk]; return l ? st.rows.map((r) => (l.points[r.id] == null ? null : l.points[r.id])) : null; }, lk);
+    const count = (lk) => p.evaluate((lk) => { const l = window.CurioEngine.state().lanes[lk]; return l ? Object.keys(l.points).length : 0; }, lk);
+    /* Where moment j's center and lane lk's line meet on the screen (nodes j0 and j1 around it, a straight line). */
+    const onLine = (lk, j, j0, j1) =>
+      p.evaluate(([lk, j, j0, j1]) => {
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        const st = window.CurioEngine.state();
+        const c = (jj) => document.querySelector(`.sl-node[data-node="${st.rows[jj].id}@${lk}"]`).getBoundingClientRect();
+        const head = [...document.querySelectorAll(".sl-heads .sl-head")].find((h) => h.querySelector(`[data-lk="${lk}"]`));
+        const bg = document.querySelectorAll(".sl-bg")[Number(head.dataset.i)];
+        sc.scrollTop = Math.max(0, bg.getBBox().y - 30);
+        const a = c(j0);
+        const b = c(j1);
+        const ax = a.x + a.width / 2, ay = a.y + a.height / 2, bx = b.x + b.width / 2, by = b.y + b.height / 2;
+        const t = (j - j0) / (j1 - j0);
+        return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t, cw: (bx - ax) / (j1 - j0) };
+      }, [lk, j, j0, j1]);
+    await p.waitForTimeout(150);
+    /* 1. A click on the line adds one node at the line's value there. */
+    const n0 = await nodesOf(LK);
+    const want = await p.evaluate(() => window.CurioScale.at("shotSize", 0.2 + (0.8 - 0.2) * 0.5));
+    let pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y);
+    const n1 = await nodesOf(LK);
+    ok(n1.filter((v) => v != null).length === 3 && n1[2] === want && n1[0] === n0[0] && n1[4] === n0[4], `a click on a lane's line adds one node there, at the line's own value (${n1[2]}, the line plays ${want})`);
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok(JSON.stringify(await nodesOf(LK)) === JSON.stringify(n0), "one ⌘Z takes that node away again");
+    await p.keyboard.press("Control+Shift+z");
+    /* 2. Dragging a line down moves both of its nodes together and adds none: one undo step. */
+    const before = await nodesOf(LK);
+    pt = await onLine(LK, 3, 2, 4);
+    await p.mouse.move(pt.x, pt.y);
+    await p.mouse.down();
+    await p.mouse.move(pt.x, pt.y + 20, { steps: 4 });
+    await p.mouse.move(pt.x, pt.y + 40, { steps: 4 });
+    await p.mouse.up();
+    const moved = await nodesOf(LK);
+    const pos = (v) => p.evaluate((v) => window.CurioScale.pos("shotSize", v), v);
+    ok(moved.filter((v) => v != null).length === 3 && moved[0] === before[0] && (await pos(moved[2])) < (await pos(before[2])) && (await pos(moved[4])) < (await pos(before[4])), `dragging a line down moves both of its nodes lower (${before[2]}, ${before[4]} → ${moved[2]}, ${moved[4]}) and adds no node`);
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok(JSON.stringify(await nodesOf(LK)) === JSON.stringify(before), "one ⌘Z puts both nodes back (the drag was one undo step)");
+    /* 3. A double-click on a node removes it, and never adds a node first. */
+    const nd = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const r = document.querySelector(`.sl-node[data-node="${st.rows[2].id}@${lk}"]`).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, LK);
+    const seen = [];
+    await p.exposeFunction("slSeen", (n) => seen.push(n));
+    await p.evaluate((lk) => window.CurioEngine.on(() => { const l = window.CurioEngine.state().lanes[lk]; window.slSeen(l ? Object.keys(l.points).length : 0); }), LK);
+    await p.mouse.dblclick(nd.x, nd.y);
+    await p.waitForTimeout(100);
+    ok((await count(LK)) === 2 && (await nodesOf(LK))[2] == null && seen.every((n) => n <= 3), `a double-click on a node removes it, without adding a node first (counts seen: ${seen.join(", ") || "none"})`);
+    /* 4. Alt (Option) + drag on a line curves it, written into the same curve the Curves pop-up shows. */
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.move(pt.x, pt.y);
+    await p.keyboard.down("Alt");
+    ok(await p.evaluate(() => document.querySelector(".sl-svg").classList.contains("sl-alt")), "holding Alt over the lanes shows the curve pointer");
+    await p.mouse.down();
+    await p.mouse.move(pt.x, pt.y - 25, { steps: 5 });
+    ok(!!(await p.$(".sl-svg .sl-segghost")), "while Alt-dragging, the curved line is drawn as it will be");
+    await p.mouse.move(pt.x, pt.y - 50, { steps: 5 });
+    await p.mouse.up();
+    await p.keyboard.up("Alt");
+    const bent = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const sk = lk + "|" + st.rows[0].id + "|" + st.rows[4].id; return { rec: window.CurioLanes.curves()[sk] || null, pts: Object.keys(st.lanes[lk].points).length }; }, LK);
+    ok(bent.rec && bent.rec.shape === "fastStart" && bent.rec.bend > 0 && bent.pts === 5, `Alt + drag up curves a rising line upward (${bent.rec ? bent.rec.shape + ", bend " + bent.rec.bend : "no curve"}), written as the line's curve points`);
+    const dlg = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const sk = lk + "|" + st.rows[0].id + "|" + st.rows[4].id; const m = document.querySelector(".sl-pop"); if (m) m.remove(); return sk; }, LK);
+    await p.evaluate((sk) => { const hit = [...document.querySelectorAll(".sl-seghit")].find((x) => x.dataset.seg === sk); hit.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })); }, dlg);
+    ok(await p.evaluate(() => { const b = document.querySelector('.sl-curves [data-shape="fastStart"]'); return !!b && b.classList.contains("on"); }), "the Curves pop-up opens on the same shape");
+    await p.evaluate(() => document.querySelector('.sl-curves [data-l="cancel"]').click());
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await count(LK)) === 2, "one ⌘Z takes the curve back");
+    /* 5. Right-click a line: the ease words write the same curve data. */
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y, { button: "right" });
+    ok(!!(await p.$('.sl-linemenu [data-m="easeIn"]')) && !!(await p.$('.sl-linemenu [data-m="simplify"]')), "right-clicking a line opens its menu (add a node, Ease in, Ease out, Curves…, Simplify)");
+    await p.click('.sl-linemenu [data-m="easeIn"]');
+    ok(await p.evaluate((lk) => { const st = window.CurioEngine.state(); const c = window.CurioLanes.curves()[lk + "|" + st.rows[0].id + "|" + st.rows[4].id]; return !!c && c.shape === "slowStart"; }, LK), "Ease in gives the line a slow start, the Curves pop-up's own shape");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    /* 6. Simplify takes out nodes that change nothing. */
+    const simp = await p.evaluate((lk) => { const E = window.CurioEngine; const st = E.state(); const [t, c] = lk.split("|"); const o = window.CurioScale.domain("shotSize").options; const fake = JSON.parse(JSON.stringify(st)); fake.lanes[lk] = { on: true, mode: "ramp", points: { [st.rows[0].id]: o[0], [st.rows[1].id]: o[1], [st.rows[2].id]: o[2], [st.rows[4].id]: o[0] } }; return window.CurioLanes.simplifyCommands(fake, lk); }, LK);
+    ok(simp.removed === 1 && simp.cmds[0].type === "removePoint", "Simplify takes out a node that sits on the line between its neighbours");
+    /* 7. The master lane's ON/OFF switch and its Steps / Lines switch. */
+    const sw = `.sl-heads [data-act="lane-off"][data-lk="${LK}"]`;
+    ok(await p.$eval(sw, (b) => b.textContent === "ON" && b.getBoundingClientRect().width > 10), "the master lane shows a clear ON switch");
+    await p.click(sw);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === false, LK) && (await p.$eval(sw, (b) => b.textContent)) === "OFF", "clicking it switches the lane's automation OFF");
+    await p.click(sw);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === true, LK), "and back ON");
+    await p.click(`.sl-heads [data-act="mset"][data-mode="hold"][data-lk="${LK}"]`);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].mode === "hold", LK) && (await p.$eval(`.sl-heads [data-act="mset"][data-mode="hold"][data-lk="${LK}"]`, (b) => b.classList.contains("on"))), "Steps makes it an on/off lane: straight up or down at each node, then flat");
+    await p.click(`.sl-heads [data-act="mset"][data-mode="ramp"][data-lk="${LK}"]`);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].mode === "ramp", LK), "Lines makes it nodes and lines again");
+    /* 8. The automation group tab. */
+    const group = await p.evaluate(() => window.CurioLanes.automationGroup("shotSize").map((x) => x.key));
+    const tab = '.sl-heads [data-act="subs"][data-cur="shotSize"]';
+    ok(group.length >= 2 && group[0] === "shotSize.amount" && /▸ \d+ settings/.test(await p.$eval(tab, (b) => b.textContent)), `the master lane has an automation group tab (${await p.$eval(tab, (b) => b.textContent)}), How much first`);
+    ok((await p.$$(".sl-heads .sl-sublane")).length === 0, "the group starts folded: only the master lane shows");
+    await p.click(tab);
+    const subs = await p.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-sublane .sl-name")].map((b) => b.dataset.pick));
+    ok(JSON.stringify(subs) === JSON.stringify(group) && (await p.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).subs.shotSize === true)), `pressing it unfolds a lane for every setting in the window, under the master (${subs.length}), and remembers it`);
+    const amt = await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const h = document.querySelector('.sl-heads .sl-sublane .sl-name[data-pick="shotSize.amount"]').closest(".sl-head"); const bg = document.querySelectorAll(".sl-bg")[Number(h.dataset.i)]; sc.scrollTop = Math.max(0, bg.getBBox().y - 30); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, h: r.height, cw: r.width / window.CurioEngine.state().rows.length }; });
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.click(amt.x + amt.cw * 3.5, amt.y + amt.h * 0.25);
+    const sub = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const t = lk.split("|")[0]; const l = st.lanes[t + "|shotSize.amount"]; return l ? Object.keys(l.points).length : 0; }, LK);
+    ok(sub === 1, "a sub-lane takes nodes like any lane, on its master's track");
+    await p.click(tab);
+    ok((await p.$$(".sl-heads .sl-sublane")).length === 0 && (await p.$$(".sl-svg .sl-subdot")).length >= 1, "pressing it again folds them, and dots on the master lane show where they have nodes");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    const nk = await p.evaluate((lk) => { const st = window.CurioEngine.state(); return st.rows[0].id + "@" + lk; }, LK);
+    await p.evaluate((k) => document.querySelector(`.sl-node[data-node="${k}"]`).dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, clientX: 1, clientY: 1 })), nk);
+    await p.mouse.up();
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Alt+k");
+    ok((await p.$$(".sl-heads .sl-sublane")).length === group.length, "⌥K opens the picked lane's automation group too");
+    await p.keyboard.press("Alt+k");
+    /* 9. Touch: tap the line to add a node, and a locked lane takes no node from a click on its line. */
+    const c0 = await count(LK);
+    pt = await onLine(LK, 2, 0, 4);
+    await p.touchscreen.tap(pt.x, pt.y);
+    await p.waitForTimeout(100);
+    ok((await count(LK)) === c0 + 1, "a tap on the line adds a node on a touch screen too");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    await p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), LK);
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y);
+    ok((await count(LK)) === c0 && /locked/.test(await p.$eval(".sl-msg", (x) => x.textContent)), "a click on a locked lane's line adds no node, and says why");
+    await p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), LK);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17-ableton-lanes.png") });
+    await ctx.close();
+  }
+
+  /* CapCut's keyframe ◇ system (Jeremy, 2026-10-04 17:41Z: "the same system so it's easy for users to go from using
+     CapCut to using this app"). The ◇ sits at the right end of each setting's row, with ◀ ▶ around it once the setting
+     has keys, in Details and in the windows; a heading has a section ◇ for every setting under it; a curiosity's lane
+     draws CapCut's keyframe diamonds along its bottom edge: click to go there, drag sideways to move, Delete to take
+     off, right-click for Ease in, Ease out and Ease in and out. Each is one undo step, and a locked lane is left
+     alone. The Ableton line gestures above are unchanged. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    const undoN = () => p.evaluate(() => window.CurioEngine.history().undo.length);
+    const ptsOf = (key) => p.evaluate((key) => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes(key)); const l = t && st.lanes[t.id + "|" + key]; return l ? st.rows.map((r, j) => (l.points[r.id] == null ? null : j)).filter((j) => j != null) : []; }, key);
+    const said = () => p.evaluate(() => [(document.querySelector(".sc-toast") || {}).textContent || "", (document.querySelector(".sl-msg") || {}).textContent || ""].join(" | "));
+    /* 1. Where the ◇ sits: the right end of a Details row, after its value. */
+    const placed = await p.evaluate(() => {
+      const k = document.querySelector(".sc-inspector .sc-cur .sc-ctl .sc-key[data-key]");
+      const row = k && k.closest(".sc-ctl");
+      const ctl = row && row.querySelector("input, select, .sc-chips, .sc-toggle, .sc-knob, .sc-steps");
+      if (!k || !ctl) return null;
+      const a = k.getBoundingClientRect(), b = ctl.getBoundingClientRect(), r = row.getBoundingClientRect();
+      return { right: a.left >= b.right - 1, last: row.lastElementChild.contains(k), inRow: a.right <= r.right + 1, labelFirst: !row.querySelector(".sc-ctl-l .sc-key") };
+    });
+    ok(placed && placed.right && placed.last && placed.inRow && placed.labelFirst, "Details: a setting's ◇ sits at the right end of its row, after the value, as in CapCut's Details panel");
+    /* 2. In a window: the ◇ is the last thing on a setting's header row; ◀ ▶ come once it has keys. */
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.click('.sc-win [data-win-lane="shotSize"]');
+    const winKey = (id) => p.evaluate((id) => { const k = [...document.querySelectorAll(".sc-win .sc-wctl-h .sc-key[data-key]")].find((b) => b.dataset.key === id); if (!k) return null; const h = k.closest(".sc-wctl-h"); const n = k.closest(".sc-knav"); return { last: h.lastElementChild === (n || k), here: k.classList.contains("here"), arrows: !!n }; }, id);
+    const w0 = await winKey("shotSize.amount");
+    ok(w0 && w0.last && !w0.arrows, "a window: each setting's ◇ is the last thing on its row, with no arrows before it has keys");
+    await p.evaluate(() => window.CurioScreen.setRow(1));
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").click());
+    await p.evaluate(() => window.CurioScreen.setRow(5));
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").click());
+    await p.evaluate(() => window.CurioScreen.setRow(3));
+    const w1 = await winKey("shotSize.amount");
+    const nav = await p.evaluate(() => { const n = [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").closest(".sc-knav"); return [n.querySelector('[data-dir="prev"]').dataset.keyJump, n.querySelector('[data-dir="next"]').dataset.keyJump]; });
+    ok(w1 && w1.arrows && w1.last && nav[0] === "1" && nav[1] === "5", "once it has keys, ◀ ◇ ▶ sit at the right end of its row in the window too, pointing at the keys before and after");
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").closest(".sc-knav").querySelector('[data-dir="next"]').click());
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 5 && (await winKey("shotSize.amount")).here, "▶ in the window jumps to the next key, and the ◇ fills (◆) on it");
+    /* 3. A heading's section ◇ (CapCut's diamond on Position & Size): every setting under it, one undo step. */
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    const sec = await p.evaluate(() => { const b = document.querySelector(".sc-win .sc-wpart-h [data-key-all]"); return b ? { ids: b.dataset.keyAll.split(","), cls: b.className, head: b.closest(".sc-wpart-h").querySelector("h4").textContent } : null; });
+    ok(sec && sec.ids.length >= 2 && /none|some/.test(sec.cls), `a window's heading (${sec && sec.head}) has a section ◇ for its ${sec && sec.ids.length} settings`);
+    ok(!!(await p.$(".sc-win .sc-win-h [data-key-all]")), "the window's title bar has one for every setting in the window");
+    const hereAll = () => p.evaluate((ids) => ids.map((id) => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes(id)); const l = t && st.lanes[t.id + "|" + id]; return !!(l && l.points[st.rows[2].id] != null); }), sec.ids);
+    let u0 = await undoN();
+    await p.click(".sc-win .sc-wpart-h [data-key-all]");
+    ok((await hereAll()).every(Boolean) && (await undoN()) === u0 + 1, "a click sets a key at the playhead on every setting under the heading, as one undo step");
+    ok(await p.evaluate(() => { const b = document.querySelector(".sc-win .sc-wpart-h [data-key-all]"); return b.classList.contains("here") && b.textContent === "◆"; }), "then the section ◇ is filled (◆)");
+    u0 = await undoN();
+    await p.click(".sc-win .sc-wpart-h [data-key-all]");
+    ok((await hereAll()).every((x) => !x) && (await undoN()) === u0 + 1, "a click on the filled one takes them all off, as one undo step");
+    /* 4. Locks: the section ◇ leaves a locked lane alone, and a changed value does not write into one. */
+    const LKA = await p.evaluate(() => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes("shotSize.amount")); return t.id + "|shotSize.amount"; });
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), LKA);
+    const amt0 = await ptsOf("shotSize.amount");
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    await p.click(".sc-win .sc-win-h [data-key-all]");
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === JSON.stringify(amt0) && /locked/.test(await said()), "the section ◇ leaves a locked (🔒) setting's keys as they are, and says so");
+    await p.evaluate(() => window.CurioEngine.undo());
+    const u1 = await undoN();
+    await p.evaluate(() => { const i = document.querySelector('.sc-win input[data-set="shotSize.amount"]'); i.value = String(Number(i.max) || 100); i.dispatchEvent(new Event("change", { bubbles: true })); });
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === JSON.stringify(amt0) && (await undoN()) === u1 && /locked/.test(await said()), "changing a locked setting in a window writes no key there, and says why");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], LKA);
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    /* 5. The lane's keyframe diamonds (CapCut's keyframes on a clip). Keys: shotSize at 0 and 4, its amount at 1 and 5. */
+    const LK = await p.evaluate(() => {
+      const E = window.CurioEngine, S = window.CurioScale, st = E.state(), r = st.rows;
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const lane = st.lanes[t.id + "|shotSize"];
+      E.send({ type: "batch", label: "test keys", commands: Object.keys(lane ? lane.points : {}).map((row) => ({ type: "removePoint", row, track: t.id, curiosity: "shotSize" })).concat([{ type: "setPoint", row: r[0].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.2) }, { type: "setPoint", row: r[4].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.8) }]) });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.subs.shotSize = false;
+      window.CurioScreen.setRow(7);
+      return t.id + "|shotSize";
+    });
+    await p.waitForTimeout(100);
+    const diamonds = () => p.evaluate(() => [...document.querySelectorAll('.sl-svg .sl-ckey[data-subdot="shotSize"]')].map((d) => Number(d.dataset.ckey)).sort((a, b) => a - b));
+    ok(JSON.stringify(await diamonds()) === "[0,1,4,5]" && (await p.evaluate(() => document.querySelector(".sl-svg .sl-ckey").tagName === "path")), "the lane draws a ◇ along its bottom edge wherever any of its settings has a key (" + (await diamonds()).join(",") + "), as CapCut does on a clip");
+    const dpos = (j) => p.evaluate((j) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const d = document.querySelector(`.sl-svg .sl-ckey[data-subdot="shotSize"][data-ckey="${j}"]`); sc.scrollTop = Math.max(0, d.getBBox().y - 60); const r = d.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, j);
+    const colW = await p.evaluate(() => { const a = document.querySelector('.sl-svg .sl-ckey[data-ckey="0"]').getBoundingClientRect(); const b = document.querySelector('.sl-svg .sl-ckey[data-ckey="4"]').getBoundingClientRect(); return (b.x - a.x) / 4; });
+    let d = await dpos(4);
+    u0 = await undoN();
+    await p.mouse.click(d.x, d.y);
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 4 && (await undoN()) === u0 && (await p.evaluate(() => document.querySelector('.sl-ckey[data-ckey="4"]').classList.contains("on"))), "a click on a ◇ moves the playhead there and picks it, changing nothing");
+    /* Drag the ◇ at moment 1 two moments later: the amount key moves to 3, one undo step. */
+    d = await dpos(1);
+    u0 = await undoN();
+    await p.mouse.move(d.x, d.y);
+    await p.mouse.down();
+    await p.mouse.move(d.x + colW, d.y, { steps: 4 });
+    await p.mouse.move(d.x + colW * 2, d.y, { steps: 4 });
+    await p.mouse.up();
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === "[3,5]" && JSON.stringify(await ptsOf("shotSize")) === "[0,4]" && (await undoN()) === u0 + 1, "dragging a ◇ sideways moves its keys to the new moment, as one undo step (amount now at " + (await ptsOf("shotSize.amount")).join(",") + ")");
+    /* Delete takes off the picked ◇'s keys. */
+    d = await dpos(3);
+    await p.mouse.click(d.x, d.y);
+    u0 = await undoN();
+    await p.keyboard.press("Delete");
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === "[5]" && (await undoN()) === u0 + 1, "Delete takes the picked ◇'s keys off, as one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    /* Right-click: Ease in on the line leaving the keyframe, for every setting it stands for. */
+    d = await dpos(0);
+    await p.mouse.click(d.x, d.y, { button: "right" });
+    ok(!!(await p.$('.sl-linemenu [data-m="easeIn"]')) && !!(await p.$('.sl-linemenu [data-m="easeOut"]')) && !!(await p.$('.sl-linemenu [data-m="easeBoth"]')) && !!(await p.$('.sl-linemenu [data-m="remove"]')), "right-clicking a ◇ offers Ease in, Ease out, Ease in and out, and Remove keyframe");
+    u0 = await undoN();
+    await p.click('.sl-linemenu [data-m="easeIn"]');
+    ok(await p.evaluate((lk) => { const st = window.CurioEngine.state(); const c = window.CurioLanes.curves()[lk + "|" + st.rows[0].id + "|" + st.rows[4].id]; return !!c && c.shape === "slowStart"; }, LK) && (await undoN()) === u0 + 1, "Ease in curves the line leaving that keyframe (the same slow start as the line's menu), one undo step");
+    ok(JSON.stringify(await diamonds()) === "[0,3,4,5]", "the curve's in-between points draw no extra ◇");
+    await p.evaluate(() => window.CurioEngine.undo());
+    /* A locked lane keeps its key when a ◇ is dragged; the others move. */
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), LK);
+    await p.evaluate(() => window.CurioLanes.tools().subs.shotSize = false);
+    await p.evaluate(() => window.CurioScreen.setRow(7));
+    const both = await p.evaluate((lk) => { const E = window.CurioEngine, st = E.state(); const t = lk.split("|")[0]; E.send({ type: "setPoint", row: st.rows[4].id, track: t, curiosity: "shotSize.amount", value: window.CurioScale.at("shotSize.amount", 0.5) }); return true; }, LK);
+    await p.waitForTimeout(50);
+    d = await dpos(4);
+    await p.mouse.move(d.x, d.y);
+    await p.mouse.down();
+    await p.mouse.move(d.x + colW, d.y, { steps: 4 });
+    await p.mouse.up();
+    ok(both && JSON.stringify(await ptsOf("shotSize")) === "[0,4]" && (await ptsOf("shotSize.amount")).includes(5) && !(await ptsOf("shotSize.amount")).includes(4) && /locked/.test(await said()), "dragging a ◇ leaves a locked lane's key where it is and says so; the other settings' keys move");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], LK);
+    /* The Shortcuts window lists CapCut's other keyframe entries. */
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.click('[data-act="shortcuts"]');
+    const listed = await p.$$eval(".sc-keys-in p", (ps) => ps.map((x) => x.textContent));
+    ok(["Add keyframe on keyframe panel", "Ease in", "Ease out", "Easing"].every((n) => listed.some((t) => t.includes(n))) && listed.some((t) => /^⇧⌥KAdd keyframe/.test(t)) && listed.some((t) => /^⌥KShow\/hide keyframe panel/.test(t)), "the Shortcuts window lists CapCut's keyframe entries: ⇧⌥K, ⌥K, ⇧ click, Ease in, Ease out, Easing");
+    await p.keyboard.press("Escape");
+    await p.screenshot({ path: path.join(SHOTS, "screen-18-capcut-keyframes.png") });
+    await ctx.close();
+  }
+
+  /* The music app's master nodes and track lanes, in film words (notes sections 3-6): every lane's level bar, a paste
+     that becomes a master node (◇ source, START ◆ to END ◆), its gestures (double-click on / off, click a moment to
+     gate it, drag the line to scale it, LFO, drag to move, ⌥-click or Delete to remove) with what was under it put
+     back exactly, one undo step each; 🔒 locks; the Tracks lanes (click, ⌘-click, ⇧-click, fold); the multi-track
+     paste question; a box over lanes and master lanes; joined partners coming along; the status line; the
+     Suite / Proximity view; and the speed of a redraw. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const note = (m) => console.log("note: " + m);
+    /* Setup: Strength of the feeling (master track) has 1, 4, 0, 5 at moments 1, 3, 6, 8; Shot size (camera) has
+       wide, close, medium at moments 1, 3, 6. */
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    await p.evaluate(() => { try { localStorage.removeItem("curiosities-screen-lanes-v1"); } catch (e) {} });
+    const FEEL = "master|emotionIntensity";
+    const SHOT = "camera|shotSize";
+    await p.evaluate(([FEEL, SHOT]) => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const R = st.rows.map((x) => x.id);
+      const cmds = [[0, 1], [2, 4], [5, 0], [7, 5]].map(([j, v]) => ({ type: "setPoint", row: R[j], track: "master", curiosity: "emotionIntensity", value: v }));
+      [[0, "wide"], [2, "close"], [5, "medium"]].forEach(([j, v]) => cmds.push({ type: "setPoint", row: R[j], track: "camera", curiosity: "shotSize", value: v }));
+      E.send({ type: "batch", label: "test lanes", commands: cmds });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.laneH = 60;
+      T.masterPaste = true;
+      T.allTracks = false;
+      T.proxView = false;
+      window.CurioScreen.setRow(0);
+    }, [FEEL, SHOT]);
+    await p.click('[data-view="arrange"]');
+    await p.waitForTimeout(250);
+    const L = "window.CurioLanes.mounted()";
+    /* the film, with each lane's points in row order (an undo may list them in another order) */
+    const film = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lane = (l) => Object.assign({}, l, { points: Object.keys(l.points).sort().map((k) => [k, l.points[k]]) }); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, lane(st.lanes[k])]), st.links, st.masters || null]); });
+    const lanePts = (lk) => p.evaluate((lk) => JSON.stringify((window.CurioEngine.state().lanes[lk] || {}).points || null), lk);
+    const undoN = () => p.evaluate(() => window.CurioEngine.history().undo.length);
+    const masters = () => p.evaluate(() => (window.CurioEngine.state().masters || { list: [] }).list);
+    const said = () => p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    const center = (sel) => p.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return null; e.scrollIntoView({ block: "center", inline: "nearest" }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height }; }, sel);
+    const laneI = (lk) => p.evaluate((lk) => { const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`)); return h ? Number(h.dataset.i) : -1; }, lk);
+
+    /* 1. The level bar: every lane has one (0-100%). Keys and a drag change it as one undo step each; below 100% the
+       line is dashed and its nodes faint, and the engine's values move toward the curiosity's neutral setting. */
+    const lv = `.sl-level[data-lane-level="${SHOT}"]`;
+    ok(await p.evaluate(([a, b]) => { const heads = [...document.querySelectorAll(".sl-heads .sl-head")].filter((h) => h.querySelector(".sl-level")); return !!document.querySelector(`.sl-level[data-lane-level="${a}"]`) && !!document.querySelector(`.sl-level[data-lane-level="${b}"]`) && heads.length > 1; }, [FEEL, SHOT]), "every lane has a level bar (0-100%) under its name");
+    let u0 = await undoN();
+    const v0 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[2].id, "camera", "shotSize"));
+    await center(lv);
+    await p.focus(lv);
+    for (let i = 0; i < 10; i++) await p.keyboard.press("ArrowLeft");
+    const lvl = await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level, SHOT);
+    const v1 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[2].id, "camera", "shotSize"));
+    const neutral = await p.evaluate(() => window.CurioEngine.neutral("shotSize"));
+    const closer = await p.evaluate(([a, b, n]) => { const P = (v) => window.CurioScale.pos("shotSize", v); return Math.abs(P(b) - P(n)) < Math.abs(P(a) - P(n)); }, [v0, v1, neutral]);
+    ok(lvl === 0.5 && (await undoN()) === u0 + 10 && closer, "the ← key lowers the level 5% a press, one undo step each; at 50% the engine plays Shot size halfway toward its neutral setting (" + v0 + " → " + v1 + ", neutral " + neutral + ")");
+    ok(await p.evaluate((lk) => { const a = [...document.querySelectorAll(".sl-svg .sl-auto")].some((x) => x.classList.contains("sl-low")); const n = document.querySelector(`.sl-node[data-node$="@${lk}"]`); return a && n && n.classList.contains("sl-low") && document.querySelector(`.sl-level[data-lane-level="${lk}"]`).getAttribute("aria-valuenow") === "50"; }, SHOT), "below 100% the lane's line is dashed and its nodes faint; the bar says 50%");
+    u0 = await undoN();
+    let b = await center(lv);
+    await p.mouse.move(b.x, b.y);
+    await p.mouse.down();
+    await p.mouse.move(b.x + b.w * 0.2, b.y, { steps: 5 });
+    await p.mouse.move(b.x + b.w * 0.6, b.y, { steps: 5 });
+    await p.mouse.up();
+    ok((await undoN()) === u0 + 1 && (await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level == null, SHOT)), "dragging the bar right to the end puts it back to 100% as one undo step (no level kept at 100%)");
+    await p.focus(lv);
+    await p.keyboard.press("Home");
+    await p.dblclick(lv);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level == null, SHOT), "Home drops it to 0%; a double-click puts it back to 100%");
+    const before = await film();
+
+    /* 2. Copy and paste, the complex way: a paste makes a master node (one ◇ source, START ◆ to END ◆ over the pasted
+       moments), one undo step. */
+    const shotI = await laneI(SHOT);
+    await p.evaluate(([L, i]) => { const l = eval(L); l.selectArea({ i0: i, i1: i, j0: 0, j1: 2 }); l.command("copy"); l.selectArea(null); window.CurioScreen.setRow(4); }, [L, shotI]);
+    u0 = await undoN();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    let ms = await masters();
+    ok(ms.length === 1 && ms[0].nodes.length === 1 && ms[0].nodes[0].track === "camera" && (await undoN()) === u0 + 1 && (await p.$$(".sl-mnode")).length === 2 && (await p.$$(".sl-msrc")).length === 2, "a paste makes a master node: START ◇ to END ◇ for the source and START ◆ to END ◆ on the camera's master lane, one undo step");
+    ok(JSON.parse(await lanePts(SHOT))[(await p.evaluate(() => window.CurioEngine.state().rows[6].id))] === "close" && /master node/.test(await said()), "the pasted automation plays (close at moment 7) and the message says it is a master node");
+    const pasted = await lanePts(SHOT);
+    const id = ms[0].nodes[0].id;
+    const mid = ms[0].id;
+    /* the switch in the Master Nodes window turns that off: a paste then writes the automation only. */
+    await p.click('.sl [data-act="master-win"]');
+    ok(!!(await p.$(".sl-mwin")) && (await p.evaluate(() => /Master Nodes/.test(document.querySelector(".sl-mwin").textContent))), "◆ opens the Master Nodes window");
+    await p.uncheck('.sl-mwin [data-mw="pastemaster"]');
+    await p.evaluate((L) => (eval(L).selectArea(null), window.CurioScreen.setRow(1)), L);
+    u0 = await undoN();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    ok((await masters()).length === 1 && (await undoN()) === u0 + 1, "with “A paste makes a master node” off, a paste writes the automation only");
+    await p.evaluate(() => window.CurioEngine.undo());
+    await p.check('.sl-mwin [data-mw="pastemaster"]');
+
+    /* 3. Double-click a ◆: off puts back exactly what was under it; on again plays the paste. */
+    const d = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    u0 = await undoN();
+    await p.mouse.dblclick(d.x, d.y);
+    ok(JSON.stringify(Object.entries(JSON.parse(await lanePts(SHOT))).sort()) === JSON.stringify(JSON.parse(before)[0].find((x) => x[0] === SHOT)[1].points), "double-clicking a ◆ switches it off and puts back exactly what was under it");
+    ok((await undoN()) === u0 + 1 && (await p.$(`.sl-mnode.off[data-mnode="${id}"]`)), "one undo step, and the ◆ draws as off");
+    await p.waitForTimeout(450);
+    await p.mouse.dblclick(d.x, d.y);
+    ok((await lanePts(SHOT)) === pasted, "double-clicking again switches it back on");
+
+    /* 4. A click on one moment of its line gates that moment (the under value plays there). */
+    const g = await center(`.sl-mhit[data-mline="${id}"][data-k="1"]`);
+    await p.waitForTimeout(450);
+    u0 = await undoN();
+    await p.mouse.click(g.x, g.y);
+    const gated = await masters();
+    const r5 = await p.evaluate(() => window.CurioEngine.state().rows[5].id);
+    ok(gated[0].nodes[0].gate && gated[0].nodes[0].gate["1"] === 0 && JSON.parse(await lanePts(SHOT))[r5] === "medium" && (await undoN()) === u0 + 1, "clicking one moment of its line gates it: moment 6 plays what was under it (medium) again, one undo step");
+    await p.waitForTimeout(450);
+    await p.mouse.click(g.x, g.y);
+    ok(!((await masters())[0].nodes[0].gate || {})["1"], "a second click opens the gate again");
+
+    /* 5. Drag the line up or down to scale it (0 to 100%). */
+    await p.waitForTimeout(450);
+    u0 = await undoN();
+    await p.mouse.move(g.x, g.y);
+    await p.mouse.down();
+    await p.mouse.move(g.x, g.y + 6, { steps: 3 });
+    await p.mouse.move(g.x, g.y + 14, { steps: 3 });
+    await p.mouse.up();
+    const sc = (await masters())[0].nodes[0].scale;
+    ok(sc != null && sc < 100 && sc >= 0 && (await undoN()) === u0 + 1, "dragging its line down scales it (now " + sc + "%), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 6. LFO from the window: every 2 moments it switches on and off. */
+    u0 = await undoN();
+    await p.selectOption(`.sl-mwin select[data-mw="mlfo"]`, "2");
+    ok((await masters())[0].lfo === 2 && (await undoN()) === u0 + 1, "the window's LFO pulses it every 2 moments, one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 7. Drag a ◆ sideways to move the copy, one undo step; the old place gets its under-data back. */
+    await p.waitForTimeout(450);
+    const d2 = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    const cw = await p.evaluate(() => document.querySelector(".sl-svg").getBoundingClientRect().width / window.CurioEngine.state().rows.length);
+    u0 = await undoN();
+    await p.mouse.move(d2.x, d2.y);
+    await p.mouse.down();
+    await p.mouse.move(d2.x + cw * 0.6, d2.y, { steps: 4 });
+    await p.mouse.move(d2.x + cw, d2.y, { steps: 4 });
+    await p.mouse.up();
+    const moved = await masters();
+    const r5id = await p.evaluate(() => window.CurioEngine.state().rows[5].id);
+    ok(moved[0].nodes[0].t === r5id && (await undoN()) === u0 + 1, "dragging a ◆ one moment right moves the copy to start at moment 6, one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 8. ⌥-click removes it (the lane gets what was under it); ⌘Z brings it back; Delete removes a picked ◆. */
+    await p.waitForTimeout(450);
+    const d3 = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    await p.keyboard.down("Alt");
+    await p.mouse.click(d3.x, d3.y);
+    await p.keyboard.up("Alt");
+    ok((await masters()).length === 0 && (await film()) === before, "⌥-click on the last ◆ removes the master node and leaves the film exactly as before the paste");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await lanePts(SHOT)) === pasted && (await masters()).length === 1, "one ⌘Z brings it back");
+    await p.waitForTimeout(450);
+    await p.mouse.click(d3.x, d3.y);
+    await p.keyboard.press("Delete");
+    ok((await film()) === before, "Delete removes a picked ◆");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 9. A 🔒 lane refuses: switching the master off leaves a locked lane alone and says so. */
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), SHOT);
+    await p.evaluate(([L, id]) => eval(L).masterToggle(id), [L, id]);
+    ok((await lanePts(SHOT)) === pasted && /lock/i.test(await said()), "a 🔒 lane keeps its automation and the message says it is locked");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], SHOT);
+
+    /* 10. Performance: CurioMasters.trigger plays it off for the moment without touching the film or undo. */
+    const hasPerform = await p.evaluate(() => typeof window.CurioEngine.perform === "function");
+    if (hasPerform) {
+      u0 = await undoN();
+      const f0 = await film();
+      const play0 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      await p.evaluate((mid) => window.CurioMasters.trigger(mid, false), mid);
+      const play1 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      await p.evaluate((mid) => window.CurioMasters.trigger(mid, null), mid);
+      const play2 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      ok(play0 === "close" && play1 !== "close" && play2 === "close" && (await film()) === f0 && (await undoN()) === u0, "a trigger switches it off while playing (" + play1 + " at moment 7) and back as drawn, without changing the film or the undo list");
+    } else note("the engine has no performance layer here yet (the triggers branch adds CurioEngine.perform), so the trigger check is skipped");
+
+    /* 11. Tracks: a master lane for every track; click, ⌘-click and ⇧-click light tracks; the status line says so;
+       ▸ folds a track's lanes, leaving faint ticks where its nodes are. */
+    await p.check('.sl-mwin [data-mw="tracks"]');
+    const tracks = await p.evaluate(() => window.CurioEngine.state().tracks.map((t) => t.id));
+    ok((await p.$$(".sl-mhead")).length === tracks.length, "Tracks shows a master lane for every track (" + tracks.join(", ") + ")");
+    await p.click(`.sl-mname[data-track="${tracks[0]}"]`);
+    await p.click(`.sl-mname[data-track="${tracks[2]}"]`, { modifiers: ["ControlOrMeta"] });
+    ok(JSON.stringify(await p.evaluate((L) => eval(L).tracks(), L)) === JSON.stringify([tracks[0], tracks[2]]), "click lights a track, ⌘-click adds another");
+    await p.click(`.sl-mname[data-track="${tracks[0]}"]`);
+    await p.click(`.sl-mname[data-track="${tracks[3] || tracks[2]}"]`, { modifiers: ["Shift"] });
+    const run = await p.evaluate((L) => eval(L).tracks(), L);
+    ok(JSON.stringify(run) === JSON.stringify(tracks.slice(0, tracks[3] ? 4 : 3)), "⇧-click lights the whole run between (" + run.join(", ") + ")");
+    ok(await p.evaluate(() => /Tracks lit: /.test(document.querySelector(".sl-selstat").textContent) && /a paste goes onto the lit tracks/.test(document.querySelector(".sl-selstat").textContent)), "the status line under the timeline says which tracks are lit and where a paste goes");
+    await p.click('.sl-mfold[data-track="camera"]');
+    ok(!(await p.$(`.sl-heads [data-lk="${SHOT}"]`)) && (await p.$$(".sl-mtick")).length > 0, "▸ folds the camera's lanes away; faint ticks on its master lane show where its nodes are");
+    await p.click('.sl-mfold[data-track="camera"]');
+
+    /* 12. Multi-track paste asks A) exact or B) a percentage; the copied tracks repeat in order; one undo step. */
+    await p.evaluate(([L, t]) => eval(L).selectTracks(t), [L, [tracks[2], tracks[3] || tracks[1]]]);
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    const fm = await film();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    ok(!!(await p.$('.sl-multipaste [data-mp="exact"]')) && !!(await p.$('.sl-multipaste [data-mp="percent"]')), "pasting onto several lit tracks asks: A) the exact values or B) as a percentage");
+    u0 = await undoN();
+    await p.click('.sl-multipaste [data-mp="exact"]');
+    const both = await p.evaluate((ts) => ts.map((t) => { const l = window.CurioEngine.state().lanes[t + "|shotSize"]; return l ? JSON.stringify(Object.values(l.points)) : null; }), [tracks[2], tracks[3] || tracks[1]]);
+    ok(both[0] && both[0] === both[1] && (await undoN()) === u0 + 1, "A) pastes the same values onto each lit track (adding the lane where a track lacks it), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await film()) === fm, "one ⌘Z takes the whole multi-track paste back");
+    ok(await p.evaluate(() => JSON.stringify(window.CurioMasters.repeatTracks(["a", "b"], ["x", "y", "z"])) === '[["x","a"],["y","b"],["z","a"]]'), "copied tracks repeat in order over more lit tracks (a, b, a)");
+    await p.evaluate((L) => eval(L).selectTracks([]), L);
+    await p.uncheck('.sl-mwin [data-mw="tracks"]');
+
+    /* 13. A box from a lane down into the master lanes selects the master nodes there too. */
+    const boxSel = await p.evaluate(([lk]) => {
+      const sc = document.querySelector(".sl-scroll");
+      sc.scrollLeft = 0;
+      const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`));
+      const bgs = document.querySelectorAll(".sl-bg");
+      const last = bgs[bgs.length - 1];
+      sc.scrollTop = Math.max(0, last.getBBox().y - 20);
+      const a = last.getBoundingClientRect();
+      const m = document.querySelector('.sl-mbg[data-mrow="0"]').getBoundingClientRect();
+      return { x: a.x, y: a.y, w: a.width, n: window.CurioEngine.state().rows.length, my: m.y + m.height - 2, h: !!h };
+    }, [SHOT]);
+    const cwb = boxSel.w / boxSel.n;
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.move(boxSel.x + cwb * 3.1, boxSel.y + 2);
+    await p.mouse.down();
+    await p.mouse.move(boxSel.x + cwb * 7.9, boxSel.my, { steps: 8 });
+    await p.mouse.up();
+    ok(await p.evaluate(() => { const a = window.CurioLanes.mounted().area(); return a && a.mtracks && a.mtracks.length > 0 && document.querySelectorAll(".sl-mnode.in").length === 2; }), "a box dragged from a lane down into the master lanes holds the master nodes it covers");
+    ok(await p.evaluate(() => /master node/.test(document.querySelector(".sl-selstat").textContent)), "the status line counts the master nodes in the box (" + (await p.evaluate(() => document.querySelector(".sl-selstat").textContent)) + ")");
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+
+    /* 14. Joined partners come along: join Shot size at moment 3 to Strength of the feeling at moment 4, box only
+       Shot size's moment 3, and the partner is in the selection and moves with it. */
+    await p.evaluate((L) => eval(L).masterRemove(window.CurioEngine.state().masters.list[0].nodes[0].id), L);
+    await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const R = st.rows.map((x) => x.id);
+      E.send({ type: "setPoint", row: R[3], track: "master", curiosity: "emotionIntensity", value: 2 });
+      E.send({ type: "addLink", label: "test join", from: { track: "camera", curiosity: "shotSize", is: "close" }, to: { track: "master", curiosity: "emotionIntensity" }, does: "set", value: 2, within: 1, scope: { from: R[2], to: R[3] } });
+    });
+    const sb = await p.evaluate((lk) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`)); const bg = document.querySelectorAll(".sl-bg")[Number(h.dataset.i)]; sc.scrollTop = Math.max(0, bg.getBBox().y - 20); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, SHOT);
+    const cws = sb.w / sb.n;
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.move(sb.x + cws * 2.1, sb.y + 2);
+    await p.mouse.down();
+    await p.mouse.move(sb.x + cws * 2.9, sb.y + sb.h - 2, { steps: 6 });
+    await p.mouse.up();
+    ok(await p.evaluate(() => { const a = window.CurioLanes.mounted().area(); return a && a.extra && a.extra.length === 1 && /1 joined partner/.test(document.querySelector(".sl-selstat").textContent); }), "boxing one end of a join brings its partner along, and the status line says so");
+    const fj = await film();
+    u0 = await undoN();
+    /* where the lane is now (the toolbar's message can wrap and move it) */
+    const sb2 = await p.evaluate((i) => { const r = document.querySelectorAll(".sl-bg")[i].getBoundingClientRect(); return { x: r.x, y: r.y }; }, await laneI(SHOT));
+    await p.mouse.move(sb2.x + cws * 2.5, sb2.y + 3);
+    await p.mouse.down();
+    await p.mouse.move(sb2.x + cws * 3.5, sb2.y + 3, { steps: 6 });
+    await p.mouse.up();
+    const fe = await p.evaluate(() => { const st = window.CurioEngine.state(); return [st.lanes["master|emotionIntensity"].points[st.rows[4].id], st.lanes["master|emotionIntensity"].points[st.rows[3].id]]; });
+    ok(fe[0] === 2 && fe[1] == null && (await undoN()) === u0 + 1, "dragging the box one moment later moves the joined partner too (Strength of the feeling's 2 is now at moment 5), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await film()) === fj, "one ⌘Z puts both back");
+
+    /* 15. Proximity view: curved lines from a master node to the triggers that fire it. */
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.evaluate(([L, i]) => { const l = eval(L); l.selectArea({ i0: i, i1: i, j0: 0, j1: 2 }); l.command("copy"); l.selectArea(null); window.CurioScreen.setRow(4); l.command("paste"); }, [L, shotI]);
+    const had = await p.evaluate(() => window.CurioTriggers);
+    await p.evaluate(() => { if (!window.CurioTriggers) window.__fakeTriggers = window.CurioTriggers = { forTarget: (t) => (/^master:/.test(t) ? [{ id: "tr1", label: "a test trigger", source: { kind: "key" } }] : []) }; });
+    await p.check('.sl-mwin [data-mw="prox"]');
+    const lines = (await p.$$(".sl-svg .sl-mtrig")).length;
+    ok(had ? lines >= 0 : lines === 1, "the Suite / Proximity view draws a curved line from the master node to each trigger that fires it" + (had ? " (the real triggers are loaded here)" : ""));
+    await p.uncheck('.sl-mwin [data-mw="prox"]');
+    ok((await p.$$(".sl-svg .sl-mtrig")).length === 0, "switched off, the lines go");
+    await p.evaluate(() => { if (window.__fakeTriggers) { delete window.CurioTriggers; delete window.__fakeTriggers; } });
+
+    /* 16. Speed: on the Screen's timeline an edit to a master node redraws the lanes inside one frame (16 ms). The
+       Arrange view's bigger page costs more to lay out (it did before master nodes too), so it is only reported. */
+    await p.screenshot({ path: path.join(SHOTS, "screen-19-master-nodes.png") });
+    const timing = () => p.evaluate(async (L) => {
+      const l = eval(L);
+      const nid = window.CurioEngine.state().masters.list[0].nodes[0].id;
+      const lanes = [];
+      const edits = [];
+      for (let i = 0; i < 7; i++) {
+        let a = performance.now();
+        l.draw();
+        lanes.push(performance.now() - a);
+        await new Promise((r) => requestAnimationFrame(() => r()));
+        a = performance.now();
+        l.masterToggle(nid);
+        edits.push(performance.now() - a);
+        await new Promise((r) => requestAnimationFrame(() => r()));
+      }
+      const med = (x) => x.sort((m, n) => m - n)[Math.floor(x.length / 2)];
+      return { lanes: med(lanes), edit: med(edits) };
+    }, L);
+    const inArrange = await timing();
+    await p.click('[data-view="screen"]');
+    await p.waitForTimeout(250);
+    const onScreen = await timing();
+    ok(onScreen.lanes < 16, "on the Screen, the lanes with master nodes redraw in " + onScreen.lanes.toFixed(1) + " ms (under one 16 ms frame)");
+    note("a master node switch (engine, plan and the whole page redrawing) takes " + onScreen.edit.toFixed(1) + " ms on the Screen; in the Arrange view the lanes redraw in " + inArrange.lanes.toFixed(1) + " ms and a switch takes " + inArrange.edit.toFixed(1) + " ms");
+    await ctx.close();
+  }
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();

@@ -11,7 +11,12 @@
    Under the strip, bands line up with the panels: a feeling line per character (the panel's emotion where
    they speak, else the story's value), comedy beats (setup, payoff, callback, escalation) and, when music
    curiosities exist, music on or off and how loud. Print (studio-print.js) prints the storyboard.
-   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max), putScenes(tag, scenes), on(fn), setTiming(list), timing() }. */
+   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max), putScenes(tag, scenes), on(fn), setTiming(list), timing(), selected(), addPictures(list, opts) }.
+   Pictures in panels (added for the 3D view's "Send to storyboard", rig/snapshot.js): a panel may carry
+   pic, a small JPEG or WebP data URL (about 640 x 288, the stage's 200:90 shape). Such a panel shows the
+   picture where the drawn stage would be; its values (v) and line still give its header and caption.
+   addPictures([{ pic, seconds? }], { si?, pi?, onto?, scene?, name?, label? }) puts them after the selected panel
+   (or onto it when onto is true and there is one picture), in one save and one undo step. */
 
 (function () {
   const KEY = "curiosities-storyboard-v1";
@@ -189,6 +194,7 @@
   /* ---------- drawing a panel ---------- */
   function panelHtml(scene, p, i) {
     const B = window.CuriosityBoard;
+    if (picOk(p)) return picPanelHtml(scene, p, i);
     if (!B || !B.panel) return `<figure class="panel"><p class="cap">The board is not loaded.</p></figure>`;
     try {
       return B.panel(p.line || { who: "", text: "—" }, i, scene.panels.length, p.v || {});
@@ -197,7 +203,7 @@
     }
   }
   function stageOnly(html) {
-    const m = /<svg class="stage[\s\S]*?<\/svg>/.exec(html);
+    const m = /<svg class="stage[\s\S]*?<\/svg>|<img class="stage[^>]*>/.exec(html);
     return m ? m[0] : "";
   }
   /* Every panel of every scene in order: the flip book's pages. */
@@ -592,7 +598,7 @@
         ctx.textAlign = "right";
         ctx.fillText(clip(ctx, right, W / 2 - 12), x + W - 8, y + 16);
         ctx.textAlign = "left";
-        const img = await svgImage(stageOnly(panelHtml(s, p, pi)));
+        const img = picOk(p) ? await picImage(p.pic) : await svgImage(stageOnly(panelHtml(s, p, pi)));
         ctx.fillStyle = "rgba(255,255,255,0.45)";
         ctx.fillRect(x + 8, y + 24, W - 16, 86);
         if (img) ctx.drawImage(img, x + 8, y + 24, W - 16, 86);
@@ -654,7 +660,8 @@
       .sb-thumb { flex: none; width: 64px; padding: 0; border: 2px solid var(--line); background: var(--panel); cursor: pointer; display: grid; font-family: var(--mono); font-size: 9px; line-height: 1.3; }
       .sb-thumb.first { border-left: 4px solid var(--saffron); }
       .sb-thumb.on { border-color: var(--ink); background: #ffe2c4; }
-      .sb-thumb svg { width: 100%; height: 29px; display: block; }
+      .sb-thumb svg, .sb-thumb img.stage { width: 100%; height: 29px; display: block; object-fit: cover; border: 0; }
+      img.stage.sb-pic { display: block; object-fit: cover; background: #f4f1ea; }
       .sb-grid { display: grid; gap: 14px; }
       .sb-scene { border: 2px solid var(--ink); padding: 8px; min-width: 0; background: var(--panel); }
       .sb-scene-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
@@ -932,6 +939,7 @@
       at = ((at % all.length) + all.length) % all.length;
       const pg = all[at];
       const s = store.scenes[pg.si];
+      shown = { si: pg.si, pi: pg.pi };
       queueMicrotask(() => tell({ type: "page", at, si: pg.si, pi: pg.pi }));
       const big = el.querySelector("[data-sb=big]");
       const count = el.querySelector("[data-sb=count]");
@@ -1239,6 +1247,12 @@
     draw();
     const api = {
       redraw: draw,
+      /* After pictures arrive: show the first new one in the flip book. */
+      showAt(si, pi) {
+        const k = pages().findIndex((pg) => pg.si === si && pg.pi === pi);
+        if (k >= 0) at = k;
+        draw();
+      },
       jumpStory,
       isLive: () => el.isConnected,
       destroy() {
@@ -1255,6 +1269,80 @@
       jumpStory(k);
     }
     return api;
+  }
+
+  /* ---------- pictures in panels (rig/snapshot.js sends frames of the 3D view here) ---------- */
+  let shown = null; /* the panel the flip book last showed: the "selected" one */
+  const PIC_RE = /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/;
+  const PIC_MAX = 400000; /* characters; about 300 KB, so a few dozen pictures fit in the browser's storage */
+  function picOk(p) {
+    return !!(p && typeof p.pic === "string" && p.pic.length <= PIC_MAX && PIC_RE.test(p.pic));
+  }
+  function picPanelHtml(scene, p, i) {
+    const B = window.CuriosityBoard;
+    const img = `<img class="stage sb-pic" src="${p.pic}" alt="A drawing from the 3D view">`;
+    let html = "";
+    try {
+      html = B && B.panel ? B.panel(p.line || { who: "", text: "—" }, i, scene.panels.length, p.v || {}) : "";
+    } catch (e) {}
+    /* the drawn shot name (wide, close...) belongs to the drawn stage; this picture is what the 3D view showed */
+    html = html.replace(/(<header>\s*<span>[\s\S]*?<\/span>\s*<span>)[\s\S]*?(<\/span>\s*<\/header>)/, "$13D view$2");
+    if (/<svg class="stage[\s\S]*?<\/svg>/.test(html)) return html.replace(/<svg class="stage[\s\S]*?<\/svg>/, () => img);
+    return `<figure class="panel">${img}</figure>`;
+  }
+  function picImage(src) {
+    return new Promise((res) => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = () => res(null);
+      img.src = src;
+    });
+  }
+  /* The selected panel: the one on the flip book now (or last), else the last panel of the last scene. */
+  function selected() {
+    if (shown && store.scenes[shown.si] && store.scenes[shown.si].panels[shown.pi]) return Object.assign({}, shown);
+    const si = store.scenes.length - 1;
+    return si >= 0 && store.scenes[si].panels.length ? { si, pi: store.scenes[si].panels.length - 1 } : null;
+  }
+  /* list: [{ pic, seconds? }]. opts: { si, pi } where to put them (default: the selected panel), onto: true puts a
+     single picture on that panel instead of a new one after it, scene: true puts them in a new scene right after
+     the selected one, name: that scene's name.
+     New panels copy the values of the panel they follow (so header and caption match), or My film's. A scene
+     that would pass MAX_PER panels gets a new scene right after it instead. One save, so one undo step.
+     Returns { si, pi, count } of the first new (or changed) panel, or null. */
+  function addPictures(list, opts) {
+    opts = opts || {};
+    const pics = (Array.isArray(list) ? list : []).filter(picOk).slice(0, MAX_PER);
+    if (!pics.length) return null;
+    const pick = opts.si != null && store.scenes[Number(opts.si)] ? { si: Number(opts.si), pi: Math.max(0, Math.min(store.scenes[Number(opts.si)].panels.length - 1, Number(opts.pi) || 0)) } : selected();
+    const timed = (x, base) => {
+      const p = Object.assign({}, base, { pic: x.pic });
+      const sec = Number(x.seconds);
+      if (sec > 0 && isFinite(sec)) p.seconds = Math.round(Math.min(60, Math.max(0.04, sec)) * 1000) / 1000; /* 1/8 s stays 0.125 */
+      else delete p.seconds;
+      return p;
+    };
+    const baseOf = (p) => ({ v: Object.assign({}, (p && p.v) || capture(1, performance.now())[0].v), line: { who: "", text: "—" } });
+    let out = null;
+    if (pick && opts.onto && pics.length === 1) {
+      const s = store.scenes[pick.si];
+      s.panels[pick.pi] = timed(pics[0], s.panels[pick.pi]);
+      out = { si: pick.si, pi: pick.pi, count: 1 };
+    } else if (pick && !opts.scene && store.scenes[pick.si].panels.length + pics.length <= MAX_PER) {
+      const s = store.scenes[pick.si];
+      const base = baseOf(s.panels[pick.pi]);
+      s.panels.splice(pick.pi + 1, 0, ...pics.map((x) => timed(x, base)));
+      out = { si: pick.si, pi: pick.pi + 1, count: pics.length };
+    } else {
+      const at = pick ? pick.si + 1 : store.scenes.length;
+      const base = baseOf(pick ? store.scenes[pick.si].panels[pick.pi] : null);
+      store.scenes.splice(at, 0, sceneRecord(pics.map((x) => timed(x, base)), String(opts.name || "From the 3D view"), "drawn from the 3D view"));
+      out = { si: at, pi: 0, count: pics.length };
+    }
+    shown = { si: out.si, pi: out.pi };
+    save(opts.label || (pics.length === 1 ? "a picture from the 3D view" : pics.length + " pictures from the 3D view"));
+    if (active && active.isLive()) active.showAt(out.si, out.pi);
+    return saveError ? Object.assign(out, { error: saveError }) : out;
   }
 
   window.CuriosityStoryboard = {
@@ -1311,6 +1399,8 @@
       return n;
     },
     timing: () => store.scenes.map((s) => s.panels.map((p) => (Number(p.seconds) > 0 ? Number(p.seconds) : null))),
+    selected,
+    addPictures,
   };
   /* An undo, redo or reload of the shared state redraws the open storyboard. */
   if (part) part.on((d, label) => /^(Undo|Redo|Load)/.test(String(label)) && active && active.isLive() && active.redraw());

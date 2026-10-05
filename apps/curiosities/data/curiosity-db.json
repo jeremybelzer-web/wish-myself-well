@@ -296,6 +296,24 @@
      "curve": "linear"
     },
     {
+     "id": "who",
+     "label": "Who it frames",
+     "plain": "Whose face and body a close-up or medium shot is on. Characters count from the top character track; a wide shot keeps everyone.",
+     "scale": [
+      "whoever is shown",
+      "the first character",
+      "the second character",
+      "the third character",
+      "the fourth character"
+     ],
+     "from": "whoever is shown",
+     "to": "the fourth character",
+     "curve": "steps",
+     "unordered": true,
+     "lane": true,
+     "track": "camera"
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -2567,6 +2585,27 @@
      "curve": "linear"
     },
     {
+     "id": "to",
+     "label": "Walks to",
+     "plain": "Where this character walks when the playhead gets here: to another character (stopping at talking distance, facing them), the middle, the front near the camera, or back. Characters count from the top character track.",
+     "scale": [
+      "stays put",
+      "the first character",
+      "the second character",
+      "the third character",
+      "the fourth character",
+      "the middle",
+      "the front",
+      "the back"
+     ],
+     "from": "stays put",
+     "to": "the back",
+     "curve": "steps",
+     "unordered": true,
+     "lane": true,
+     "track": "character"
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -4310,6 +4349,43 @@
      "curve": "linear"
     },
     {
+     "id": "place",
+     "label": "Where it happens",
+     "plain": "The place the scene happens in. The 3D view builds a simple set of it when the playhead gets there.",
+     "scale": [
+      "anywhere",
+      "a room",
+      "a kitchen",
+      "a bedroom",
+      "a living room",
+      "an office",
+      "a classroom",
+      "a diner",
+      "a bar",
+      "a stage",
+      "inside a car",
+      "a bathroom",
+      "a store",
+      "a garage",
+      "a road",
+      "a street",
+      "a park",
+      "a forest",
+      "a beach",
+      "a desert",
+      "a farm",
+      "a backyard",
+      "a parking lot",
+      "outside"
+     ],
+     "from": "anywhere",
+     "to": "outside",
+     "curve": "steps",
+     "unordered": true,
+     "lane": true,
+     "track": "master"
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -5181,6 +5257,40 @@
      "curve": "linear"
     },
     {
+     "id": "together",
+     "label": "How they stand together",
+     "plain": "Where everyone stands, all at once. The 3D view puts them on their marks when the playhead gets there.",
+     "scale": [
+      "face to face",
+      "side by side",
+      "one behind the other",
+      "over the shoulder",
+      "circle",
+      "standoff",
+      "huddle"
+     ],
+     "from": "face to face",
+     "to": "huddle",
+     "curve": "steps",
+     "unordered": true,
+     "lane": true,
+     "track": "master"
+    },
+    {
+     "id": "seated",
+     "label": "Sitting or standing",
+     "plain": "Whether this character sits down (on a seat of the set) or stands.",
+     "scale": [
+      "standing",
+      "sitting"
+     ],
+     "from": "standing",
+     "to": "sitting",
+     "curve": "linear",
+     "lane": true,
+     "track": "character"
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -5272,7 +5382,9 @@
      ],
      "from": "no one meets",
      "to": "both hold",
-     "curve": "linear"
+     "curve": "linear",
+     "lane": true,
+     "track": "master"
     },
     {
      "id": "hold",
@@ -5300,6 +5412,20 @@
      "from": "nobody",
      "to": "both avoid",
      "curve": "linear"
+    },
+    {
+     "id": "speaking",
+     "label": "Speaking now",
+     "plain": "Whether this character is the one talking at this moment. Everyone else looks at them.",
+     "scale": [
+      "listening",
+      "speaking"
+     ],
+     "from": "listening",
+     "to": "speaking",
+     "curve": "linear",
+     "lane": true,
+     "track": "character"
     },
     {
      "id": "push",
@@ -8249,6 +8375,19 @@
      ],
      "from": "none",
      "to": "full",
+     "curve": "linear"
+    },
+    {
+     "id": "facing",
+     "label": "Which way they face",
+     "plain": "Which way the person in the frame faces or walks, so the room in front of them reads.",
+     "scale": [
+      "left",
+      "toward the camera",
+      "right"
+     ],
+     "from": "left",
+     "to": "right",
      "curve": "linear"
     },
     {
@@ -31300,6 +31439,149 @@
    }
   },
   {
+   "id": "feelingFaceLens",
+   "level": "curiosity",
+   "label": "Face and feelings",
+   "plain": "What the character's face feels: happy, sad, angry, scared, surprised or disgusted, mixed in any amount, and where the eyes look. A 3D character's face and body follow it.",
+   "workspace": "emotion",
+   "also": [
+    "comedy",
+    "character-motion",
+    "emo-road"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "happy",
+   "sliders": [
+    {
+     "id": "happy",
+     "label": "Happy",
+     "plain": "A smile that reaches the eyes: mouth corners up, cheeks push the eyes a little closed.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "sad",
+     "label": "Sad",
+     "plain": "Mouth corners down, the inner ends of the brows lift, the head and shoulders sink.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "angry",
+     "label": "Angry",
+     "plain": "Brows pulled down and together, eyes narrow, mouth pressed or bared.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "scared",
+     "label": "Scared",
+     "plain": "Eyes wide, brows up and pulled together, mouth stretched; the body pulls in.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "surprised",
+     "label": "Surprised",
+     "plain": "Brows way up, eyes wide, the jaw drops open. Short-lived: it turns into another feeling.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "disgust",
+     "label": "Disgusted",
+     "plain": "Nose wrinkles, the upper lip lifts on one side, the head pulls back.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "look",
+     "label": "Where the eyes look",
+     "plain": "Only the eyes move, not the head. Eyes going away from someone before the words come say a lot.",
+     "scale": [
+      "ahead",
+      "left",
+      "right",
+      "up",
+      "down",
+      "at the camera"
+     ],
+     "from": "ahead",
+     "to": "at the camera",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A face shows the feeling before the words do, so the other characters (and the audience) react to it and the scene turns.",
+    "theme": "What a face shows against what the character says is where honesty and pretending live.",
+    "pull": "Close on a face, the audience reads every small change and waits to see what the character will do with it.",
+    "cue": "visual",
+    "tryThis": "Let the face change a beat before the line: a smile that drops, or eyes that go to the door."
+   }
+  },
+  {
    "id": "runningGag",
    "level": "curiosity",
    "label": "Running gag",
@@ -53627,6 +53909,411 @@
     "pull": "The eye reads a clear outline before a word is said, so a strong pose grabs attention first.",
     "cue": "movement",
     "tryThis": "Hold the strongest pose of the scene for the line that turns it."
+   }
+  },
+  {
+   "id": "rigRulesLens",
+   "level": "curiosity",
+   "label": "Movement rules",
+   "plain": "The rules a 3D character's body follows: which move it plays, how fast, how it holds its spine, where it looks, how loose its parts are and how far its joints may bend.",
+   "workspace": "character-motion",
+   "also": [
+    "movement-lines",
+    "emotion"
+   ],
+   "group": "Maya: Movement rules",
+   "kind": "lens",
+   "per": "panel",
+   "main": "motion",
+   "sliders": [
+    {
+     "id": "motion",
+     "label": "What the body is doing",
+     "plain": "The move the character plays. Bought and free characters come with moves like these already made (clips).",
+     "scale": [
+      "standing still",
+      "looking around",
+      "walking",
+      "running"
+     ],
+     "from": "standing still",
+     "to": "running",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "pace",
+     "label": "Pace",
+     "plain": "How fast the move plays. The same walk slowed down reads tired; sped up reads late or scared.",
+     "scale": [
+      "dragging",
+      "slow",
+      "normal",
+      "brisk",
+      "frantic"
+     ],
+     "from": "dragging",
+     "to": "frantic",
+     "curve": "linear"
+    },
+    {
+     "id": "slump",
+     "label": "Spine",
+     "plain": "One control that bends the whole spine, the neck and the head together. Maya calls a control like this a driven key.",
+     "scale": [
+      "proud and upright",
+      "relaxed",
+      "slumped",
+      "collapsed"
+     ],
+     "from": "proud and upright",
+     "to": "collapsed",
+     "curve": "linear"
+    },
+    {
+     "id": "lookAt",
+     "label": "Where the eyes go",
+     "plain": "The head turns to look at something by itself, within what a neck can do (an aim constraint in Maya).",
+     "scale": [
+      "straight ahead",
+      "at the camera",
+      "at the ground",
+      "up",
+      "all around"
+     ],
+     "from": "straight ahead",
+     "to": "all around",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "floppy",
+     "label": "Loose parts",
+     "plain": "Whether arms, head and tail lag behind and keep moving after the body stops (follow-through).",
+     "scale": [
+      "stiff",
+      "a little give",
+      "loose",
+      "floppy"
+     ],
+     "from": "stiff",
+     "to": "floppy",
+     "curve": "linear"
+    },
+    {
+     "id": "breath",
+     "label": "Breathing",
+     "plain": "How much the chest rises and falls. Heavy breathing after a run, held breath before a scare.",
+     "scale": [
+      "held",
+      "calm",
+      "heavy",
+      "heaving"
+     ],
+     "from": "held",
+     "to": "heaving",
+     "curve": "linear"
+    },
+    {
+     "id": "limits",
+     "label": "How far joints bend",
+     "plain": "The rule that stops a knee bending backwards. Rubber lets cartoon bodies break it; stiff keeps every joint close to straight.",
+     "scale": [
+      "like rubber",
+      "natural",
+      "stiff"
+     ],
+     "from": "like rubber",
+     "to": "stiff",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:rig3d"
+   ],
+   "maya": "Skeletons and joint limits, aim constraints, Set Driven Key, dynamic joint chains, Time Editor clips",
+   "tool": "rig3d",
+   "momentum": {
+    "push": 2,
+    "plot": "A body that follows its own rules (a tired slump, eyes that keep going to the door) tells the audience what the character wants before a word is said.",
+    "theme": "How a body is allowed to move is how free a character is: stiff joints for someone boxed in, loose limbs for someone let go.",
+    "pull": "The eye follows where a character looks, so the head's aim steers the audience's attention.",
+    "cue": "movement",
+    "tryThis": "Change one rule at the turn of the scene: the spine lifts, or the eyes finally go to the camera."
+   }
+  },
+  {
+   "id": "actingLens",
+   "level": "curiosity",
+   "label": "Acting moves",
+   "plain": "Short acting moves a 3D character plays on top of whatever else it is doing: a double take, a shrug, a pratfall, a wave, a bow. How big, how fast, and the timing that makes them funny.",
+   "workspace": "character-motion",
+   "also": [
+    "comedy",
+    "emotion"
+   ],
+   "group": "Maya: Acting moves",
+   "kind": "lens",
+   "per": "panel",
+   "main": "move",
+   "sliders": [
+    {
+     "id": "move",
+     "label": "Acting move",
+     "plain": "Which move the character plays. Put one on the timeline and it plays when the playhead gets there.",
+     "scale": [
+      "none",
+      "double take",
+      "shrug",
+      "facepalm",
+      "spit take",
+      "pratfall",
+      "slow burn",
+      "freeze in shock",
+      "wobbly knees",
+      "victory dance",
+      "wave",
+      "point",
+      "nod yes",
+      "shake no",
+      "hands on hips",
+      "cross arms",
+      "sigh",
+      "look around",
+      "jump for joy",
+      "bow"
+     ],
+     "from": "none",
+     "to": "bow",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "size",
+     "label": "How big",
+     "plain": "How far the body goes. Small reads as real life; huge reads as a cartoon.",
+     "scale": [
+      "tiny",
+      "small",
+      "normal",
+      "big",
+      "huge"
+     ],
+     "from": "tiny",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "speed",
+     "label": "How fast",
+     "plain": "How fast the move plays from start to end.",
+     "scale": [
+      "very slow",
+      "slow",
+      "normal",
+      "quick",
+      "snappy"
+     ],
+     "from": "very slow",
+     "to": "snappy",
+     "curve": "linear"
+    },
+    {
+     "id": "windup",
+     "label": "Wind-up first",
+     "plain": "A small move the other way before the big one, so the eye knows something is coming (animators call it anticipation).",
+     "scale": [
+      "none",
+      "a little",
+      "clear",
+      "big"
+     ],
+     "from": "none",
+     "to": "big",
+     "curve": "linear"
+    },
+    {
+     "id": "hold",
+     "label": "Hold the pose",
+     "plain": "How long the strongest pose stays still so the audience can read it.",
+     "scale": [
+      "no hold",
+      "short",
+      "clear",
+      "long"
+     ],
+     "from": "no hold",
+     "to": "long",
+     "curve": "linear"
+    },
+    {
+     "id": "settle",
+     "label": "Settle at the end",
+     "plain": "How the body comes back to rest: all at once, gently, or going a little past and wobbling (overshoot and settle).",
+     "scale": [
+      "stops dead",
+      "eases back",
+      "overshoots and wobbles"
+     ],
+     "from": "stops dead",
+     "to": "overshoots and wobbles",
+     "curve": "linear"
+    },
+    {
+     "id": "pause",
+     "label": "Comedy timing",
+     "plain": "A pause just before the payoff. The longer the wait, the bigger the laugh, until it gets awkward (which is funny too).",
+     "scale": [
+      "no pause",
+      "a beat",
+      "a long beat",
+      "painfully long"
+     ],
+     "from": "no pause",
+     "to": "painfully long",
+     "curve": "linear"
+    },
+    {
+     "id": "cue",
+     "label": "Play it",
+     "plain": "Each time this turns to go, the move plays again. Use it to repeat the same move later in the film.",
+     "scale": [
+      "wait",
+      "go"
+     ],
+     "from": "wait",
+     "to": "go",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:rig3d"
+   ],
+   "maya": "Pose-to-pose animation, Trax and Time Editor clips, animation layers (a move layered on top of a walk)",
+   "tool": "rig3d",
+   "momentum": {
+    "push": 2,
+    "plot": "A clear acting beat tells the audience exactly how a character takes the news, so the story can move on.",
+    "theme": "The same move played twice (a second double take, a bigger pratfall) turns a gag into a running theme.",
+    "pull": "A sudden move after stillness pulls every eye in the frame.",
+    "cue": "movement",
+    "tryThis": "Hold still one beat longer than feels right, then do the double take."
    }
   },
   {
