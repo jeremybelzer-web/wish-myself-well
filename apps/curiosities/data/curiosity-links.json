@@ -22422,6 +22422,142 @@
    "then": "their way of talking stands out"
   },
   {
+   "id": "p:approval-copying",
+   "proximity": "approval-copying",
+   "label": "When the need for approval grows, they copy the others",
+   "from": {
+    "curiosity": "needApproval",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "copying",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the need for approval grows",
+   "then": "they copy the others"
+  },
+  {
+   "id": "p:approval-withheld-turns",
+   "proximity": "approval-withheld-turns",
+   "label": "When approval is withheld and they turn, the group pressure rises",
+   "from": {
+    "curiosity": "needApproval.withheld",
+    "track": "master",
+    "is": "turns on the group",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "approval is withheld and they turn",
+   "then": "the group pressure rises"
+  },
+  {
+   "id": "p:love-unmet-loneliness",
+   "proximity": "love-unmet-loneliness",
+   "label": "When they want love but don't get it, loneliness grows",
+   "from": {
+    "curiosity": "loveOrientation.have",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they want love but don't get it",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:circle-shrinks-loneliness",
+   "proximity": "circle-shrinks-loneliness",
+   "label": "When the circle shrinks, loneliness grows",
+   "from": {
+    "curiosity": "circleSize.changes",
+    "track": "master",
+    "is": "shrinking",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the circle shrinks",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:rank-leads-herd",
+   "proximity": "rank-leads-herd",
+   "label": "When they rise to the top, they lead the herd",
+   "from": {
+    "curiosity": "inCharge",
+    "track": "master",
+    "is": "in charge",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "herdLeader",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they rise to the top",
+   "then": "they lead the herd"
+  },
+  {
+   "id": "p:leaned-on-caretaker",
+   "proximity": "leaned-on-caretaker",
+   "label": "When everyone leans on them, they become the caretaker",
+   "from": {
+    "curiosity": "reliance",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "caretaker",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone leans on them",
+   "then": "they become the caretaker"
+  },
+  {
+   "id": "p:falling-health",
+   "proximity": "falling-health",
+   "label": "When life starts falling, emotional health drops",
+   "from": {
+    "curiosity": "thriving",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-health",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "life starts falling",
+   "then": "emotional health drops"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -27903,6 +28039,38 @@
    "links": [
     "p:stress-type-subtext",
     "p:type-voice-marks"
+   ]
+  },
+  {
+   "id": "ps:losing-their-place",
+   "label": "Losing their place",
+   "plain": "Life starts falling, the circle shrinks, loneliness grows, and emotional health slips toward the stress type.",
+   "proximities": [
+    "falling-health",
+    "circle-shrinks-loneliness",
+    "love-unmet-loneliness",
+    "approval-copying"
+   ],
+   "links": [
+    "p:falling-health",
+    "p:circle-shrinks-loneliness",
+    "p:love-unmet-loneliness",
+    "p:approval-copying"
+   ]
+  },
+  {
+   "id": "ps:the-weight-of-the-crown",
+   "label": "The weight of the crown",
+   "plain": "They rise to the top, everyone leans on them, and when the nod is withheld they turn on the group.",
+   "proximities": [
+    "rank-leads-herd",
+    "leaned-on-caretaker",
+    "approval-withheld-turns"
+   ],
+   "links": [
+    "p:rank-leads-herd",
+    "p:leaned-on-caretaker",
+    "p:approval-withheld-turns"
    ]
   },
   {
