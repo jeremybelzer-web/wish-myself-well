@@ -114,7 +114,9 @@ const ok = (cond, msg) => {
   /* a curiosity */
   await page.selectOption(rw + " [data-wcur]", "palette");
   await page.waitForTimeout(150);
-  ok(await page.isVisible(rw + " .cbw-curv") && (await page.textContent(rw + " .cbw-head")).includes("Dominant color"), "picking Dominant color shows that curiosity in the window");
+  /* The name comes from the curiosity database (palette is called "Range of colors" there now), so read it from the menu. */
+  const palName = (await page.$eval(rw + " [data-wcur] option[value=\"palette\"]", (o) => o.textContent)).trim();
+  ok(await page.isVisible(rw + " .cbw-curv") && (await page.textContent(rw + " .cbw-head")).includes(palName), `picking ${palName} shows that curiosity in the window`);
   const mineIds = await page.$$eval(rw + " .cbw-body > details.cbw-sec [data-p]", (els) => els.map((e) => e.dataset.p));
   ok(mineIds.includes("color") && !mineIds.includes("x"), `its settings come first: ${mineIds.join(", ")}`);
   await page.locator(rw + " [data-cv]").evaluate((e) => {
