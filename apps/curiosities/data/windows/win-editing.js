@@ -12,6 +12,7 @@
     window: {
       faces: [
         { face: "dial", slider: "setting" },
+        { face: "curve", slider: "setting", points: 5 },
         { face: "ladder", slider: "audienceGrip" },
         { face: "tiles", slider: "shape", icons: { flat: "➖", rising: "📈", falling: "📉", "peaks and valleys": "〰️" } },
       ],
@@ -332,6 +333,7 @@
     window: {
       faces: [
         { face: "dial", slider: "setting" },
+        { face: "curve", slider: "setting", points: 5 },
         { face: "pad", x: "peakPlace", y: "dropDepth", xLabel: "Where the peak sits", yLabel: "How low the dips go" },
         { face: "tiles", slider: "shape", icons: { flat: "➖", rising: "📈", falling: "📉", "peaks and valleys": "〰️" } },
       ],

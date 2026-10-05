@@ -465,7 +465,9 @@
   }
 
   /* The main meter, m and the scope, drawn every frame while the card is on screen. */
-  function paintCard(c, now, textOnly) {
+  /* scopeShown: whether the scope is on the page, read before any card's meters were written (hubFrame), so
+     the page's styles are worked out once per frame and not once per card. */
+  function paintCard(c, now, textOnly, scopeShown) {
     if (!A().param(c.key)) return;
     const m = A().m(c.key);
     const buf = c.scope;
@@ -477,7 +479,7 @@
     if (mm) mm.style.width = Math.round(Math.max(0, Math.min(1, m || 0)) * 100) + "%";
     if (textOnly) return;
     const cv = c.wrap.querySelector('[data-r="scope"]');
-    if (!cv || !shownEl(cv)) return;
+    if (!cv || !(scopeShown != null ? scopeShown : shownEl(cv))) return;
     const g = cv.getContext("2d");
     const W = cv.width;
     const H = cv.height;
@@ -590,8 +592,12 @@
     hubRaf = 0;
     prune();
     if (!cards.size) return;
-    const shown = [...cards].filter(cardVisible);
-    shown.forEach((c) => paintCard(c, now));
+    /* Read everything first (which cards and scopes show), then write: one style pass per frame. */
+    const shown = [...cards].filter(cardVisible).map((c) => {
+      const cv = c.wrap.querySelector('[data-r="scope"]');
+      return [c, !!cv && shownEl(cv)];
+    });
+    shown.forEach(([c, scopeShown]) => paintCard(c, now, false, scopeShown));
     if (shown.length) hubRaf = requestAnimationFrame(hubFrame);
     else hubIdle = setTimeout(hubPoll, 400);
   }

@@ -15,7 +15,8 @@
              strip({x,y,w,h,lengths,color,gap}) shots in a row, clock({x,y,r,p}), pie({x,y,r,p,color})
    Color:    hsl(h,s,l,a), mix(a,b,p) between two #rrggbb, tint({color, alpha}) over the whole picture,
              grade({warm -1..1, sat 0..1, bright 0..1, contrast 0..1}) a color wash, vignette(p)
-   Text:     text({x,y,text,size,color,anchor,weight,font,italic,spacing,outline}), bubble({x,y,text,w,tail})
+   Text:     text({x,y,text,size,color,anchor,weight,font,italic,spacing,outline}), bubble({x,y,text,w,tail}),
+             fitText({...text options, w, min}) shrinks to fit w pixels, then cuts with "…"
    Frames:   frame({x,y,w,h,color,w2}) a picture inside the picture, letterbox(p), panel({x,y,w,h})
    Utility:  W, H, esc, lerp(a,b,p), clamp(x,a,b), pick(list, p), rnd(seed) a fixed random 0..1 */
 (function (root) {
@@ -289,6 +290,20 @@
     o = o || {};
     return `<text x="${r1(o.x == null ? W / 2 : o.x)}" y="${r1(o.y == null ? H / 2 : o.y)}" font-size="${r1(o.size || 18)}" fill="${o.color || "#fff"}" text-anchor="${o.anchor || "middle"}" font-family="${o.font || "system-ui, sans-serif"}"${o.weight ? ` font-weight="${o.weight}"` : ""}${o.italic ? ' font-style="italic"' : ""}${o.spacing ? ` letter-spacing="${o.spacing}"` : ""}${o.outline ? ` stroke="${o.outline}" stroke-width="${o.outlineW || 2}" paint-order="stroke"` : ""}${o.alpha != null ? ` opacity="${r1(o.alpha)}"` : ""}>${esc(o.text)}</text>`;
   }
+  /* Words that must fit in w pixels: shrink from size toward min (default 6), then cut with "…" as a last resort.
+     Widths are estimated (0.55 of the size a letter, 0.6 when bold), slightly generous for system-ui. */
+  function fitText(o) {
+    o = o || {};
+    let t = String(o.text == null ? "" : o.text);
+    const size = o.size || 10;
+    const min = Math.min(size, o.min || 6);
+    const w = o.w || W;
+    const cw = o.weight && Number(o.weight) >= 600 ? 0.6 : 0.55;
+    const sz = Math.max(min, Math.min(size, w / Math.max(1, t.length * cw)));
+    const max = Math.max(1, Math.floor(w / (sz * cw) + 1e-6)); /* + 1e-6: an exact fit must not lose a letter to rounding */
+    if (t.length > max) t = t.slice(0, Math.max(0, max - 1)) + "…";
+    return text(Object.assign({}, o, { text: t, size: r1(sz) }));
+  }
   function bubble(o) {
     o = o || {};
     const x = o.x == null ? 160 : o.x;
@@ -307,7 +322,7 @@
   };
   const panel = (o) => `<rect x="${r1(o.x)}" y="${r1(o.y)}" width="${r1(o.w)}" height="${r1(o.h)}" fill="${o.fill || "#f4f1ea"}" stroke="${INK}" stroke-width="${o.w2 || 2.5}"/>`;
 
-  const K = { W, H, INK, esc, lerp, clamp, pick, rnd, rad, hsl, mix, bg, floor, sky, wall, window_, face, person, hand, cam, lamp, beam, mic, speaker, arrow, ring, dot, label, caption, title, meter, dial, bars, graph, wave, strip, clock, pie, tint, grade, vignette, text, bubble, frame, letterbox, panel };
+  const K = { W, H, INK, esc, lerp, clamp, pick, rnd, rad, hsl, mix, bg, floor, sky, wall, window_, face, person, hand, cam, lamp, beam, mic, speaker, arrow, ring, dot, label, caption, title, meter, dial, bars, graph, wave, strip, clock, pie, tint, grade, vignette, text, fitText, bubble, frame, letterbox, panel };
   root.CurioLookKit = K;
   if (typeof module !== "undefined" && module.exports) module.exports = K;
 })(typeof window !== "undefined" ? window : globalThis);
