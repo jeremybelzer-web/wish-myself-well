@@ -141,9 +141,9 @@ const ok = (cond, msg) => {
       // turn it all the way round
       const th0 = await call((c) => c.stage.orb.theta);
       const cb = await page.locator(".rl-cube.cube canvas").boundingBox();
-      await page.mouse.move(cb.x + 60, cb.y + cb.height - 60);
+      await page.mouse.move(cb.x + 60, cb.y + cb.height / 2);
       await page.mouse.down();
-      await page.mouse.move(cb.x + 460, cb.y + cb.height - 40, { steps: 20 });
+      await page.mouse.move(cb.x + 460, cb.y + cb.height / 2 + 20, { steps: 20 });
       await page.mouse.up();
       const th1 = await call((c) => c.stage.orb.theta);
       ok(Math.abs(th1 - th0) > 1, `dragging turns the cube around (${(((th1 - th0) * 180) / Math.PI).toFixed(0)}°)`);
@@ -188,6 +188,16 @@ const ok = (cond, msg) => {
       const c1 = await call((c) => c.stage.camera.position.toArray());
       ok(Math.abs(c1[0] - c0[0]) > 5 && Math.abs(c1[2] - c0[2]) < 0.01, `sliding moves you along the corridor and never sideways into the cubes (${c0[0].toFixed(1)} to ${c1[0].toFixed(1)})`);
       ok((await call((c) => c.corridor())) >= 0, "you are still in the corridor after sliding");
+      // From the corridor: see the ties that cross it, pick some, save them as a proximity group.
+      const across = await call((c) => c.conn.list().length);
+      ok(across > 0 && (await page.locator(".rl-connlist label").count()) === across, `the corridor lists the connections that cross it (${across})`);
+      await page.click(".rl-connlist input >> nth=0");
+      await page.click(".rl-connlist input >> nth=1");
+      await page.fill(".rl-connsave input", "Corridor test group");
+      await page.screenshot({ path: path.join(SHOTS, "relations-corridor-picks.png") });
+      await page.click(".rl-connsave button");
+      const groups = await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).groups);
+      ok(groups.length === 1 && groups[0].name === "Corridor test group" && groups[0].ties.length === 2, "two picked connections save as one proximity group");
       await page.screenshot({ path: path.join(SHOTS, "relations-corridor.png") });
       // Inside a cube: lanes like Ableton, a 3D graph, and the curiosity proximity web.
       await page.evaluate(() => document.getElementById("relations")._curioRelations.select("em-suspicion"));
@@ -273,6 +283,20 @@ const ok = (cond, msg) => {
       const pickedLane = (await call((c) => c.lanes()))[2].label;
       ok((await call((c) => c.order()))[0] === pickedLane, `clicking a lane's name brings it to the front (${pickedLane})`);
 
+      await page.click('.rl-cube.lanes [data-c="corridor"]');
+      await page.waitForTimeout(1100);
+      ok((await call((c) => c.corridor())) >= 0 && (await call((c) => c.conn.list().length)) >= 0, "the 3D graph has corridors between its lanes too");
+      const lx0 = await call((c) => c.stage.camera.position.toArray());
+      await page.evaluate(() => { const i = document.querySelector(".rl-cube.lanes .rl-corridor input"); i.dispatchEvent(new Event("pointerdown")); i.value = "800"; i.dispatchEvent(new Event("input")); });
+      const lx1 = await call((c) => c.stage.camera.position.toArray());
+      ok(lx1[0] - lx0[0] > 5 && Math.abs(lx1[2] - lx0[2]) < 0.01, "sliding the lanes' corridor moves along time between two lanes");
+      await page.click('.rl-cube.lanes [data-c="inside"]');
+      await page.waitForSelector(".rl-cube.lanes .rl-inside .rl-track.own");
+      ok(true, "Go inside works from the 3D graph too");
+      await page.click('.rl-cube.lanes .rl-inside [data-tab="leave"]');
+      await page.click('.rl-cube.lanes [data-c="home"]');
+      await page.waitForTimeout(1000);
+
       // Graph & pie: nodes and lines with the pie to its left.
       await page.click('[data-view="graph"]');
       await page.waitForSelector(".rl-gp-graph circle");
@@ -303,6 +327,7 @@ const ok = (cond, msg) => {
       // Tracks: a suite per track, opens to its parts, and the pop-up adjusts and records without opening it.
       await page.click('[data-view="tracks"]');
       await page.waitForSelector(".rl-suite");
+      ok(/Corridor test group/.test(await page.textContent(".rl-suite >> nth=0")), "your proximity group is the first track");
       ok((await page.locator(".rl-suite").count()) >= 10, "Tracks: one track per suite, top to bottom");
       await page.click(".rl-suite .rl-tog >> nth=0");
       ok((await page.locator(".rl-part").count()) >= 2, "▸ opens a suite to show its parts' lanes");

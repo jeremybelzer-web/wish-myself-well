@@ -79,6 +79,7 @@
       cat: saved.cat || "all", // which curiosity category every view shows ("all", "fam:<family>" or "ws:<group>")
       rec: saved.rec || {}, // recorded or adjusted lane values, id -> one value per moment
       open: saved.open || [], // suites opened on the Tracks view
+      groups: saved.groups || [], // proximity groups picked in a corridor: { id, name, ties: [{ a, b, type }], suite? }
       camera: null, // each visit starts at the corridor; the camera is kept only while switching views
       tieFrom: "",
       adding: false,
@@ -97,6 +98,22 @@
       }
     };
     st.mine.place = st.mine.place || saved.place || {};
+    /* Keep the connections picked in a corridor as one proximity group. In the app the curiosities at their ends
+       also become one of the user's own suites, so the group can be automated like any suite. */
+    st.saveGroup = (name, edges) => {
+      const ties = edges.map((e) => ({ a: e.a, b: e.b, type: e.type }));
+      const grp = { id: "grp-" + Date.now().toString(36), name, ties };
+      const store = Mine && mineStore();
+      const ends = [...new Set(ties.flatMap((t) => [t.a, t.b]))].filter((id) => isDbNode(id));
+      if (store && ends.length >= 2) {
+        const id = Mine.newId(name, store.view());
+        const r = store.send({ type: "put", level: "suite", label: "Save " + name, item: { id, label: name, plain: "A proximity group picked in a corridor of the relationship map.", members: ends.map((c) => ({ curiosity: c })) } });
+        if (r && r.ok) grp.suite = id;
+      }
+      st.groups = st.groups.concat(grp);
+      persist();
+      return grp;
+    };
     function buildGraph() {
       const data = G.fromDB(db);
       const out = G.build(data, A, st.mine);
@@ -106,7 +123,7 @@
     }
     let g = buildGraph();
     st.picked = st.picked.filter((id) => g.byId.has(id));
-    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll, cat: st.cat, rec: st.rec, open: st.open });
+    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll, cat: st.cat, rec: st.rec, open: st.open, groups: st.groups });
     /* After the user adds or removes something: build the graph again and redraw, keeping the camera. */
     function rebuild() {
       g = buildGraph();
@@ -808,6 +825,69 @@
     };
   }
 
+
+  /* ---------- Connections in a corridor ----------
+     Standing in a corridor you see the ties that cross it. Click a line (or tick it in the list) to pick it; pick
+     several and "Save as a proximity group" keeps them as one of your own groups (a track on the Tracks view; in
+     the app also one of your own suites, made of the curiosities at their ends). */
+  const edgeKey = (e) => e.a + "|" + e.b + "|" + e.type;
+  function connPanel(box, g, st) {
+    let list = [];
+    const picked = new Map();
+    let onChange = () => {};
+    function draw() {
+      if (!list.length) {
+        box.innerHTML = '<p class="rl-connnone">No ties cross this corridor.</p>';
+        return;
+      }
+      box.innerHTML = `<div class="rl-connhead">Connections here (${list.length})${picked.size ? ` · <b>${picked.size} picked</b>` : ""}</div>
+        <div class="rl-connlist">${list
+          .map((e) => {
+            const k = edgeKey(e);
+            const a = g.byId.get(e.a);
+            const b = g.byId.get(e.b);
+            return `<label style="--c:${TYPE_COLOR[e.type]}"><input type="checkbox" data-k="${esc(k)}"${picked.has(k) ? " checked" : ""}>${esc(a ? a.label : e.a)} <i>${esc(g.types[e.type].label.toLowerCase())}</i> ${esc(b ? b.label : e.b)}</label>`;
+          })
+          .join("")}</div>
+        <div class="rl-connsave"><input type="text" placeholder="Name the group" aria-label="Group name"><button data-save ${picked.size ? "" : "disabled"}>Save as a proximity group</button></div><p class="rl-connmsg"></p>`;
+    }
+    box.addEventListener("change", (e) => {
+      const k = e.target.dataset && e.target.dataset.k;
+      if (!k) return;
+      toggle(k);
+    });
+    box.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-save]")) return;
+      const name = box.querySelector(".rl-connsave input").value.trim() || "My proximity group " + ((st.groups || []).length + 1);
+      const grp = st.saveGroup ? st.saveGroup(name, [...picked.values()]) : null;
+      picked.clear();
+      draw();
+      onChange();
+      const msg = box.querySelector(".rl-connmsg");
+      if (msg && grp) msg.textContent = `Saved "${grp.name}" (${grp.ties.length} ties). It is a track on the Tracks view.`;
+    });
+    function toggle(k) {
+      const e = list.find((x) => edgeKey(x) === k);
+      if (!e) return;
+      if (picked.has(k)) picked.delete(k);
+      else picked.set(k, e);
+      draw();
+      onChange();
+    }
+    return {
+      set(next) {
+        list = next;
+        [...picked.keys()].forEach((k) => list.some((e) => edgeKey(e) === k) || picked.delete(k));
+        draw();
+      },
+      toggle,
+      list: () => list,
+      picked: () => [...picked.values()],
+      isPicked: (e) => picked.has(edgeKey(e)),
+      onChange: (f) => (onChange = f),
+    };
+  }
+
   /* ---------- Cube matrix and Cube slices ----------
      Every curiosity, feeling, movement, trait and figure is one small 3D cube. The cubes stand in slabs, one slab
      per column (the six groups, or one per workspace); the slabs stack front to back into one block, like a Rubik's
@@ -865,7 +945,7 @@
         <button data-c="home">Whole cube</button><button data-c="all">Show every proximity</button>
         <button data-c="corridor" title="Fly into the corridor between two faces">Walk a corridor</button><button data-c="inside" title="Go inside the selected cube">Go inside</button>
       </div>
-      <div class="rl-corridor"><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small></div>
+      <div class="rl-corridor"><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small><div class="rl-conn"></div></div>
       <div class="rl-hint">${slices ? "Swipe right: front slab to the back · swipe left: back slab to the front · drag slowly to turn · double-click to zoom in" : "Drag to turn it 360° · click a cube · double-click to zoom in, again to go further · scroll or pinch to zoom"}</div>`;
     return threeView(stage, kind, html, (host) => initBlock(host, g, st, select, persist, keep, slices));
   }
@@ -1069,6 +1149,14 @@
       return hit ? nodes[hit.instanceId] : null;
     }
     S.onClick = (e) => {
+      // in a corridor, a click on one of its lines picks that connection
+      if (corrLines) {
+        S.aim(e);
+        S.ray.params.Line.threshold = 0.12;
+        const hit = S.ray.intersectObject(corrLines)[0];
+        const cube = S.ray.intersectObject(mesh)[0];
+        if (hit && (!cube || hit.distance <= cube.distance + 0.05)) return conn.toggle(edgeKey(conn.list()[Math.floor(hit.index / 2)]));
+      }
       const nd = pickCube(e);
       if (nd) select(st.sel.length === 1 && st.sel[0] === nd.id && !st.tieFrom ? [] : nd.id);
     };
@@ -1227,6 +1315,44 @@
     corrIn.addEventListener("keydown", () => lane || aimCorridor());
     corrIn.addEventListener("input", () => slideTo(+corrIn.value));
     let corrK = null; // so the first frame fills in the slider's words
+    const conn = connPanel(corr.querySelector(".rl-conn"), g, st);
+    let corrLines = null;
+    // the ties that cross corridor k: one end on each of its two faces (or, when there are few, any tie of either face)
+    function corridorEdges(k) {
+      const d = depthOf();
+      const sa = d.indexOf(k);
+      const sb = d.indexOf(k + 1);
+      const slabOf = (id) => (L.cell.get(id) || {}).slab;
+      const cross = g.edges.filter((e) => (slabOf(e.a) === sa && slabOf(e.b) === sb) || (slabOf(e.a) === sb && slabOf(e.b) === sa));
+      if (cross.length >= 8) return cross.slice(0, 80);
+      const touch = g.edges.filter((e) => !cross.includes(e) && L.cell.has(e.a) && L.cell.has(e.b) && [sa, sb].includes(slabOf(e.a)) !== [sa, sb].includes(slabOf(e.b)));
+      return cross.concat(touch).slice(0, 80);
+    }
+    function drawCorridorLines() {
+      if (corrLines) {
+        S.scene.remove(corrLines);
+        corrLines.geometry.dispose();
+        corrLines = null;
+      }
+      const list = corrK >= 0 ? conn.list() : [];
+      if (!list.length) return;
+      const v = [];
+      const c = [];
+      const pick = new T.Color("#e8462a");
+      list.forEach((e) => {
+        const a = cur.get(e.a);
+        const b = cur.get(e.b);
+        const k = conn.isPicked(e) ? pick : new T.Color(TYPE_COLOR[e.type]);
+        v.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+        c.push(k.r, k.g, k.b, k.r, k.g, k.b);
+      });
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.Float32BufferAttribute(v, 3));
+      geo.setAttribute("color", new T.Float32BufferAttribute(c, 3));
+      corrLines = new T.LineSegments(geo, new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 }));
+      S.scene.add(corrLines);
+    }
+    conn.onChange(drawCorridorLines);
     function watchCorridor() {
       const k = inside ? -2 : corridorAt(S.camera.position);
       if (k === corrK) return;
@@ -1240,6 +1366,8 @@
       if (n >= 2) corr.querySelector("small").textContent = (k >= 0 ? "Between " : "Nearest corridor: between ") + name(kk) + " and " + name(kk + 1);
       if (k >= 0) aimCorridor();
       else if (k === -1) corrIn.value = "0";
+      conn.set(k >= 0 ? corridorEdges(k) : []);
+      drawCorridorLines();
     }
     function walkCorridor() {
       // the corridor behind the selected cube's face, or behind the front face; stand at its left end, looking along it
@@ -1304,6 +1432,7 @@
       enter,
       walkCorridor,
       corridor: () => corrK,
+      conn,
       inside: () => inside,
       destroy: () => {
         inside && inside.destroy();
@@ -1378,7 +1507,9 @@
       <div class="rl-cube-ui">
         ${swipe ? '<button data-c="back" aria-label="Bring the back lane to the front">◀ Back to front</button><button data-c="front" aria-label="Send the front lane to the back">Front to back ▶</button>' : ""}
         <button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button>
+        <button data-c="corridor" title="Stand between two lanes, looking along them">Walk a corridor</button><button data-c="inside" title="Go inside the selected lane">Go inside</button>
       </div>
+      <div class="rl-corridor"><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small><div class="rl-conn"></div></div>
       <div class="rl-hint">Swipe right: front lane to the back · swipe left: back lane to the front · click a lane to bring it forward · drag slowly to turn</div>`;
     return threeView(stage, kind, html, (host) => initLanes(host, g, st, select, keep, swipe));
   }
@@ -1516,6 +1647,12 @@
       paint();
     }
     S.onClick = (e) => {
+      if (corrLines && conn) {
+        S.aim(e);
+        S.ray.params.Line.threshold = 0.12;
+        const hit = S.ray.intersectObject(corrLines)[0];
+        if (hit) return conn.toggle(edgeKey(conn.list()[Math.floor(hit.index / 2)]));
+      }
       const li = pickLane(e);
       if (li < 0) return;
       toFront(li);
@@ -1532,6 +1669,7 @@
       const li = pickLane(e);
       S.aim(e);
       const hit = S.ray.intersectObjects(objs.map((o) => o.grp), true)[0];
+      if (li >= 0 && lanes[li].id && st.sel[0] === lanes[li].id && S.orb.r <= 2) return enterLane(li);
       if (hit) S.zoomTo(hit.point.toArray(), 1.5);
       if (li >= 0 && lanes[li].id && !st.sel.includes(lanes[li].id)) select(lanes[li].id);
     };
@@ -1552,6 +1690,147 @@
       if (c === "side") S.flyTo([0, H / 2, 0], S.orb.r, { theta: Math.PI / 2 - 0.05, phi: 1.2 });
       if (c === "spin") b.classList.toggle("on", (S.orb.spin = !S.orb.spin));
     });
+    /* Corridors between the lanes: stand in the gap between two lanes and slide along time, past every moment,
+       without going through a lane. The ties between the shown lanes cross the corridors as lines. */
+    const corr = host.querySelector(".rl-corridor");
+    const corrIn = corr ? corr.querySelector("input") : null;
+    const conn = corr ? connPanel(corr.querySelector(".rl-conn"), g.full || g, st) : null;
+    const XL = width / 2 + 1.5;
+    let corrK = null;
+    let corrLines = null;
+    let inside = null;
+    const midZ = (k) => (zFor(k) + zFor(k + 1)) / 2;
+    function laneCorridor(p) {
+      if (lanes.length < 2 || Math.abs(p.x) > XL || p.y < -0.5 || p.y > H + 2) return -1;
+      for (let k = 0; k < lanes.length - 1; k++) if (p.z < zFor(k) - 0.25 && p.z > zFor(k + 1) + 0.25) return k;
+      return -1;
+    }
+    // ties between the shown lanes' curiosities, drawn between the two lanes at the middle of the film
+    const laneEdges = () => {
+      const ids = new Set(lanes.map((l) => l.id).filter(Boolean));
+      return (g.full || g).edges.filter((e) => ids.has(e.a) && ids.has(e.b) && e.a !== e.b);
+    };
+    function drawLaneLines() {
+      if (corrLines) {
+        S.scene.remove(corrLines);
+        corrLines.geometry.dispose();
+        corrLines = null;
+      }
+      if (!conn || corrK < 0) return;
+      const list = conn.list();
+      if (!list.length) return;
+      const mid = Math.floor(N / 2);
+      const at = (id) => {
+        const li = lanes.findIndex((l) => l.id === id);
+        return [-width / 2 + mid * STEP, (lanes[li].vals[mid] || 0) * H, objs[li].grp.position.z];
+      };
+      const v = [];
+      const c = [];
+      const pick = new T.Color("#e8462a");
+      list.forEach((e) => {
+        const a = at(e.a);
+        const b = at(e.b);
+        const k = conn.isPicked(e) ? pick : new T.Color(TYPE_COLOR[e.type]);
+        v.push(...a, ...b);
+        c.push(k.r, k.g, k.b, k.r, k.g, k.b);
+      });
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.Float32BufferAttribute(v, 3));
+      geo.setAttribute("color", new T.Float32BufferAttribute(c, 3));
+      corrLines = new T.LineSegments(geo, new T.LineBasicMaterial({ vertexColors: true }));
+      S.scene.add(corrLines);
+    }
+    if (conn) conn.onChange(drawLaneLines);
+    let laneSlide = null;
+    function aimLane() {
+      const p = S.camera.position.clone();
+      if (laneCorridor(p) < 0) {
+        // step into the nearest corridor at the start of the film, facing along time
+        let k = 0;
+        for (let i = 0; i < lanes.length - 1; i++) if (Math.abs(p.z - midZ(i)) < Math.abs(p.z - midZ(k))) k = i;
+        p.set(-XL + 0.2, H * 0.55, midZ(k));
+        S.flyStop();
+        S.orb.theta = -Math.PI / 2;
+        S.orb.phi = Math.PI / 2 - 0.05;
+        S.orb.r = 1.2;
+        S.orb.target.copy(p).add(new T.Vector3(1.2, 0, 0));
+        S.camera.position.copy(p);
+      }
+      laneSlide = { p0: S.camera.position.clone() };
+      corrIn.value = String(Math.round(((laneSlide.p0.x + XL) / (2 * XL)) * 1000));
+    }
+    if (corrIn) {
+      corrIn.addEventListener("pointerdown", aimLane);
+      corrIn.addEventListener("keydown", () => laneSlide || aimLane());
+      corrIn.addEventListener("input", () => {
+        if (!laneSlide) aimLane();
+        // slide along time only: x changes, the gap between the two lanes (z) and the height stay
+        const x = -XL + (+corrIn.value / 1000) * 2 * XL;
+        const dx = x - S.camera.position.x;
+        S.orb.target.x += dx;
+        S.camera.position.x = x;
+      });
+    }
+    function watchLanes() {
+      if (!corr) return;
+      const k = inside ? -2 : laneCorridor(S.camera.position);
+      if (k === corrK) return;
+      corrK = k;
+      corr.hidden = !!inside || lanes.length < 2;
+      laneSlide = null;
+      const d = depth();
+      const name = (dd) => lanes[d.indexOf(dd)].label;
+      let kk = k;
+      if (k < 0) {
+        kk = 0;
+        for (let i = 0; i < lanes.length - 1; i++) if (Math.abs(S.camera.position.z - midZ(i)) < Math.abs(S.camera.position.z - midZ(kk))) kk = i;
+      }
+      if (lanes.length >= 2) corr.querySelector("small").textContent = (k >= 0 ? "Between " : "Nearest corridor: between ") + name(kk) + " and " + name(kk + 1);
+      if (conn) conn.set(k >= 0 ? laneEdges() : []);
+      drawLaneLines();
+    }
+    const frame0 = S.onFrame;
+    S.onFrame = () => {
+      watchLanes();
+      frame0 && frame0();
+    };
+    function walkLane() {
+      const k = 0;
+      S.flyTo([-XL + 0.2 + 1.2, H * 0.55, midZ(k)], 1.2, { theta: -Math.PI / 2, phi: Math.PI / 2 - 0.05 });
+    }
+    // Inside a lane: the same inside view as a cube (its lanes, graphs, pie and Curiosity proximity).
+    function enterLane(li) {
+      const l = lanes[li];
+      if (!l || !l.id) return;
+      toFront(li);
+      select(l.id);
+      inside && inside.destroy();
+      inside = insideView(host, g, st, l.id, {
+        select,
+        leave: () => {
+          inside && inside.destroy();
+          inside = null;
+          corrK = null;
+        },
+        go: (other) => {
+          const lj = lanes.findIndex((x) => x.id === other);
+          if (lj >= 0) return enterLane(lj);
+          inside && inside.destroy();
+          inside = null;
+          select(other);
+        },
+      });
+      corrK = null;
+    }
+    host.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-c]");
+      if (!b) return;
+      if (b.dataset.c === "corridor") walkLane();
+      if (b.dataset.c === "inside") {
+        const li = lanes.findIndex((l) => l.id === st.sel[0]);
+        enterLane(li >= 0 ? li : order[0]);
+      }
+    });
     function update() {
       paint();
       setLabels();
@@ -1560,6 +1839,11 @@
     S.start();
     return {
       update,
+      enter: enterLane,
+      walkCorridor: walkLane,
+      corridor: () => corrK,
+      inside: () => inside,
+      conn,
       focus: (id) => {
         const li = lanes.findIndex((l) => l.id === g.real(id));
         if (li >= 0) toFront(li);
@@ -1570,7 +1854,10 @@
       toFront,
       example: film.example,
       shift,
-      destroy: S.destroy,
+      destroy: () => {
+        inside && inside.destroy();
+        S.destroy();
+      },
     };
   }
 
@@ -1769,7 +2056,10 @@
         .filter((s) => s.ids.length && s.ids.some((id) => inCat.has(id)))
         .sort((a, b) => b.ids.filter((id) => inCat.has(id)).length - a.ids.filter((id) => inCat.has(id)).length || a.label.localeCompare(b.label));
       const CAP = 40;
-      const suites = all.slice(0, CAP);
+      // proximity groups you saved in a corridor come first, as tracks of their own
+      const mineSuites = new Set(st.groups.map((x) => x.suite).filter(Boolean));
+      const yours = st.groups.map((x) => ({ key: "grp:" + x.id, label: x.name, ids: [...new Set(x.ties.flatMap((t) => [t.a, t.b]))].filter((id) => (g.full || g).byId.has(id)), group: x })).filter((x) => x.ids.length);
+      const suites = yours.concat(all.filter((x) => !mineSuites.has(((g.suites || [])[+x.key.slice(1, x.key.indexOf(":"))] || {}).id)).slice(0, CAP));
       const film = filmLanes(g.full || g);
       const N = film.rows.length;
       let pop = null;
@@ -1780,7 +2070,7 @@
         const ls = lanesFor(g, ids, st).lanes;
         return { ls, mix: Array.from({ length: N }, (_, i) => ls.reduce((a, l) => a + (l.vals[i] || 0), 0) / Math.max(1, ls.length)) };
       };
-      const sparksIn = (s) => (g.proximities || []).filter((p) => p.when && p.then && s.ids.includes(p.when.curiosity) && s.ids.includes(p.then.curiosity));
+      const sparksIn = (s) => s.group ? s.group.ties.map((t) => ({ label: ((g.full || g).byId.get(t.a) || {}).label + " → " + ((g.full || g).byId.get(t.b) || {}).label })) : (g.proximities || []).filter((p) => p.when && p.then && s.ids.includes(p.when.curiosity) && s.ids.includes(p.then.curiosity));
       function draw() {
         const ruler = `<div class="rl-track rl-ruler"><div></div><svg viewBox="0 0 600 16" preserveAspectRatio="none">${film.rows.map((r, i) => `<text x="${4 + (i * 592) / Math.max(1, N - 1)}" y="12" text-anchor="${i === 0 ? "start" : i === N - 1 ? "end" : "middle"}">${i + 1}</text>`).join("")}</svg></div>`;
         list.innerHTML = `<p class="rl-innote">${suites.length} suites${all.length > CAP ? ` (the ${CAP} with the most parts here; ${all.length - CAP} more)` : ""}. Each track is a suite: its lane is the mix of its parts.${film.example ? " Example values until a film is open." : ""}</p>${ruler}${suites
@@ -1789,7 +2079,7 @@
             const v = valsOf(s.ids);
             const fam = ((g.full || g).byId.get(s.ids[0]) || {}).family;
             const sp = sparksIn(s);
-            const head = `<div class="rl-track rl-suite${open ? " open" : ""}" style="--c:${FAMILY_COLOR[fam] || "#888"}"><div class="rl-thead"><button class="rl-tog" data-tog="${esc(s.key)}" aria-label="${open ? "Close" : "Open"} the group">${open ? "▾" : "▸"}</button><span class="rl-tlabel">${esc(s.label)}<small>Suite · ${s.ids.length} parts${sp.length ? " · " + sp.length + " sparks" : ""}${v.ls.some((l) => l.recorded) ? " · recorded" : ""}</small></span><button class="rl-adj" data-adj="${esc(s.key)}" title="Adjust and record the parts">⚙</button></div>${svgLane(v.mix, 600, 44)}</div>`;
+            const head = `<div class="rl-track rl-suite${open ? " open" : ""}" style="--c:${FAMILY_COLOR[fam] || "#888"}"><div class="rl-thead"><button class="rl-tog" data-tog="${esc(s.key)}" aria-label="${open ? "Close" : "Open"} the group">${open ? "▾" : "▸"}</button><span class="rl-tlabel">${esc(s.label)}<small>${s.group ? "Your proximity group" : "Suite"} · ${s.ids.length} parts${sp.length ? " · " + sp.length + " sparks" : ""}${v.ls.some((l) => l.recorded) ? " · recorded" : ""}</small></span><button class="rl-adj" data-adj="${esc(s.key)}" title="Adjust and record the parts">⚙</button></div>${svgLane(v.mix, 600, 44)}</div>`;
             if (!open) return head;
             return (
               head +

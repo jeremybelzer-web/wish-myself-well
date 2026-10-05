@@ -12,6 +12,10 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
 - **Corridors**: the gaps between two faces. The "Slide the corridor" slider in the lower right is always
   there: it moves you the way you are looking, kept inside the corridor, so you never go into a cube on either
   side (from outside one, it steps you into the nearest corridor first). Walk a corridor flies you into one.
+  In a corridor its panel lists the connections (ties) that cross it, drawn as lines; click a line or tick it to
+  pick it, then "Save as a proximity group" keeps the picks (`groups` in `curio-relations-v1`; in the app also one
+  of your own suites of the curiosities at their ends). Saved groups are the first tracks on the Tracks view.
+  The 3D graph has the same corridors (between lanes, sliding along time) and Go inside.
 - **Inside a cube**: double-click a cube you are right up against, or Go inside. Its curiosity and everything tied
   to it show as automation lanes stacked like Ableton Live (the open film's own values, else marked example), with
   a 3D graph tab, and a Curiosity proximity tab: what it is tied to and what those are tied to, so changing any

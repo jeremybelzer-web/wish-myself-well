@@ -124,8 +124,8 @@
 /* Corridors between two faces */
 .rl-corridor { position: absolute; right: 8px; bottom: 8px; z-index: 3; background: var(--rl-panel); border: 2px solid var(--rl-ink); padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
 .rl-corridor[hidden] { display: none; }
-.rl-corridor label { font-family: var(--mono, monospace); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; display: flex; flex-direction: column; gap: 4px; }
-.rl-corridor input { width: 100%; accent-color: var(--rl-accent); }
+.rl-corridor > label { font-family: var(--mono, monospace); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; display: flex; flex-direction: column; gap: 4px; }
+.rl-corridor > label input { width: 100%; accent-color: var(--rl-accent); }
 .rl-corridor small { font-size: 11px; color: var(--rl-soft); }
 
 /* Inside a cube */
@@ -223,3 +223,23 @@
 .rl-pop-parts input { width: 100%; accent-color: var(--rl-accent); }
 .rl-pop-parts b { font-family: var(--mono, monospace); font-size: 10px; font-weight: 500; text-align: right; }
 @media (max-width: 860px) { .rl-gp { grid-template-columns: 1fr; } .rl-gp-left { max-width: 260px; } }
+
+/* Connections in a corridor */
+.rl-corridor { max-width: min(360px, calc(100% - 16px)); }
+.rl-conn:empty { display: none; }
+.rl-connhead { font-family: var(--mono, monospace); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+.rl-connhead b { color: #e8462a; font-weight: 600; }
+.rl-connlist { max-height: 150px; overflow: auto; margin: 4px 0; border-top: 1px solid var(--rl-line); }
+.rl-connlist label { display: flex; flex-direction: row; text-transform: none; letter-spacing: 0; font-family: var(--sans, sans-serif); gap: 6px; align-items: baseline; font-size: 11px; padding: 2px 0; border-left: 3px solid var(--c); padding-left: 4px; margin: 2px 0; cursor: pointer; }
+.rl-connlist i { color: var(--rl-soft); font-size: 10px; }
+.rl-connsave { display: flex; gap: 4px; }
+.rl-connsave input { flex: 1; min-width: 0; font: inherit; font-size: 12px; padding: 3px 6px; border: 1px solid var(--rl-ink); background: var(--rl-paper); }
+.rl .rl-connsave button { font-size: 10px; padding: 3px 6px; }
+.rl .rl-connsave button[disabled] { opacity: 0.45; cursor: default; }
+.rl-connmsg { font-size: 11px; color: var(--rl-accent); margin: 3px 0 0; }
+.rl-connmsg:empty, .rl-connnone { display: none; }
+.rl-cube > .rl-cube-ui { max-width: calc(100% - 390px); }
+.rl-corridor { width: 360px; }
+@media (max-width: 860px) { .rl-cube > .rl-cube-ui { max-width: none; } .rl-corridor { width: auto; left: 8px; bottom: 64px; } }
+.rl-connlist label { display: block; }
+.rl-connlist input { width: auto; margin: 0 4px 0 0; vertical-align: -2px; }
