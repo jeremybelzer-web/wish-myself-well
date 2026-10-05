@@ -1627,7 +1627,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     /* the lane picked in the graph (from the pie or the list), or null */
     picked: () => picked,
     /* a curiosity's window (⧉ at the end of its lane) and its search window */
-    openWindow: (id) => openWin(id, document.querySelector(`.cv-under [data-cwin="${CSS.escape(id)}"]`)),
+    openWindow: (id) => openWin(id, document.querySelector(`.cv-under [data-cwin="${window.CSS.escape(id)}"]`)),
     closeWindow: closeWin,
     /* the curve between two nodes (the Curve window's maths), and where a lane is at time t: what the lanes play */
     curve: { eval: curveEval, PRESETS: PRESETS.map((q) => ({ name: q[0], nodes: q[1] })), place: placeNode, add: addNode, remove: removeNode, describe, limits: CURVE },
