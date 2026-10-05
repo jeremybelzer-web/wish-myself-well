@@ -17629,7 +17629,7 @@
    "id": "operatorFeel",
    "level": "curiosity",
    "label": "Human touch in camera and cuts",
-   "plain": "Small timing wobbles in the camera and the cuts, as if a person (the camera operator) were doing it by hand rather than a machine: a pan that starts a little late, a cut a little early.",
+   "plain": "Small timing wobbles in the camera and the cuts, as if a person (the camera operator) were doing it by hand rather than a machine: a pan that starts a little late, a cut a little early. A pan is the camera turning sideways on the spot.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -45722,7 +45722,7 @@
     {
      "id": "duck",
      "label": "Ducks by",
-     "plain": "How much the music drops when someone speaks.",
+     "plain": "How much the music drops when someone speaks. Measured in decibels (dB), the usual scale for loudness: about 6 dB is a clear dip, 20 dB or more almost hides the music.",
      "range": {
       "min": 0,
       "max": 24,
@@ -48453,7 +48453,7 @@
    "id": "lightEffect",
    "level": "curiosity",
    "label": "Light effect",
-   "plain": "Light added over the picture in the edit: god rays (beams of light, like sun through clouds), a sun flare, a halo, a light leak (a soft colored glow bleeding in from the edge, like old film), a blaze burst, lightning, or a film burn (the frame looking as if it is scorching). These come from CapCut's Light effects.",
+   "plain": "Light added over the picture in the edit: god rays (beams of light, like sun through clouds), a sun flare, a halo, a light leak (a soft colored glow bleeding in from the edge, like old film), a blaze burst, lightning, or a film burn (the frame looking as if it is scorching). These come from CapCut's Light effects. A sun flare is the streaks and rings a bright light makes when it shines straight into the lens.",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -50560,7 +50560,7 @@
     {
      "id": "setting",
      "label": "LUT",
-     "plain": "Film stock (the look of a real film), teal and orange, bleach bypass (low color, high contrast, a gritty silvery look), day for night (daytime footage darkened and tinted blue to pass as night), warm or cool print, or log to normal (turning the flat, grayish footage some cameras record into normal color).",
+     "plain": "Film stock (the look of a real film), teal and orange, bleach bypass (low color, high contrast, a gritty silvery look), day for night (daytime footage darkened and tinted blue to pass as night), warm or cool print, or log to normal (turning the flat, grayish footage some cameras record into normal color). Teal and orange: blue-green shadows with orange skin, the common blockbuster look. Warm or cool print: the whole picture tinted warm or cool, like a print of old film.",
      "scale": [
       "none",
       "film stock",
@@ -55888,7 +55888,7 @@
     {
      "id": "joins",
      "label": "How shots join",
-     "plain": "Whether you feel the cut, or a movement or shape carries you across it.",
+     "plain": "Whether you feel the cut, or a movement or shape carries you across it. Hard cuts: the picture simply changes. Cut on action: the cut falls in the middle of a movement, so the move carries you across. Match cuts: the next shot echoes a shape or a move from the last. Overlapping: sound or action from one shot runs on into the next.",
      "scale": [
       "hard cuts",
       "cut on action",
@@ -93283,6 +93283,2664 @@
     "cue": "movement",
     "tryThis": "Let the new kid copy the cool kid's every move in the lunch line, half a beat late, until the cool kid stops and the new kid walks into him."
    }
+  },
+  {
+   "id": "eyeTrace",
+   "level": "curiosity",
+   "label": "Keeping the eye in place across the cut",
+   "plain": "When one shot ends, the audience is looking at one spot. If the next shot puts the important thing in that same spot, the eye never has to search and a fast run of shots feels smooth. If the next shot puts it somewhere else, the eye has to jump, which can feel like a jolt. Editors call this eye trace.",
+   "workspace": "transitions",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "match",
+   "sliders": [
+    {
+     "id": "match",
+     "label": "How well the spot matches",
+     "plain": "From the eye has to hunt all over the new shot (0) to the subject is exactly where the eye already was (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "where",
+     "label": "Where the eye sits at the cut",
+     "plain": "The part of the frame the eye is resting on as we cut.",
+     "scale": [
+      "the center",
+      "the left third",
+      "the right third",
+      "near the top",
+      "near the bottom"
+     ],
+     "from": "the center",
+     "to": "near the bottom",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "leadBy",
+     "label": "What carries the eye into the cut",
+     "plain": "What guides the eye to that spot just before the cut.",
+     "scale": [
+      "nothing",
+      "a movement",
+      "a look",
+      "a bright spot",
+      "a pointing hand"
+     ],
+     "from": "nothing",
+     "to": "a pointing hand",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "jump",
+     "label": "How far the eye must jump",
+     "plain": "How far the eye has to travel to find the subject in the new shot.",
+     "scale": [
+      "no jump",
+      "a small step",
+      "across the frame",
+      "a deliberate jolt"
+     ],
+     "from": "no jump",
+     "to": "a deliberate jolt",
+     "curve": "linear"
+    },
+    {
+     "id": "findTime",
+     "label": "Time to find the subject",
+     "plain": "How long the eye takes to find what matters after the cut.",
+     "range": {
+      "min": 0,
+      "max": 2,
+      "unit": "seconds",
+      "step": 0.1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "breaks",
+     "label": "When the match is broken on purpose",
+     "plain": "Where the film throws the eye off on purpose to shake us.",
+     "scale": [
+      "never",
+      "at the scary moment",
+      "at the big turn",
+      "at every cut in the fight"
+     ],
+     "from": "never",
+     "to": "at every cut in the fight",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Smooth eye paths let a fast run of shots feel like one push forward, so the story can race.",
+    "theme": "A broken eye path can make us feel the character's shock with them.",
+    "pull": "The eye never has to search, so it flows straight into the next shot.",
+    "cue": "visual",
+    "tryThis": "In a chase, end each shot with the runner on the right third and start the next shot with them there too."
+   }
+  },
+  {
+   "id": "allEyesTurn",
+   "level": "curiosity",
+   "label": "Everyone looks the same way",
+   "plain": "A whole room, or a whole crowd, turns to look at the same thing: a door that opens, a sound, one person standing up. The audience's eyes follow theirs, and we badly want to see what they see. Filmmakers use it to announce that something new has arrived.",
+   "workspace": "focus",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "turn",
+   "sliders": [
+    {
+     "id": "turn",
+     "label": "How much of the frame turns",
+     "plain": "From one or two heads turning (0) to every single person in the frame turning at once (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "count",
+     "label": "How many people look",
+     "plain": "How many people in the shot turn their heads.",
+     "range": {
+      "min": 1,
+      "max": 50,
+      "unit": "people",
+      "step": 1
+     },
+     "from": 1,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "timing",
+     "label": "How they turn",
+     "plain": "Whether the turn spreads through the room or happens all at once.",
+     "scale": [
+      "slowly, one by one",
+      "all together",
+      "in one sudden snap"
+     ],
+     "from": "slowly, one by one",
+     "to": "in one sudden snap",
+     "curve": "linear"
+    },
+    {
+     "id": "at",
+     "label": "What they look at",
+     "plain": "What pulls all the eyes.",
+     "scale": [
+      "a door",
+      "a sound off screen",
+      "one person",
+      "the sky",
+      "the camera"
+     ],
+     "from": "a door",
+     "to": "the camera",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shown",
+     "label": "When we see what they see",
+     "plain": "How long the film makes us wait before showing what they are looking at.",
+     "scale": [
+      "right away",
+      "after a beat",
+      "after a long wait",
+      "never"
+     ],
+     "from": "right away",
+     "to": "never",
+     "curve": "linear"
+    },
+    {
+     "id": "holdout",
+     "label": "Is there one who does not look",
+     "plain": "Whether one person ignores it, which can be funny or suspicious.",
+     "scale": [
+      "everyone looks",
+      "one person looks away",
+      "one person keeps eating"
+     ],
+     "from": "everyone looks",
+     "to": "one person keeps eating",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "When a room turns its head, something new has arrived and the scene has to deal with it.",
+    "theme": "Shows how a group pays attention together, and who stands outside it.",
+    "pull": "Our eyes follow theirs, and we need to see what they see.",
+    "cue": "movement",
+    "tryThis": "In the busy diner, let every head turn to the door at once, and hold on their faces before we see who walked in."
+   }
+  },
+  {
+   "id": "oddDetail",
+   "level": "curiosity",
+   "label": "Something that doesn't belong",
+   "plain": "A small thing in the frame that is wrong: a wet footprint on a dry floor, a clock showing the wrong time, a bandage nobody mentions, a stranger standing in the back. The audience notices it and starts to wonder, which keeps them watching closely.",
+   "workspace": "focus",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "odd",
+   "sliders": [
+    {
+     "id": "odd",
+     "label": "How strange it is",
+     "plain": "From barely odd (0) to clearly impossible (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What the odd thing is",
+     "plain": "The kind of detail that does not belong.",
+     "scale": [
+      "a stain",
+      "something missing",
+      "a wrong time on a clock",
+      "a stranger in the back",
+      "an object out of place",
+      "a wound"
+     ],
+     "from": "a stain",
+     "to": "a wound",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "size",
+     "label": "How big it is in the frame",
+     "plain": "How much of the picture the detail takes up.",
+     "scale": [
+      "tiny",
+      "small",
+      "easy to see",
+      "huge"
+     ],
+     "from": "tiny",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "noticed",
+     "label": "Who notices it",
+     "plain": "Whether the people in the story see it, or only the audience does.",
+     "scale": [
+      "nobody",
+      "only us",
+      "one character",
+      "everyone"
+     ],
+     "from": "nobody",
+     "to": "everyone",
+     "curve": "linear"
+    },
+    {
+     "id": "explained",
+     "label": "When it is explained",
+     "plain": "How long the film lets us wonder.",
+     "scale": [
+      "right away",
+      "later",
+      "at the end",
+      "never"
+     ],
+     "from": "right away",
+     "to": "never",
+     "curve": "linear"
+    },
+    {
+     "id": "shownTimes",
+     "label": "Times it is shown",
+     "plain": "How often the film lets us see it again.",
+     "range": {
+      "min": 1,
+      "max": 5,
+      "unit": "times",
+      "step": 1
+     },
+     "from": 1,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The odd detail is a small promise that the story will explain itself later.",
+    "theme": "Shows that a calm surface can hide something wrong.",
+    "pull": "We scan every new shot for the next thing that does not fit.",
+    "cue": "visual",
+    "tryThis": "Put one muddy boot print on the white carpet of the perfect house, and let nobody in the scene look at it."
+   }
+  },
+  {
+   "id": "surpriseSpacing",
+   "level": "curiosity",
+   "label": "How far apart the surprises come",
+   "plain": "The rhythm of surprise across the film: how many there are, how far apart, and whether they grow. Surprises too close together wear the audience out; too far apart and they drift. Many films space them so the gaps get shorter toward the end.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "surprise",
+   "sliders": [
+    {
+     "id": "surprise",
+     "label": "How surprising the story is",
+     "plain": "From you can see everything coming (0) to a surprise around every corner (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "gap",
+     "label": "Usual time between surprises",
+     "plain": "How long the film usually runs between one surprise and the next.",
+     "range": {
+      "min": 1,
+      "max": 30,
+      "unit": "minutes",
+      "step": 1
+     },
+     "from": 1,
+     "to": 30,
+     "curve": "linear"
+    },
+    {
+     "id": "pattern",
+     "label": "The rhythm of the surprises",
+     "plain": "How the surprises are spaced out across the film.",
+     "scale": [
+      "steady, like a clock",
+      "speeding up",
+      "slowing down",
+      "bunched together",
+      "at random"
+     ],
+     "from": "steady, like a clock",
+     "to": "at random",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "growth",
+     "label": "How their size changes",
+     "plain": "Whether each surprise is bigger than the one before.",
+     "scale": [
+      "each smaller",
+      "all the same size",
+      "each bigger than the last"
+     ],
+     "from": "each smaller",
+     "to": "each bigger than the last",
+     "curve": "linear"
+    },
+    {
+     "id": "lastOne",
+     "label": "How big the last surprise is",
+     "plain": "How much the film saves for the end.",
+     "scale": [
+      "small",
+      "medium",
+      "the biggest of all"
+     ],
+     "from": "small",
+     "to": "the biggest of all",
+     "curve": "linear"
+    },
+    {
+     "id": "fair",
+     "label": "Were they set up",
+     "plain": "Whether a careful viewer could have seen the surprise coming.",
+     "scale": [
+      "out of nowhere",
+      "a hint or two",
+      "fully set up, we could have guessed"
+     ],
+     "from": "out of nowhere",
+     "to": "fully set up, we could have guessed",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Each surprise turns the story in a new direction just as it starts to feel settled.",
+    "theme": "How often the world surprises the characters says how safe their world is.",
+    "pull": "Once surprised, the audience watches closely, waiting for the next one.",
+    "cue": "plot",
+    "tryThis": "Space the surprises so the gaps get shorter toward the end, and keep the biggest one for last."
+   }
+  },
+  {
+   "id": "openingPromise",
+   "level": "curiosity",
+   "label": "The promise of the opening",
+   "plain": "The first minutes of a film tell the audience what kind of ride this will be: laughs, fear, a mystery, a love story. That promise is why people keep watching. A film that keeps its promise, and then gives more than it promised, feels like it is going somewhere.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "promise",
+   "sliders": [
+    {
+     "id": "promise",
+     "label": "How clear the promise is",
+     "plain": "From the opening could lead anywhere (0) to we know exactly what kind of film this is (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What it promises",
+     "plain": "The kind of film the opening says this is.",
+     "scale": [
+      "laughs",
+      "fear",
+      "a mystery",
+      "romance",
+      "action",
+      "tears"
+     ],
+     "from": "laughs",
+     "to": "tears",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "how",
+     "label": "How the promise is made",
+     "plain": "What in the opening makes the promise.",
+     "scale": [
+      "a short scene before the titles",
+      "the first image",
+      "the music",
+      "a voice telling us",
+      "the title"
+     ],
+     "from": "a short scene before the titles",
+     "to": "the title",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "minutes",
+     "label": "How long it takes to make",
+     "plain": "How many minutes the film takes to make its promise clear.",
+     "range": {
+      "min": 1,
+      "max": 15,
+      "unit": "minutes",
+      "step": 1
+     },
+     "from": 1,
+     "to": 15,
+     "curve": "linear"
+    },
+    {
+     "id": "reminders",
+     "label": "Times it reminds us",
+     "plain": "How often later scenes remind us of what was promised.",
+     "range": {
+      "min": 0,
+      "max": 8,
+      "unit": "reminders",
+      "step": 1
+     },
+     "from": 0,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "kept",
+     "label": "Does the film keep it",
+     "plain": "Whether the rest of the film gives what the opening promised.",
+     "scale": [
+      "broken",
+      "bent",
+      "kept",
+      "kept and topped"
+     ],
+     "from": "broken",
+     "to": "kept and topped",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The promise tells the audience what to wait for, so every scene is measured against it.",
+    "theme": "What a film promises first is what it believes matters most.",
+    "pull": "We keep watching to get what we were promised.",
+    "cue": "thought",
+    "tryThis": "Open the horror film with a short scene before the titles where something is taken in the dark, then go back to sunny daytime."
+   }
+  },
+  {
+   "id": "lullStretch",
+   "level": "curiosity",
+   "label": "A stretch where nothing pulls",
+   "plain": "A part of the film where nothing is pulling the audience forward: no question open, no goal in sight, no clock. Attention drifts and people reach for their phones. Sometimes a rest is planned; often it is an accident that needs a fix.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "lull",
+   "sliders": [
+    {
+     "id": "lull",
+     "label": "How flat the stretch feels",
+     "plain": "From still pulling us along (0) to attention drifting right away (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "minutes",
+     "label": "How long it lasts",
+     "plain": "How many minutes go by with nothing pulling.",
+     "range": {
+      "min": 0,
+      "max": 10,
+      "unit": "minutes",
+      "step": 0.5
+     },
+     "from": 0,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "where",
+     "label": "Where in the film it falls",
+     "plain": "Where the flat stretch sits.",
+     "scale": [
+      "the opening",
+      "the early middle",
+      "the middle",
+      "just before the end"
+     ],
+     "from": "the opening",
+     "to": "just before the end",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "why",
+     "label": "Why nothing pulls",
+     "plain": "What is missing.",
+     "scale": [
+      "no open question",
+      "no goal",
+      "too much talk",
+      "the same beat again",
+      "waiting for a plan"
+     ],
+     "from": "no open question",
+     "to": "waiting for a plan",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "fix",
+     "label": "How it is fixed",
+     "plain": "What the filmmaker does about it.",
+     "scale": [
+      "left as it is",
+      "add a clock",
+      "open a question",
+      "cut it shorter",
+      "add a surprise"
+     ],
+     "from": "left as it is",
+     "to": "add a surprise",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "planned",
+     "label": "Was it planned",
+     "plain": "Whether the quiet stretch is a chosen rest or a sag.",
+     "scale": [
+      "an accident",
+      "half planned",
+      "on purpose, a rest"
+     ],
+     "from": "an accident",
+     "to": "on purpose, a rest",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A planned rest lets the next push hit harder; an accidental one stalls the story.",
+    "theme": "Quiet stretches can show what the characters are like when nothing is happening.",
+    "pull": "When nothing pulls, the audience waits for a reason to lean in again.",
+    "cue": "thought",
+    "tryThis": "If the middle sags, give the hero a deadline, or let someone ask the question the audience stopped asking."
+   }
+  },
+  {
+   "id": "cutAwayAtPeak",
+   "level": "curiosity",
+   "label": "Leaving at the best part",
+   "plain": "When a film follows two or more stories, it can leave one at its most exciting moment and cut to the other: the hero is hanging from the ledge, and we go to a calm kitchen across town. The audience is pulled through the other story to get back. Old writers called it streaky bacon: layers of fat and lean.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "peak",
+   "sliders": [
+    {
+     "id": "peak",
+     "label": "How close to the peak we leave",
+     "plain": "From leaving once the trouble is over (0) to leaving one second before the answer (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "threads",
+     "label": "Stories we cut between",
+     "plain": "How many different stories the film keeps going at once.",
+     "range": {
+      "min": 2,
+      "max": 5,
+      "unit": "stories",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "leaves",
+     "label": "Where we leave",
+     "plain": "At what point in the moment we cut away.",
+     "scale": [
+      "after it's over",
+      "as trouble starts",
+      "at the peak",
+      "one second before the answer"
+     ],
+     "from": "after it's over",
+     "to": "one second before the answer",
+     "curve": "linear"
+    },
+    {
+     "id": "away",
+     "label": "How long we stay away",
+     "plain": "How long until we come back to the story we left.",
+     "range": {
+      "min": 0.5,
+      "max": 20,
+      "unit": "minutes",
+      "step": 0.5
+     },
+     "from": 0.5,
+     "to": 20,
+     "curve": "linear"
+    },
+    {
+     "id": "back",
+     "label": "Where we come back in",
+     "plain": "Whether we come back to the same second, or find it already settled.",
+     "scale": [
+      "where we left",
+      "a little later",
+      "after it's over"
+     ],
+     "from": "where we left",
+     "to": "after it's over",
+     "curve": "linear"
+    },
+    {
+     "id": "other",
+     "label": "What we cut to",
+     "plain": "How tense the other story is when we arrive there.",
+     "scale": [
+      "something calm",
+      "something as tense",
+      "something even more tense"
+     ],
+     "from": "something calm",
+     "to": "something even more tense",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 4,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 4,
+    "plot": "Leaving one story at its peak makes us carry its question through the next scene.",
+    "theme": "Cutting between stories shows how lives run side by side.",
+    "pull": "We sit through one story leaning toward the one we left.",
+    "cue": "plot",
+    "tryThis": "Cut away just as the door handle turns, play a whole calm scene elsewhere, and come back to the door already open."
+   }
+  },
+  {
+   "id": "almostAnswer",
+   "level": "curiosity",
+   "label": "The answer almost given",
+   "plain": "A character is about to say the thing we most want to know (who did it, where it is hidden, how they really feel) and something stops them. The answer slips away, and we want it twice as much.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "almost",
+   "sliders": [
+    {
+     "id": "almost",
+     "label": "How close it gets",
+     "plain": "From barely hinted (0) to one word away from the answer (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What the answer is about",
+     "plain": "The question that nearly gets answered.",
+     "scale": [
+      "who did it",
+      "where it is",
+      "what happened that night",
+      "how they feel",
+      "who they really are"
+     ],
+     "from": "who did it",
+     "to": "who they really are",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "stoppedBy",
+     "label": "What stops the answer",
+     "plain": "What cuts the answer off.",
+     "scale": [
+      "someone walks in",
+      "a phone rings",
+      "they change their mind",
+      "they faint or die",
+      "the scene cuts away"
+     ],
+     "from": "someone walks in",
+     "to": "the scene cuts away",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "times",
+     "label": "Times it slips away",
+     "plain": "How many times the film nearly gives the answer.",
+     "range": {
+      "min": 1,
+      "max": 5,
+      "unit": "times",
+      "step": 1
+     },
+     "from": 1,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "given",
+     "label": "When we finally get it",
+     "plain": "How long the film holds the answer back.",
+     "scale": [
+      "later that scene",
+      "much later",
+      "at the very end",
+      "never"
+     ],
+     "from": "later that scene",
+     "to": "never",
+     "curve": "linear"
+    },
+    {
+     "id": "worth",
+     "label": "Is it worth the wait",
+     "plain": "Whether the answer, when it comes, pays off the waiting.",
+     "scale": [
+      "a letdown",
+      "as big as we hoped",
+      "bigger than we hoped"
+     ],
+     "from": "a letdown",
+     "to": "bigger than we hoped",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 4,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 4,
+    "plot": "The answer that slips away becomes the thing the next scenes chase.",
+    "theme": "Shows how hard it is for people to say what matters most.",
+    "pull": "We lean in for the word, and keep leaning when it does not come.",
+    "cue": "thought",
+    "tryThis": "Have the dying man start to say the killer's name, and let the train whistle drown out the last word."
+   }
+  },
+  {
+   "id": "lockedBox",
+   "level": "curiosity",
+   "label": "The closed box we want opened",
+   "plain": "A thing the audience can see but not see inside: a locked briefcase, a sealed letter, a door no one opens, a phone with one unread message. It sits in the story asking a question all by itself.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "pull",
+   "sliders": [
+    {
+     "id": "pull",
+     "label": "How much we want it opened",
+     "plain": "From we hardly care (0) to it is all we think about (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "thing",
+     "label": "What is closed",
+     "plain": "The thing that hides what is inside.",
+     "scale": [
+      "a box",
+      "a letter",
+      "a locked door",
+      "a briefcase",
+      "a phone",
+      "a bag"
+     ],
+     "from": "a box",
+     "to": "a bag",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "glimpses",
+     "label": "Times we nearly see inside",
+     "plain": "How often the film almost lets us look.",
+     "range": {
+      "min": 0,
+      "max": 6,
+      "unit": "times",
+      "step": 1
+     },
+     "from": 0,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "guarded",
+     "label": "How well it is guarded",
+     "plain": "How hard it is to get to.",
+     "scale": [
+      "just lying there",
+      "hidden away",
+      "locked",
+      "guarded by someone"
+     ],
+     "from": "just lying there",
+     "to": "guarded by someone",
+     "curve": "linear"
+    },
+    {
+     "id": "opened",
+     "label": "When it is opened",
+     "plain": "How long the film keeps it shut.",
+     "scale": [
+      "early",
+      "halfway",
+      "at the end",
+      "never"
+     ],
+     "from": "early",
+     "to": "never",
+     "curve": "linear"
+    },
+    {
+     "id": "inside",
+     "label": "What is inside",
+     "plain": "What the opening gives us.",
+     "scale": [
+      "less than we hoped",
+      "what we guessed",
+      "something we never guessed",
+      "we never see inside"
+     ],
+     "from": "less than we hoped",
+     "to": "we never see inside",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The closed thing sits in every scene it is in, quietly asking to be opened.",
+    "theme": "What people lock away shows what they fear or treasure.",
+    "pull": "We keep checking on it, waiting for someone to open it.",
+    "cue": "visual",
+    "tryThis": "Let the briefcase sit in every scene, never opened, and have someone glance at it whenever the talk turns to money."
+   }
+  },
+  {
+   "id": "questionRelay",
+   "level": "curiosity",
+   "label": "One answer opens a bigger question",
+   "plain": "Each time the film answers a question, the answer brings a new and bigger one: we learn who sent the letter, and now we must know why. The audience never runs out of questions, so the story feels like it keeps going deeper.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "relay",
+   "sliders": [
+    {
+     "id": "relay",
+     "label": "How often answers bring new questions",
+     "plain": "From answers that just close things (0) to every answer opening a new door (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "bigger",
+     "label": "How the new question compares",
+     "plain": "Whether each new question is bigger than the one it replaced.",
+     "scale": [
+      "smaller",
+      "the same size",
+      "bigger",
+      "much bigger"
+     ],
+     "from": "smaller",
+     "to": "much bigger",
+     "curve": "linear"
+    },
+    {
+     "id": "soon",
+     "label": "How soon the new question comes",
+     "plain": "How fast the next question follows the answer.",
+     "scale": [
+      "right away",
+      "within the scene",
+      "by the next scene"
+     ],
+     "from": "right away",
+     "to": "by the next scene",
+     "curve": "linear"
+    },
+    {
+     "id": "links",
+     "label": "Questions in the chain",
+     "plain": "How many questions lead into each other.",
+     "range": {
+      "min": 1,
+      "max": 10,
+      "unit": "questions",
+      "step": 1
+     },
+     "from": 1,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What the new question asks",
+     "plain": "The kind of question the answer opens.",
+     "scale": [
+      "who",
+      "why",
+      "what happens next",
+      "what is real",
+      "whose side they are on"
+     ],
+     "from": "who",
+     "to": "whose side they are on",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "ends",
+     "label": "How the chain ends",
+     "plain": "Whether the last question is answered.",
+     "scale": [
+      "all answered",
+      "one left open",
+      "the biggest left open"
+     ],
+     "from": "all answered",
+     "to": "the biggest left open",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 5,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 5,
+    "plot": "Every answer hands the story a new question, so it never stands still.",
+    "theme": "Shows that every truth leads to a deeper one.",
+    "pull": "The moment we get an answer, we are already hungry for the next.",
+    "cue": "thought",
+    "tryThis": "Reveal who sent the letter halfway through, and in the same scene show they have been dead for ten years."
+   }
+  },
+  {
+   "id": "redHerring",
+   "level": "curiosity",
+   "label": "The clue that points the wrong way",
+   "plain": "A clue that leads the audience, and often the hero, to the wrong answer: the suspicious neighbor who turns out to be innocent, the weapon that was never used. Mystery writers call it a red herring. A good one is fair: it makes sense once the truth comes out.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "mislead",
+   "sliders": [
+    {
+     "id": "mislead",
+     "label": "How strongly it points the wrong way",
+     "plain": "From a faint false hint (0) to everyone sure of the wrong answer (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "at",
+     "label": "What it points at",
+     "plain": "What the false clue makes us suspect.",
+     "scale": [
+      "a person",
+      "an object",
+      "a place",
+      "a time",
+      "a reason"
+     ],
+     "from": "a person",
+     "to": "a reason",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "planted",
+     "label": "Who planted it",
+     "plain": "Whether someone in the story set the false trail, or the film itself did.",
+     "scale": [
+      "nobody, by chance",
+      "the real culprit",
+      "the storyteller"
+     ],
+     "from": "nobody, by chance",
+     "to": "the storyteller",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "count",
+     "label": "How many false clues",
+     "plain": "How many wrong trails the film lays.",
+     "range": {
+      "min": 1,
+      "max": 6,
+      "unit": "clues",
+      "step": 1
+     },
+     "from": 1,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "cleared",
+     "label": "When it is shown to be wrong",
+     "plain": "How long the false trail lasts.",
+     "scale": [
+      "quickly",
+      "in the middle",
+      "at the very end"
+     ],
+     "from": "quickly",
+     "to": "at the very end",
+     "curve": "linear"
+    },
+    {
+     "id": "fair",
+     "label": "Is it fair to the audience",
+     "plain": "Whether the false clue still makes sense once we know the truth.",
+     "scale": [
+      "cheating",
+      "just fair",
+      "fair, and it means something"
+     ],
+     "from": "cheating",
+     "to": "fair, and it means something",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The false trail sends the story down a road, and turning back is a twist of its own.",
+    "theme": "Shows how easily we see what we expect to see.",
+    "pull": "We chase the clue with the hero, and the turn makes us look harder at everything.",
+    "cue": "thought",
+    "tryThis": "Give the gardener muddy hands and a shifty look in every scene, and reveal the mud is from burying the family dog."
+   }
+  },
+  {
+   "id": "sceneGoalClear",
+   "level": "curiosity",
+   "label": "Knowing what they want in this scene",
+   "plain": "In every scene, someone wants something: to get the keys, to leave, to hear the truth. When the audience knows what that is, they can root for it and feel each step closer or further. When nobody knows, the scene drifts, however pretty it looks.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "clear",
+   "sliders": [
+    {
+     "id": "clear",
+     "label": "How clearly we know what they want",
+     "plain": "From no idea what anyone is after (0) to perfectly clear (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "want",
+     "label": "What they want",
+     "plain": "The kind of goal in this scene.",
+     "scale": [
+      "to get something",
+      "to get away",
+      "to learn something",
+      "to win someone over",
+      "to hide something"
+     ],
+     "from": "to get something",
+     "to": "to hide something",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "toldBy",
+     "label": "How we learn it",
+     "plain": "How the film makes the goal known.",
+     "scale": [
+      "they say it",
+      "we see it",
+      "someone else says it",
+      "we have to guess"
+     ],
+     "from": "they say it",
+     "to": "we have to guess",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "when",
+     "label": "When we learn it",
+     "plain": "How soon in the scene the goal is clear.",
+     "scale": [
+      "the first moment",
+      "early on",
+      "halfway",
+      "at the end"
+     ],
+     "from": "the first moment",
+     "to": "at the end",
+     "curve": "linear"
+    },
+    {
+     "id": "blocked",
+     "label": "What stands in the way",
+     "plain": "What makes the goal hard to reach.",
+     "scale": [
+      "nothing",
+      "someone says no",
+      "something in the way",
+      "time runs out"
+     ],
+     "from": "nothing",
+     "to": "time runs out",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "got",
+     "label": "Do they get it",
+     "plain": "How the scene ends for the goal.",
+     "scale": [
+      "yes",
+      "partly",
+      "no",
+      "yes, but at a cost"
+     ],
+     "from": "yes",
+     "to": "yes, but at a cost",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 4,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 4,
+    "plot": "A clear goal gives every moment of the scene a direction: closer or further.",
+    "theme": "What a character chases in small scenes adds up to what they want from life.",
+    "pull": "We track each step toward the goal and feel every setback.",
+    "cue": "plot",
+    "tryThis": "Have her say in the first line that she needs the car keys from his jacket, then play the whole dinner around that jacket."
+   }
+  },
+  {
+   "id": "ruleSetEarly",
+   "level": "curiosity",
+   "label": "A rule we learn early",
+   "plain": "Early on, the film tells us a rule of its world: never feed them after midnight, the door only opens once, if you say the name it comes. From then on the audience watches for that rule to be broken, and every near miss feels dangerous.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "rule",
+   "sliders": [
+    {
+     "id": "rule",
+     "label": "How firmly the rule is set",
+     "plain": "From mentioned in passing (0) to drilled in so nobody can forget (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What kind of rule",
+     "plain": "The kind of rule the film sets.",
+     "scale": [
+      "never do this",
+      "it only works if",
+      "a danger to avoid",
+      "a law of this world",
+      "a deal made"
+     ],
+     "from": "never do this",
+     "to": "a deal made",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "told",
+     "label": "How it is set up",
+     "plain": "How strongly the film proves the rule is real.",
+     "scale": [
+      "said out loud",
+      "shown once",
+      "shown twice",
+      "shown with a price paid"
+     ],
+     "from": "said out loud",
+     "to": "shown with a price paid",
+     "curve": "linear"
+    },
+    {
+     "id": "gap",
+     "label": "Time until it matters",
+     "plain": "How long from learning the rule to the moment it counts.",
+     "range": {
+      "min": 0,
+      "max": 90,
+      "unit": "minutes",
+      "step": 5
+     },
+     "from": 0,
+     "to": 90,
+     "curve": "linear"
+    },
+    {
+     "id": "broken",
+     "label": "Is the rule broken",
+     "plain": "What happens to the rule.",
+     "scale": [
+      "kept",
+      "bent",
+      "broken by accident",
+      "broken on purpose"
+     ],
+     "from": "kept",
+     "to": "broken on purpose",
+     "curve": "linear"
+    },
+    {
+     "id": "price",
+     "label": "What breaking it costs",
+     "plain": "How much the story makes someone pay.",
+     "scale": [
+      "nothing",
+      "a little",
+      "a lot",
+      "everything"
+     ],
+     "from": "nothing",
+     "to": "everything",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The rule plants a trap the story will one day spring.",
+    "theme": "What a world forbids shows what it fears.",
+    "pull": "Every time someone gets close to the rule, we tense up.",
+    "cue": "thought",
+    "tryThis": "In the first scene, have the old woman warn that the bell must never ring twice, then have a child find the bell in act two."
+   }
+  },
+  {
+   "id": "voicedQuestion",
+   "level": "curiosity",
+   "label": "Asking our question for us",
+   "plain": "A character says out loud exactly what the audience is wondering: \"Wait, why did he lie?\" It tells us the film knows, that we are not confused but curious, and it sharpens the question so we carry it forward.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "voiced",
+   "sliders": [
+    {
+     "id": "voiced",
+     "label": "How directly they ask it",
+     "plain": "From a vague hint at the question (0) to asking it word for word (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who asks it",
+     "plain": "The character who speaks for the audience.",
+     "scale": [
+      "the hero",
+      "a friend",
+      "a child",
+      "the villain",
+      "a stranger"
+     ],
+     "from": "the hero",
+     "to": "a stranger",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "how",
+     "label": "How it is asked",
+     "plain": "The way the question comes out.",
+     "scale": [
+      "asked straight out",
+      "joked about",
+      "shouted",
+      "whispered"
+     ],
+     "from": "asked straight out",
+     "to": "whispered",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "answered",
+     "label": "When it is answered",
+     "plain": "How long until someone answers it.",
+     "scale": [
+      "right away",
+      "later",
+      "never"
+     ],
+     "from": "right away",
+     "to": "never",
+     "curve": "linear"
+    },
+    {
+     "id": "times",
+     "label": "Times it is asked",
+     "plain": "How often the question comes up again.",
+     "range": {
+      "min": 1,
+      "max": 6,
+      "unit": "times",
+      "step": 1
+     },
+     "from": 1,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "lands",
+     "label": "How it lands",
+     "plain": "The feeling the question carries.",
+     "scale": [
+      "serious",
+      "worried",
+      "funny"
+     ],
+     "from": "serious",
+     "to": "funny",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Saying the question out loud turns a vague doubt into the thing the next scenes must answer.",
+    "theme": "Shows that the characters wonder about the same things we do.",
+    "pull": "We nod along: yes, that is exactly what we want to know.",
+    "cue": "thought",
+    "tryThis": "After the strange phone call, have the kid ask what everyone is thinking: \"Who calls at three in the morning and says nothing?\""
+   }
+  },
+  {
+   "id": "readTime",
+   "level": "curiosity",
+   "label": "Time to take in the shot",
+   "plain": "Every shot needs a moment for the audience to take it in. A busy frame needs longer, a face we know needs less. Cut before we have read it and we feel rushed or confused; cut just as we get it and the film flows; hold long after and it starts to drag, or turns uneasy.",
+   "workspace": "speed",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "read",
+   "sliders": [
+    {
+     "id": "read",
+     "label": "How fully we take each shot in",
+     "plain": "From cut before we can read it (0) to held long after we have it (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "busy",
+     "label": "How much there is to take in",
+     "plain": "How much is in the shot for the eye to read.",
+     "scale": [
+      "one thing",
+      "a few things",
+      "a crowded frame",
+      "words to read"
+     ],
+     "from": "one thing",
+     "to": "words to read",
+     "curve": "linear"
+    },
+    {
+     "id": "seconds",
+     "label": "How long the shot stays up",
+     "plain": "How long the shot is on screen.",
+     "range": {
+      "min": 0.5,
+      "max": 8,
+      "unit": "seconds",
+      "step": 0.5
+     },
+     "from": 0.5,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "when",
+     "label": "When the cut comes",
+     "plain": "When the cut comes, against the moment we understand the shot.",
+     "scale": [
+      "too soon, on purpose",
+      "just as we get it",
+      "a beat after",
+      "long after"
+     ],
+     "from": "too soon, on purpose",
+     "to": "long after",
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "Seen this view before",
+     "plain": "How familiar the view is. Views we know are read faster.",
+     "scale": [
+      "never",
+      "once",
+      "twice",
+      "many times"
+     ],
+     "from": "never",
+     "to": "many times",
+     "curve": "linear"
+    },
+    {
+     "id": "aim",
+     "label": "What the timing is for",
+     "plain": "What the filmmaker wants the timing to do.",
+     "scale": [
+      "to confuse",
+      "to keep pace",
+      "to let it sink in",
+      "to make us uneasy"
+     ],
+     "from": "to confuse",
+     "to": "to make us uneasy",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Cutting as soon as we understand keeps the story moving at the speed of thought.",
+    "theme": "How long a film lets us look shows how much it trusts us.",
+    "pull": "We never wait, and never get left behind, so we stay with it.",
+    "cue": "visual",
+    "tryThis": "Hold the crowded market shot for four seconds the first time, then just one second when we come back to it."
+   }
+  },
+  {
+   "id": "longAwaited",
+   "level": "curiosity",
+   "label": "The moment we're all waiting for",
+   "plain": "The audience knows something big is coming (the two leads finally meet, the kiss, the fight, the truth told to the one person who needs it) and the film keeps holding it back. The wait is part of the pleasure, as long as the moment is worth it.",
+   "workspace": "emo-road",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "wait",
+   "sliders": [
+    {
+     "id": "wait",
+     "label": "How long it is held back",
+     "plain": "From it comes right away (0) to held back almost to the end (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What we are waiting for",
+     "plain": "The moment the film builds toward.",
+     "scale": [
+      "two people meet",
+      "a kiss",
+      "a fight",
+      "the truth comes out",
+      "the hero comes back",
+      "the big game"
+     ],
+     "from": "two people meet",
+     "to": "the big game",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "delays",
+     "label": "Times it almost happens",
+     "plain": "How many near misses before it finally happens.",
+     "range": {
+      "min": 0,
+      "max": 8,
+      "unit": "times",
+      "step": 1
+     },
+     "from": 0,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "sure",
+     "label": "How sure we are it's coming",
+     "plain": "How strongly the film tells us the moment is on its way.",
+     "scale": [
+      "we guess it",
+      "the film tells us",
+      "the characters talk about it"
+     ],
+     "from": "we guess it",
+     "to": "the characters talk about it",
+     "curve": "linear"
+    },
+    {
+     "id": "lands",
+     "label": "How it lands",
+     "plain": "What the moment is like when it comes.",
+     "scale": [
+      "a letdown",
+      "as hoped",
+      "better than hoped",
+      "turned on its head"
+     ],
+     "from": "a letdown",
+     "to": "turned on its head",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shown",
+     "label": "How long the moment lasts",
+     "plain": "How much screen time the moment itself gets.",
+     "scale": [
+      "quickly",
+      "in full",
+      "slowed down"
+     ],
+     "from": "quickly",
+     "to": "slowed down",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 4,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 4,
+    "plot": "The whole film leans toward the moment, so every delay pushes the pressure higher.",
+    "theme": "What we wait for shows what the film thinks matters most.",
+    "pull": "We sit through every near miss hoping this is the time.",
+    "cue": "plot",
+    "tryThis": "Let the two pen pals pass each other in the station three times without knowing, before they finally sit at the same table."
+   }
   }
  ],
  "suites": [
@@ -93877,7 +96535,7 @@
    "id": "object-insert",
    "level": "suite",
    "label": "Object insert",
-   "plain": "The thing moves and the frame follows it.",
+   "plain": "The thing moves and the frame follows it. An insert is a very close shot of a small thing, like a hand or a key.",
    "workspace": "camera-motion",
    "also": [
     "placement"
@@ -94011,7 +96669,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "crossing",
@@ -94890,7 +97549,7 @@
    "id": "noir",
    "level": "suite",
    "label": "Noir",
-   "plain": "Hard light through blinds, haze, low key.",
+   "plain": "The dark look of old crime films (film noir): hard light through window blinds, haze, and low key lighting (mostly dark, with deep shadows).",
    "workspace": "light",
    "also": [],
    "kind": "",
@@ -95022,7 +97681,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "golden-hour",
@@ -97631,7 +100291,7 @@
    "id": "genre-surrealist",
    "level": "suite",
    "label": "Surrealist",
-   "plain": "Shifts that don't snap back, match cuts, slow motion, tilted frames.",
+   "plain": "Shifts that don't snap back, match cuts, slow motion, tilted frames. A match cut joins two shots by a shape or a move they share.",
    "workspace": "structure",
    "also": [],
    "kind": "genre",
@@ -97763,13 +100423,14 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "genre-romcom",
    "level": "suite",
    "label": "Romantic comedy",
-   "plain": "Joy, hard cuts, eye level, high key, playful rising lines.",
+   "plain": "Joy, hard cuts (plain cuts with no effect), the camera at eye level, high key light (bright and even, with few shadows), and playful lines that rise in pitch.",
    "workspace": "structure",
    "also": [],
    "kind": "genre",
@@ -97901,7 +100562,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "emotion-loving",
@@ -105559,7 +108221,7 @@
    "id": "smash-cut-contradiction",
    "level": "suite",
    "label": "Smash cut contradiction",
-   "plain": "A character insists they won't do something; hard cut to them doing it.",
+   "plain": "A character insists they won't do something; hard cut to them doing it. A smash cut is a sudden hard cut to something opposite.",
    "workspace": "comedy",
    "also": [
     "structure"
@@ -105658,7 +108320,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "background-gags",
@@ -112816,7 +115479,7 @@
    "id": "six-panel-grid",
    "level": "suite",
    "label": "Steady six-panel grid",
-   "plain": "A calm, even page: six panels of the same size, small gutters, a few words each.",
+   "plain": "A calm, even page: six panels of the same size, small gutters, a few words each. Gutters are the white gaps between the panels.",
    "workspace": "page",
    "also": [],
    "kind": "",
@@ -112929,7 +115592,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "splash-reveal",
@@ -119162,7 +121826,7 @@
    "id": "classic-dissolve",
    "level": "suite",
    "label": "Classic and gentle",
-   "plain": "Slow dissolves, a warm film look, music level with the voices.",
+   "plain": "Slow dissolves, a warm film look, music level with the voices. A dissolve is one picture melting slowly into the next.",
    "workspace": "transitions",
    "also": [],
    "kind": "",
@@ -119276,7 +121940,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "music-video-cut",
@@ -119701,7 +122366,7 @@
    "id": "dream-edit",
    "level": "suite",
    "label": "Dream sequence",
-   "plain": "Dissolves, a dreamy filter, slow motion, soft texture, a vignette.",
+   "plain": "Dissolves, a dreamy filter, slow motion, soft texture, a vignette. A dissolve is one picture melting into the next; a vignette darkens the corners of the frame.",
    "workspace": "grade",
    "also": [],
    "kind": "",
@@ -119833,7 +122498,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "silent-film-edit",
@@ -120338,7 +123004,7 @@
    "id": "heavenly-light",
    "level": "suite",
    "label": "Heavenly light",
-   "plain": "God rays, a golden warmth, a slow light-leak transition and a soft texture.",
+   "plain": "God rays, a golden warmth, a slow light-leak transition and a soft texture. God rays are beams of light, like sun through clouds. A light leak is a soft colored glow bleeding in from the edge, like old film.",
    "workspace": "layers",
    "also": [],
    "kind": "",
@@ -120452,7 +123118,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "party-edit",
@@ -120940,7 +123607,7 @@
    "id": "trippy-vision",
    "level": "suite",
    "label": "Trippy vision",
-   "plain": "Vortex rings, a glassy swirl, a halo and a dissolve: a dream or a high.",
+   "plain": "Vortex rings, a glassy swirl, a halo and a dissolve: a dream or a high. A dissolve is one picture melting into the next.",
    "workspace": "layers",
    "also": [],
    "kind": "",
@@ -121053,7 +123720,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cartoon-feelings",
@@ -121540,7 +124208,7 @@
    "id": "final-cut-finish",
    "level": "suite",
    "label": "Final Cut finishing pass",
-   "plain": "A pro finishing pass: warm highlights on the wheels, a gentle S curve, dialogue leading the mix, and silky slow motion.",
+   "plain": "A pro finishing pass: the bright parts pushed warm with the color wheels, a gentle S curve (darks a little darker and brights a little brighter, for more contrast), the voices louder than the music and effects, and smooth slow motion.",
    "workspace": "grade",
    "also": [],
    "kind": "",
@@ -121655,7 +124323,8 @@
    "source": "Final Cut Pro",
    "tags": [
     "advanced"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "cartoon-bounce",
@@ -127395,7 +130064,7 @@
    "id": "light-leak-overlay",
    "level": "suite",
    "label": "Light leak overlay",
-   "plain": "Warm light leaks and glows laid over the picture and blended so they only brighten it.",
+   "plain": "Warm light leaks and glows laid over the picture and blended so they only brighten it. A light leak is a soft colored glow bleeding in from the edge of the frame, like old film.",
    "workspace": "layers",
    "also": [],
    "kind": "",
@@ -127508,7 +130177,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "instant-replay",
@@ -127654,7 +130324,7 @@
    "id": "opening-titles",
    "level": "suite",
    "label": "Opening titles",
-   "plain": "A film's opening: fade up from black, an opening move on the frame, a title card, and a match cut from one shape to the next.",
+   "plain": "A film's opening: fade up from black, an opening move on the frame, a title card, and a match cut from one shape to the next. A title card is a full screen of words; a match cut joins two shots by a shape or a move they share.",
    "workspace": "transitions",
    "also": [
     "titles",
@@ -127789,7 +130459,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "kaleidoscope",
@@ -131537,7 +134208,7 @@
    "id": "sitcom-habits",
    "level": "suite",
    "label": "Sitcom habits",
-   "plain": "The shape of a TV sitcom (a show built on a few people and lots of laughs): catchphrases, running gags, a button on every scene and a tag at the end.",
+   "plain": "The shape of a TV sitcom (a show built on a few people and lots of laughs): catchphrases, running gags, a button on every scene and a tag at the end. A button is one small last laugh that closes a scene; a tag is a short extra bit after the story ends.",
    "workspace": "comedy",
    "also": [],
    "kind": "",
@@ -131669,7 +134340,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "petty-quest",
@@ -150263,6 +152935,1560 @@
    "tags": []
   },
   {
+   "id": "mystery-that-keeps-you-guessing",
+   "level": "suite",
+   "label": "The mystery that keeps you guessing",
+   "plain": "A locked briefcase nobody opens, a false trail to the neighbor, a witness who almost says the name, and every answer opening a bigger question.",
+   "workspace": "plot",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "lockedBox",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "lockedBox",
+     "slider": "thing",
+     "value": "a briefcase"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lockedBox",
+     "slider": "opened",
+     "value": "at the end"
+    },
+    {
+     "weight": 100,
+     "curiosity": "redHerring",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "redHerring",
+     "slider": "at",
+     "value": "a person"
+    },
+    {
+     "weight": 100,
+     "curiosity": "redHerring",
+     "slider": "fair",
+     "value": "fair, and it means something"
+    },
+    {
+     "weight": 70,
+     "curiosity": "almostAnswer",
+     "value": 4
+    },
+    {
+     "weight": 70,
+     "curiosity": "almostAnswer",
+     "slider": "what",
+     "value": "who did it"
+    },
+    {
+     "weight": 70,
+     "curiosity": "questionRelay",
+     "value": 4
+    },
+    {
+     "weight": 50,
+     "curiosity": "openQuestions",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lockedBox",
+     "label": "Weight of lockedBox",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lockedBox.thing",
+     "label": "Weight of lockedBox thing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lockedBox.opened",
+     "label": "Weight of lockedBox opened",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:redHerring",
+     "label": "Weight of redHerring",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:redHerring.at",
+     "label": "Weight of redHerring at",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:redHerring.fair",
+     "label": "Weight of redHerring fair",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:almostAnswer",
+     "label": "Weight of almostAnswer",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:almostAnswer.what",
+     "label": "Weight of almostAnswer what",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:questionRelay",
+     "label": "Weight of questionRelay",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:openQuestions",
+     "label": "Weight of openQuestions",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-long-awaited-meeting",
+   "level": "suite",
+   "label": "The long-awaited meeting",
+   "plain": "Two people we know belong together keep missing each other, the film keeps leaving at the best part, and when they finally meet it is better than we hoped.",
+   "workspace": "emo-road",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "longAwaited",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "longAwaited",
+     "slider": "what",
+     "value": "two people meet"
+    },
+    {
+     "weight": 100,
+     "curiosity": "longAwaited",
+     "slider": "delays",
+     "value": 3
+    },
+    {
+     "weight": 100,
+     "curiosity": "longAwaited",
+     "slider": "lands",
+     "value": "better than hoped"
+    },
+    {
+     "weight": 70,
+     "curiosity": "cutAwayAtPeak",
+     "value": 3
+    },
+    {
+     "weight": 70,
+     "curiosity": "cutAwayAtPeak",
+     "slider": "threads",
+     "value": 2
+    },
+    {
+     "weight": 50,
+     "curiosity": "hope",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:longAwaited",
+     "label": "Weight of longAwaited",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:longAwaited.what",
+     "label": "Weight of longAwaited what",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:longAwaited.delays",
+     "label": "Weight of longAwaited delays",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:longAwaited.lands",
+     "label": "Weight of longAwaited lands",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cutAwayAtPeak",
+     "label": "Weight of cutAwayAtPeak",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cutAwayAtPeak.threads",
+     "label": "Weight of cutAwayAtPeak threads",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:hope",
+     "label": "Weight of hope",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "leading-the-eye",
+   "level": "suite",
+   "label": "Leading the eye",
+   "plain": "Every shot ends where the next one begins, a room full of heads turns to the door, and each shot is cut just as we have taken it in.",
+   "workspace": "focus",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "eyeTrace",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "eyeTrace",
+     "slider": "leadBy",
+     "value": "a look"
+    },
+    {
+     "weight": 100,
+     "curiosity": "allEyesTurn",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "allEyesTurn",
+     "slider": "at",
+     "value": "a door"
+    },
+    {
+     "weight": 100,
+     "curiosity": "allEyesTurn",
+     "slider": "shown",
+     "value": "after a beat"
+    },
+    {
+     "weight": 100,
+     "curiosity": "readTime",
+     "value": 3
+    },
+    {
+     "weight": 100,
+     "curiosity": "readTime",
+     "slider": "when",
+     "value": "just as we get it"
+    },
+    {
+     "weight": 60,
+     "curiosity": "eyeFirst",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:eyeTrace",
+     "label": "Weight of eyeTrace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:eyeTrace.leadBy",
+     "label": "Weight of eyeTrace leadBy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:allEyesTurn",
+     "label": "Weight of allEyesTurn",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:allEyesTurn.at",
+     "label": "Weight of allEyesTurn at",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:allEyesTurn.shown",
+     "label": "Weight of allEyesTurn shown",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:readTime",
+     "label": "Weight of readTime",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:readTime.when",
+     "label": "Weight of readTime when",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:eyeFirst",
+     "label": "Weight of eyeFirst",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "something-is-wrong-here",
+   "level": "suite",
+   "label": "Something is wrong here",
+   "plain": "A muddy footprint nobody mentions, a rule we learned in the first scene, and dread creeping in as the story gets closer to breaking it.",
+   "workspace": "focus",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "oddDetail",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "oddDetail",
+     "slider": "noticed",
+     "value": "only us"
+    },
+    {
+     "weight": 100,
+     "curiosity": "oddDetail",
+     "slider": "explained",
+     "value": "at the end"
+    },
+    {
+     "weight": 100,
+     "curiosity": "ruleSetEarly",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "ruleSetEarly",
+     "slider": "kind",
+     "value": "a danger to avoid"
+    },
+    {
+     "weight": 70,
+     "curiosity": "ruleSetEarly",
+     "slider": "broken",
+     "value": "broken by accident"
+    },
+    {
+     "weight": 60,
+     "curiosity": "dread",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:oddDetail",
+     "label": "Weight of oddDetail",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:oddDetail.noticed",
+     "label": "Weight of oddDetail noticed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:oddDetail.explained",
+     "label": "Weight of oddDetail explained",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:ruleSetEarly",
+     "label": "Weight of ruleSetEarly",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:ruleSetEarly.kind",
+     "label": "Weight of ruleSetEarly kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:ruleSetEarly.broken",
+     "label": "Weight of ruleSetEarly broken",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dread",
+     "label": "Weight of dread",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "one-more-episode",
+   "level": "suite",
+   "label": "Just one more episode",
+   "plain": "Two stories cut at their peaks, every answer opening a bigger question, and each episode ending on a cliffhanger so you press play again.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "cutAwayAtPeak",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "cutAwayAtPeak",
+     "slider": "leaves",
+     "value": "one second before the answer"
+    },
+    {
+     "weight": 100,
+     "curiosity": "cutAwayAtPeak",
+     "slider": "other",
+     "value": "something as tense"
+    },
+    {
+     "weight": 100,
+     "curiosity": "questionRelay",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "questionRelay",
+     "slider": "ends",
+     "value": "the biggest left open"
+    },
+    {
+     "weight": 70,
+     "curiosity": "sceneEnding",
+     "value": "cliffhanger"
+    },
+    {
+     "weight": 60,
+     "curiosity": "surpriseSpacing",
+     "value": 4
+    },
+    {
+     "weight": 60,
+     "curiosity": "surpriseSpacing",
+     "slider": "pattern",
+     "value": "speeding up"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cutAwayAtPeak",
+     "label": "Weight of cutAwayAtPeak",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cutAwayAtPeak.leaves",
+     "label": "Weight of cutAwayAtPeak leaves",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cutAwayAtPeak.other",
+     "label": "Weight of cutAwayAtPeak other",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:questionRelay",
+     "label": "Weight of questionRelay",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:questionRelay.ends",
+     "label": "Weight of questionRelay ends",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sceneEnding",
+     "label": "Weight of sceneEnding",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing",
+     "label": "Weight of surpriseSpacing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing.pattern",
+     "label": "Weight of surpriseSpacing pattern",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "we-know-what-they-want",
+   "level": "suite",
+   "label": "We know what they want",
+   "plain": "She says what she needs in the first line, a friend asks what we are all thinking, and the clock is running before she can get it.",
+   "workspace": "plot",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "sceneGoalClear",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "sceneGoalClear",
+     "slider": "toldBy",
+     "value": "they say it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "sceneGoalClear",
+     "slider": "blocked",
+     "value": "time runs out"
+    },
+    {
+     "weight": 100,
+     "curiosity": "voicedQuestion",
+     "value": 3
+    },
+    {
+     "weight": 100,
+     "curiosity": "voicedQuestion",
+     "slider": "who",
+     "value": "a friend"
+    },
+    {
+     "weight": 70,
+     "curiosity": "tickingClock",
+     "value": "tight"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sceneGoalClear",
+     "label": "Weight of sceneGoalClear",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sceneGoalClear.toldBy",
+     "label": "Weight of sceneGoalClear toldBy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sceneGoalClear.blocked",
+     "label": "Weight of sceneGoalClear blocked",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:voicedQuestion",
+     "label": "Weight of voicedQuestion",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:voicedQuestion.who",
+     "label": "Weight of voicedQuestion who",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:tickingClock",
+     "label": "Weight of tickingClock",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "a-promise-kept",
+   "level": "suite",
+   "label": "A promise kept",
+   "plain": "The opening promises fear, a rule sets the trap, and the surprises grow until the biggest one comes last.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "openingPromise",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "openingPromise",
+     "slider": "kind",
+     "value": "fear"
+    },
+    {
+     "weight": 100,
+     "curiosity": "openingPromise",
+     "slider": "kept",
+     "value": "kept and topped"
+    },
+    {
+     "weight": 100,
+     "curiosity": "surpriseSpacing",
+     "value": 3
+    },
+    {
+     "weight": 100,
+     "curiosity": "surpriseSpacing",
+     "slider": "growth",
+     "value": "each bigger than the last"
+    },
+    {
+     "weight": 100,
+     "curiosity": "surpriseSpacing",
+     "slider": "lastOne",
+     "value": "the biggest of all"
+    },
+    {
+     "weight": 60,
+     "curiosity": "ruleSetEarly",
+     "value": 3
+    },
+    {
+     "weight": 60,
+     "curiosity": "openingGrab",
+     "value": "a promise"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:openingPromise",
+     "label": "Weight of openingPromise",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:openingPromise.kind",
+     "label": "Weight of openingPromise kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:openingPromise.kept",
+     "label": "Weight of openingPromise kept",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing",
+     "label": "Weight of surpriseSpacing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing.growth",
+     "label": "Weight of surpriseSpacing growth",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing.lastOne",
+     "label": "Weight of surpriseSpacing lastOne",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:ruleSetEarly",
+     "label": "Weight of ruleSetEarly",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:openingGrab",
+     "label": "Weight of openingGrab",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "waking-a-flat-middle",
+   "level": "suite",
+   "label": "Waking up a flat middle",
+   "plain": "The middle of the film sags with too much talk, so a character asks the question out loud and a surprise lands before the audience drifts.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "lullStretch",
+     "value": 2
+    },
+    {
+     "weight": 100,
+     "curiosity": "lullStretch",
+     "slider": "where",
+     "value": "the middle"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lullStretch",
+     "slider": "why",
+     "value": "too much talk"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lullStretch",
+     "slider": "fix",
+     "value": "open a question"
+    },
+    {
+     "weight": 100,
+     "curiosity": "voicedQuestion",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "voicedQuestion",
+     "slider": "answered",
+     "value": "later"
+    },
+    {
+     "weight": 60,
+     "curiosity": "surpriseSpacing",
+     "value": 3
+    },
+    {
+     "weight": 50,
+     "curiosity": "attentionReset",
+     "value": "every 10 seconds"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lullStretch",
+     "label": "Weight of lullStretch",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lullStretch.where",
+     "label": "Weight of lullStretch where",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lullStretch.why",
+     "label": "Weight of lullStretch why",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lullStretch.fix",
+     "label": "Weight of lullStretch fix",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:voicedQuestion",
+     "label": "Weight of voicedQuestion",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:voicedQuestion.answered",
+     "label": "Weight of voicedQuestion answered",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surpriseSpacing",
+     "label": "Weight of surpriseSpacing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:attentionReset",
+     "label": "Weight of attentionReset",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-snap",
    "level": "suite",
    "label": "Long talk that snaps into violence",
@@ -154993,7 +159219,7 @@
    "id": "style-cut-to-the-beat",
    "level": "suite",
    "label": "Fast visual comedy cut to the beat",
-   "plain": "Jokes told by the edit: quick close shots of everyday actions, whip pans between places, a whoosh or a thud on every move, cuts that land on the music, shapes that match from one shot to the next, and small details planted early that pay off later. In the spirit of Edgar Wright.",
+   "plain": "Jokes told by the edit: quick close shots of everyday actions, whip pans between places, a whoosh or a thud on every move, cuts that land on the music, shapes that match from one shot to the next, and small details planted early that pay off later. In the spirit of Edgar Wright. A whip pan is a camera turn so fast that the picture blurs into the next shot.",
    "workspace": "comedy",
    "also": [
     "speed",
@@ -155231,7 +159457,8 @@
    "source": "database",
    "tags": [
     "style"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "style-hangout-comedy",
@@ -157935,7 +162162,7 @@
    "id": "object-insert-prox",
    "level": "proximity",
    "label": "When an object enters, the frame becomes an insert",
-   "plain": "When an object enters, the frame becomes an insert within 1 beat.",
+   "plain": "When an object enters, the frame becomes an insert within 1 beat. An insert is a very close shot of a small thing, like a hand or a key.",
    "workspace": "placement",
    "also": [
     "camera-angle"
@@ -158011,7 +162238,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "emotion-angle",
@@ -162096,7 +166324,7 @@
    "id": "insist-then-do",
    "level": "proximity",
    "label": "\"I'll never\", then they do",
-   "plain": "A firm refusal is followed by a smash cut to the opposite within one beat.",
+   "plain": "A firm refusal is followed by a smash cut to the opposite within one beat. A smash cut is a sudden hard cut to something opposite.",
    "workspace": "comedy",
    "also": [],
    "when": {
@@ -162186,7 +166414,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cringe-silence",
@@ -163266,7 +167495,7 @@
    "id": "prop-key-insert",
    "level": "proximity",
    "label": "A key prop gets its close-up",
-   "plain": "When a prop becomes the key to the scene, an insert shot of it follows within one beat.",
+   "plain": "When a prop becomes the key to the scene, an insert shot of it follows within one beat. An insert shot is a very close shot of a small thing, like a hand or a key.",
    "workspace": "set",
    "also": [
     "camera-angle"
@@ -163343,7 +167572,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "decay-mood",
@@ -166307,7 +170537,7 @@
    "id": "quiet-wide-gutter",
    "level": "proximity",
    "label": "When a scene ends, the gutter widens",
-   "plain": "A wide gutter (a scene break) follows the last beat of a scene.",
+   "plain": "A wide gutter (a scene break) follows the last beat of a scene. The gutter is the white gap between comic panels.",
    "workspace": "page",
    "also": [
     "structure"
@@ -166383,7 +170613,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "approach-eyeline",
@@ -171706,7 +175937,7 @@
    "id": "dream-dissolve",
    "level": "proximity",
    "label": "When the feeling turns dreamlike, shots dissolve",
-   "plain": "When the feeling turns dreamlike, shots dissolve within 1 beat.",
+   "plain": "When the feeling turns dreamlike, shots dissolve within 1 beat. A dissolve is one picture melting slowly into the next.",
    "workspace": "transitions",
    "also": [
     "lines"
@@ -171782,7 +176013,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "featured-music-beat",
@@ -174836,7 +179068,7 @@
    "id": "button-sting",
    "level": "proximity",
    "label": "When a scene ends on a button joke, a sting hits",
-   "plain": "When a scene ends on a button joke, a sting hits at once.",
+   "plain": "When a scene ends on a button joke, a sting hits at once. A button joke is one small last laugh that closes the scene; a sting is a short burst of music.",
    "workspace": "audio-mix",
    "also": [
     "comedy"
@@ -174912,7 +179144,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cliffhanger-questions",
@@ -175370,7 +179603,7 @@
    "id": "speaker-angle-dialogue",
    "level": "proximity",
    "label": "When the multicam switches on the speaker, dialogue leads the mix",
-   "plain": "When the multicam switches on the speaker, dialogue leads the mix at once.",
+   "plain": "When the multicam switches on the speaker, dialogue leads the mix at once. Multicam means several cameras film the same moment at once, and the edit switches between them.",
    "workspace": "audio-mix",
    "also": [
     "structure"
@@ -175448,7 +179681,8 @@
    "source": "Final Cut Pro",
    "tags": [
     "advanced"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "montage-music-leads",
@@ -187882,7 +192116,7 @@
    "id": "dark-set-low-key",
    "level": "proximity",
    "label": "When the set is painted dark, the picture goes low key",
-   "plain": "Dark walls swallow light, so the whole image sinks into shadow.",
+   "plain": "Dark walls swallow light, so the whole image sinks into shadow. Low key means mostly dark, with deep shadows.",
    "workspace": "set",
    "also": [
     "light"
@@ -187958,7 +192192,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "booths-bring-close",
@@ -189678,7 +193913,7 @@
    "id": "screen-blend-glow",
    "level": "proximity",
    "label": "When a light layer is blended in screen mode, the room glows",
-   "plain": "Screen mode only adds brightness, so light leaks and flares laid on top make the whole scene glow.",
+   "plain": "Screen mode only adds brightness, so light leaks and flares laid on top make the whole scene glow. A light leak is a soft colored glow bleeding in from the edge, like old film.",
    "workspace": "layers",
    "also": [
     "light"
@@ -189754,7 +193989,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cutout-new-place",
@@ -196653,7 +200889,7 @@
    "id": "button-then-cut",
    "level": "proximity",
    "label": "When the button lands, the scene ends on it",
-   "plain": "When a solid button laugh lands, the scene ends on a button joke within 1 beat.",
+   "plain": "When a solid button laugh lands, the scene ends on a button joke within 1 beat. A button joke is one small last laugh that closes the scene.",
    "workspace": "comedy",
    "also": [],
    "when": {
@@ -196727,7 +200963,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "tiny-want-escalates",
@@ -237881,6 +242118,2585 @@
    "tags": []
   },
   {
+   "id": "eye-trace-faster-cuts",
+   "level": "proximity",
+   "label": "When the eye path is smoother, the cutting can speed up",
+   "plain": "When each shot puts the subject where the eye already is, the cutting can get faster within 2 beats without losing anyone.",
+   "workspace": "transitions",
+   "also": [
+    "camera-motion"
+   ],
+   "when": {
+    "curiosity": "eyeTrace",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cutRate",
+    "change": "rises"
+   },
+   "whenText": "the eye path is smoother",
+   "thenText": "the cutting can speed up",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "eyes-turn-eye-first",
+   "level": "proximity",
+   "label": "When everyone turns to look, our eye goes there first",
+   "plain": "When more of the room turns its head, the pull on where our eye goes first grows within a beat.",
+   "workspace": "focus",
+   "also": [],
+   "when": {
+    "curiosity": "allEyesTurn",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "eyeFirst",
+    "change": "rises"
+   },
+   "whenText": "everyone turns to look",
+   "thenText": "our eye goes there first",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "eyes-turn-long-wait-questions",
+   "level": "proximity",
+   "label": "When we wait long to see what they see, the question grows",
+   "plain": "When the film holds back what everyone is staring at, the audience's open questions rise within a beat.",
+   "workspace": "focus",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "allEyesTurn",
+    "slider": "shown",
+    "is": "after a long wait"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "we wait long to see what they see",
+   "thenText": "the question grows",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "odd-detail-questions",
+   "level": "proximity",
+   "label": "When something in the frame doesn't belong, we start wondering",
+   "plain": "When the odd detail gets stranger, the questions the audience is holding rise within 2 beats.",
+   "workspace": "focus",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "oddDetail",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "something in the frame doesn't belong",
+   "thenText": "we start wondering",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "odd-detail-late-plant",
+   "level": "proximity",
+   "label": "When the odd detail is explained only at the end, it becomes a hidden plant",
+   "plain": "When the strange detail waits until the end for its answer, the forgotten plant grows within 3 beats.",
+   "workspace": "focus",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "oddDetail",
+    "slider": "explained",
+    "is": "at the end"
+   },
+   "then": {
+    "curiosity": "plantForgotten",
+    "change": "rises"
+   },
+   "whenText": "the odd detail is explained only at the end",
+   "thenText": "it becomes a hidden plant",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "surprises-closer-tension",
+   "level": "proximity",
+   "label": "When surprises come more often, tension rises",
+   "plain": "When the story is more full of surprises, the tension across the film rises within 3 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "surpriseSpacing",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "tensionCurve",
+    "change": "rises"
+   },
+   "whenText": "surprises come more often",
+   "thenText": "tension rises",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "grab-promise",
+   "level": "proximity",
+   "label": "When the opening grabs with a promise, the promise gets clearer",
+   "plain": "When the opening grab is a promise, the promise of what kind of film this is grows within a beat.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "openingGrab",
+    "is": "a promise"
+   },
+   "then": {
+    "curiosity": "openingPromise",
+    "change": "rises"
+   },
+   "whenText": "the opening grabs with a promise",
+   "thenText": "the promise gets clearer",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "promise-broken-subversion",
+   "level": "proximity",
+   "label": "When the opening's promise is broken, the film turns on us",
+   "plain": "When the film breaks the promise its opening made, the sense of expectations turned upside down rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "openingPromise",
+    "slider": "kept",
+    "is": "broken"
+   },
+   "then": {
+    "curiosity": "subversion",
+    "change": "rises"
+   },
+   "whenText": "the opening's promise is broken",
+   "thenText": "the film turns on us",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "lull-distraction",
+   "level": "proximity",
+   "label": "When nothing pulls, the audience drifts",
+   "plain": "When a flat stretch goes on, the audience's distraction grows within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "focus"
+   ],
+   "when": {
+    "curiosity": "lullStretch",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "distraction",
+    "change": "rises"
+   },
+   "whenText": "nothing pulls",
+   "thenText": "the audience drifts",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "lull-fix-clock",
+   "level": "proximity",
+   "label": "When a flat stretch is fixed with a clock, the clock starts running",
+   "plain": "When the fix for a sagging stretch is a deadline, a clock running out appears within a beat.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "lullStretch",
+    "slider": "fix",
+    "is": "add a clock"
+   },
+   "then": {
+    "curiosity": "tickingClock",
+    "change": "rises"
+   },
+   "whenText": "a flat stretch is fixed with a clock",
+   "thenText": "the clock starts running",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "lull-fix-voiced-question",
+   "level": "proximity",
+   "label": "When a flat stretch is fixed with a question, someone asks it out loud",
+   "plain": "When the fix is to open a question, a character asks our question for us within a beat.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "lullStretch",
+    "slider": "fix",
+    "is": "open a question"
+   },
+   "then": {
+    "curiosity": "voicedQuestion",
+    "change": "rises"
+   },
+   "whenText": "a flat stretch is fixed with a question",
+   "thenText": "someone asks it out loud",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cliffhanger-cut-away",
+   "level": "proximity",
+   "label": "When a scene ends on a cliffhanger, we leave at the best part",
+   "plain": "When a scene ends on a cliffhanger, leaving the story at its peak rises within a beat.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "sceneEnding",
+    "is": "cliffhanger"
+   },
+   "then": {
+    "curiosity": "cutAwayAtPeak",
+    "change": "rises"
+   },
+   "whenText": "a scene ends on a cliffhanger",
+   "thenText": "we leave at the best part",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cross-cutting-leave-peak",
+   "level": "proximity",
+   "label": "When the film cuts between stories more, it leaves each nearer its peak",
+   "plain": "When cross-cutting grows, leaving each story at its best part grows within 2 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "intercut",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cutAwayAtPeak",
+    "change": "rises"
+   },
+   "whenText": "the film cuts between stories more",
+   "thenText": "it leaves each nearer its peak",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "leave-peak-questions",
+   "level": "proximity",
+   "label": "When we leave a story at its peak, its question rides along",
+   "plain": "When we cut away closer to the peak, the questions the audience is holding rise within a beat.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "cutAwayAtPeak",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "we leave a story at its peak",
+   "thenText": "its question rides along",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "almost-answer-questions",
+   "level": "proximity",
+   "label": "When the answer almost comes, the question gets sharper",
+   "plain": "When the answer gets closer before slipping away, the questions the audience is holding rise within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "almostAnswer",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "the answer almost comes",
+   "thenText": "the question gets sharper",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "closed-box-questions",
+   "level": "proximity",
+   "label": "When we want the box opened more, the question grows",
+   "plain": "When the pull of the closed thing grows, the audience's open questions rise within 2 beats.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "lockedBox",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "we want the box opened more",
+   "thenText": "the question grows",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "relay-bigger-stakes",
+   "level": "proximity",
+   "label": "When each answer opens a much bigger question, the stakes climb",
+   "plain": "When the new questions are much bigger than the old ones, what the characters stand to lose grows within 2 beats.",
+   "workspace": "plot",
+   "also": [
+    "emo-road"
+   ],
+   "when": {
+    "curiosity": "questionRelay",
+    "slider": "bigger",
+    "is": "much bigger"
+   },
+   "then": {
+    "curiosity": "stakes",
+    "change": "rises"
+   },
+   "whenText": "each answer opens a much bigger question",
+   "thenText": "the stakes climb",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "red-herring-misdirection",
+   "level": "proximity",
+   "label": "When the false clue points harder, we are misled",
+   "plain": "When the clue points more strongly the wrong way, misdirection grows within a beat.",
+   "workspace": "plot",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "redHerring",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "misdirection",
+    "change": "rises"
+   },
+   "whenText": "the false clue points harder",
+   "thenText": "we are misled",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "red-herring-late-reversal",
+   "level": "proximity",
+   "label": "When the false trail is cleared only at the end, the story flips",
+   "plain": "When the wrong clue is shown false at the very end, a reversal lands within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "redHerring",
+    "slider": "cleared",
+    "is": "at the very end"
+   },
+   "then": {
+    "curiosity": "reversal",
+    "change": "rises"
+   },
+   "whenText": "the false trail is cleared only at the end",
+   "thenText": "the story flips",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "clear-goal-empathy",
+   "level": "proximity",
+   "label": "When we know what they want, we feel with them",
+   "plain": "When the scene's goal is clearer, the audience feels with the one chasing it within 2 beats.",
+   "workspace": "plot",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "sceneGoalClear",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "empathy",
+    "change": "rises"
+   },
+   "whenText": "we know what they want",
+   "thenText": "we feel with them",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "goal-blocked-by-time-clock",
+   "level": "proximity",
+   "label": "When time is what stands in the way, a clock starts running",
+   "plain": "When the goal is blocked by time running out, a clock running out rises within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "sceneGoalClear",
+    "slider": "blocked",
+    "is": "time runs out"
+   },
+   "then": {
+    "curiosity": "tickingClock",
+    "change": "rises"
+   },
+   "whenText": "time is what stands in the way",
+   "thenText": "a clock starts running",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rule-set-dread",
+   "level": "proximity",
+   "label": "When the rule is set more firmly, dread builds",
+   "plain": "When the film drills its rule in harder, the audience's dread grows within 3 beats.",
+   "workspace": "plot",
+   "also": [
+    "emo-road"
+   ],
+   "when": {
+    "curiosity": "ruleSetEarly",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "dread",
+    "change": "rises"
+   },
+   "whenText": "the rule is set more firmly",
+   "thenText": "dread builds",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rule-broken-complication",
+   "level": "proximity",
+   "label": "When the rule is broken by accident, things get worse",
+   "plain": "When someone breaks the rule without meaning to, a complication follows within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "ruleSetEarly",
+    "slider": "broken",
+    "is": "broken by accident"
+   },
+   "then": {
+    "curiosity": "complication",
+    "change": "rises"
+   },
+   "whenText": "the rule is broken by accident",
+   "thenText": "things get worse",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "voiced-never-answered",
+   "level": "proximity",
+   "label": "When the question asked out loud is never answered, it stays open",
+   "plain": "When the question a character asks for us is never answered, the audience's open questions rise within 2 beats.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "voicedQuestion",
+    "slider": "answered",
+    "is": "never"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "the question asked out loud is never answered",
+   "thenText": "it stays open",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "long-read-lingers",
+   "level": "proximity",
+   "label": "When shots are held long after we have read them, the camera lingers",
+   "plain": "When each shot is held well past the moment we take it in, the sense of the camera staying too long grows within 2 beats.",
+   "workspace": "speed",
+   "also": [
+    "focus"
+   ],
+   "when": {
+    "curiosity": "readTime",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "lingeringShot",
+    "change": "rises"
+   },
+   "whenText": "shots are held long after we have read them",
+   "thenText": "the camera lingers",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "long-wait-hope",
+   "level": "proximity",
+   "label": "When the moment is held back longer, hope builds",
+   "plain": "When the moment we are waiting for keeps being held back, hope grows within 3 beats.",
+   "workspace": "emo-road",
+   "also": [],
+   "when": {
+    "curiosity": "longAwaited",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "hope",
+    "change": "rises"
+   },
+   "whenText": "the moment is held back longer",
+   "thenText": "hope builds",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "long-wait-pays-relief",
+   "level": "proximity",
+   "label": "When the moment finally comes and beats our hopes, relief floods in",
+   "plain": "When the long-awaited moment lands better than hoped, relief rises within a beat.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "longAwaited",
+    "slider": "lands",
+    "is": "better than hoped"
+   },
+   "then": {
+    "curiosity": "relief",
+    "change": "rises"
+   },
+   "whenText": "the moment finally comes and beats our hopes",
+   "thenText": "relief floods in",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -249286,7 +256102,7 @@
    "id": "camera-answers-body",
    "level": "proximitySuite",
    "label": "The camera answers the body",
-   "plain": "The camera answers the body: when the camera goes handheld, gesture grows; when a person approaches, the camera pushes in; when an object enters, the frame becomes an insert.",
+   "plain": "The camera answers the body: when the camera goes handheld, gesture grows; when a person approaches, the camera pushes in; when an object enters, the frame becomes an insert. An insert is a very close shot of a small thing, like a hand or a key.",
    "workspace": "camera-motion",
    "also": [
     "movement-lines",
@@ -249412,7 +256228,8 @@
     }
    ],
    "source": "automation.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "emotion-steers-lens",
@@ -263162,7 +269979,7 @@
    "id": "epic-then-popped",
    "level": "proximitySuite",
    "label": "Epic fuss, then popped",
-   "plain": "Something tiny gets the slow-motion hero treatment, a smash cut pops it, a topper follows and a button closes the scene.",
+   "plain": "Something tiny gets the slow-motion hero treatment, a smash cut pops it, a topper follows and a button closes the scene. A smash cut is a sudden hard cut to something opposite; a button is one small last laugh that closes the scene.",
    "workspace": "comedy-mix",
    "also": [],
    "members": [
@@ -263314,7 +270131,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "chase-to-crash",
@@ -263765,7 +270583,7 @@
    "id": "sitcom-scene-shape",
    "level": "proximitySuite",
    "label": "Sitcom scene shape",
-   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene.",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene. A button is one small last laugh that closes a scene; the tag is a short extra bit after the story ends.",
    "workspace": "comedy",
    "also": [],
    "members": [
@@ -272512,6 +279330,615 @@
     {
      "id": "chance:collision-ends-in-chase",
      "label": "How often collision-ends-in-chase",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "questions-that-keep-us",
+   "level": "proximitySuite",
+   "label": "Questions that keep us watching",
+   "plain": "The answer almost comes, the closed box waits, the question is asked out loud and left open, and our questions pile up.",
+   "workspace": "plot",
+   "also": [
+    "focus"
+   ],
+   "members": [
+    "almost-answer-questions",
+    "closed-box-questions",
+    "voiced-never-answered",
+    "odd-detail-questions"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:almost-answer-questions",
+     "label": "Delay of almost-answer-questions",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:almost-answer-questions",
+     "label": "How often almost-answer-questions",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:closed-box-questions",
+     "label": "Delay of closed-box-questions",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:closed-box-questions",
+     "label": "How often closed-box-questions",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:voiced-never-answered",
+     "label": "Delay of voiced-never-answered",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:voiced-never-answered",
+     "label": "How often voiced-never-answered",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:odd-detail-questions",
+     "label": "Delay of odd-detail-questions",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:odd-detail-questions",
+     "label": "How often odd-detail-questions",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "leaving-at-the-peak",
+   "level": "proximitySuite",
+   "label": "Leaving at the peak",
+   "plain": "A cliffhanger and more cross-cutting make the film leave each story at its peak, and the question rides along into the next scene.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "members": [
+    "cliffhanger-cut-away",
+    "cross-cutting-leave-peak",
+    "leave-peak-questions"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cliffhanger-cut-away",
+     "label": "Delay of cliffhanger-cut-away",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cliffhanger-cut-away",
+     "label": "How often cliffhanger-cut-away",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cross-cutting-leave-peak",
+     "label": "Delay of cross-cutting-leave-peak",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cross-cutting-leave-peak",
+     "label": "How often cross-cutting-leave-peak",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:leave-peak-questions",
+     "label": "Delay of leave-peak-questions",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:leave-peak-questions",
+     "label": "How often leave-peak-questions",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "waking-the-middle",
+   "level": "proximitySuite",
+   "label": "Waking the middle",
+   "plain": "Nothing pulls and the audience drifts, so the fix opens a question or starts a clock, and a clear goal blocked by time gets us leaning in again.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "members": [
+    "lull-distraction",
+    "lull-fix-voiced-question",
+    "lull-fix-clock",
+    "goal-blocked-by-time-clock"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:lull-distraction",
+     "label": "Delay of lull-distraction",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:lull-distraction",
+     "label": "How often lull-distraction",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:lull-fix-voiced-question",
+     "label": "Delay of lull-fix-voiced-question",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:lull-fix-voiced-question",
+     "label": "How often lull-fix-voiced-question",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:lull-fix-clock",
+     "label": "Delay of lull-fix-clock",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:lull-fix-clock",
+     "label": "How often lull-fix-clock",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:goal-blocked-by-time-clock",
+     "label": "Delay of goal-blocked-by-time-clock",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:goal-blocked-by-time-clock",
+     "label": "How often goal-blocked-by-time-clock",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rules-and-false-trails",
+   "level": "proximitySuite",
+   "label": "Rules and false trails",
+   "plain": "A firm rule builds dread and is broken by accident, while a false clue misleads us until the story flips at the end.",
+   "workspace": "plot",
+   "also": [],
+   "members": [
+    "rule-set-dread",
+    "rule-broken-complication",
+    "red-herring-misdirection",
+    "red-herring-late-reversal"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:rule-set-dread",
+     "label": "Delay of rule-set-dread",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:rule-set-dread",
+     "label": "How often rule-set-dread",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:rule-broken-complication",
+     "label": "Delay of rule-broken-complication",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:rule-broken-complication",
+     "label": "How often rule-broken-complication",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:red-herring-misdirection",
+     "label": "Delay of red-herring-misdirection",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:red-herring-misdirection",
+     "label": "How often red-herring-misdirection",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:red-herring-late-reversal",
+     "label": "Delay of red-herring-late-reversal",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:red-herring-late-reversal",
+     "label": "How often red-herring-late-reversal",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

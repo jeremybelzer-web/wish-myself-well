@@ -19579,6 +19579,532 @@
    "then": "a double act is born"
   },
   {
+   "id": "p:eye-trace-faster-cuts",
+   "proximity": "eye-trace-faster-cuts",
+   "label": "When the eye path is smoother, the cutting can speed up",
+   "from": {
+    "curiosity": "eyeTrace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the eye path is smoother",
+   "then": "the cutting can speed up"
+  },
+  {
+   "id": "p:eyes-turn-eye-first",
+   "proximity": "eyes-turn-eye-first",
+   "label": "When everyone turns to look, our eye goes there first",
+   "from": {
+    "curiosity": "allEyesTurn",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone turns to look",
+   "then": "our eye goes there first"
+  },
+  {
+   "id": "p:eyes-turn-long-wait-questions",
+   "proximity": "eyes-turn-long-wait-questions",
+   "label": "When we wait long to see what they see, the question grows",
+   "from": {
+    "curiosity": "allEyesTurn.shown",
+    "track": "character",
+    "is": "after a long wait",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we wait long to see what they see",
+   "then": "the question grows"
+  },
+  {
+   "id": "p:odd-detail-questions",
+   "proximity": "odd-detail-questions",
+   "label": "When something in the frame doesn't belong, we start wondering",
+   "from": {
+    "curiosity": "oddDetail",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something in the frame doesn't belong",
+   "then": "we start wondering"
+  },
+  {
+   "id": "p:odd-detail-late-plant",
+   "proximity": "odd-detail-late-plant",
+   "label": "When the odd detail is explained only at the end, it becomes a hidden plant",
+   "from": {
+    "curiosity": "oddDetail.explained",
+    "track": "character",
+    "is": "at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plantForgotten",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the odd detail is explained only at the end",
+   "then": "it becomes a hidden plant"
+  },
+  {
+   "id": "p:surprises-closer-tension",
+   "proximity": "surprises-closer-tension",
+   "label": "When surprises come more often, tension rises",
+   "from": {
+    "curiosity": "surpriseSpacing",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "surprises come more often",
+   "then": "tension rises"
+  },
+  {
+   "id": "p:grab-promise",
+   "proximity": "grab-promise",
+   "label": "When the opening grabs with a promise, the promise gets clearer",
+   "from": {
+    "curiosity": "openingGrab",
+    "track": "master",
+    "is": "a promise",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openingPromise",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening grabs with a promise",
+   "then": "the promise gets clearer"
+  },
+  {
+   "id": "p:promise-broken-subversion",
+   "proximity": "promise-broken-subversion",
+   "label": "When the opening's promise is broken, the film turns on us",
+   "from": {
+    "curiosity": "openingPromise.kept",
+    "track": "master",
+    "is": "broken",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subversion",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening's promise is broken",
+   "then": "the film turns on us"
+  },
+  {
+   "id": "p:lull-distraction",
+   "proximity": "lull-distraction",
+   "label": "When nothing pulls, the audience drifts",
+   "from": {
+    "curiosity": "lullStretch",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "distraction",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "nothing pulls",
+   "then": "the audience drifts"
+  },
+  {
+   "id": "p:lull-fix-clock",
+   "proximity": "lull-fix-clock",
+   "label": "When a flat stretch is fixed with a clock, the clock starts running",
+   "from": {
+    "curiosity": "lullStretch.fix",
+    "track": "master",
+    "is": "add a clock",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tickingClock",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a flat stretch is fixed with a clock",
+   "then": "the clock starts running"
+  },
+  {
+   "id": "p:lull-fix-voiced-question",
+   "proximity": "lull-fix-voiced-question",
+   "label": "When a flat stretch is fixed with a question, someone asks it out loud",
+   "from": {
+    "curiosity": "lullStretch.fix",
+    "track": "master",
+    "is": "open a question",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "voicedQuestion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a flat stretch is fixed with a question",
+   "then": "someone asks it out loud"
+  },
+  {
+   "id": "p:cliffhanger-cut-away",
+   "proximity": "cliffhanger-cut-away",
+   "label": "When a scene ends on a cliffhanger, we leave at the best part",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "cliffhanger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutAwayAtPeak",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene ends on a cliffhanger",
+   "then": "we leave at the best part"
+  },
+  {
+   "id": "p:cross-cutting-leave-peak",
+   "proximity": "cross-cutting-leave-peak",
+   "label": "When the film cuts between stories more, it leaves each nearer its peak",
+   "from": {
+    "curiosity": "intercut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutAwayAtPeak",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film cuts between stories more",
+   "then": "it leaves each nearer its peak"
+  },
+  {
+   "id": "p:leave-peak-questions",
+   "proximity": "leave-peak-questions",
+   "label": "When we leave a story at its peak, its question rides along",
+   "from": {
+    "curiosity": "cutAwayAtPeak",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we leave a story at its peak",
+   "then": "its question rides along"
+  },
+  {
+   "id": "p:almost-answer-questions",
+   "proximity": "almost-answer-questions",
+   "label": "When the answer almost comes, the question gets sharper",
+   "from": {
+    "curiosity": "almostAnswer",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the answer almost comes",
+   "then": "the question gets sharper"
+  },
+  {
+   "id": "p:closed-box-questions",
+   "proximity": "closed-box-questions",
+   "label": "When we want the box opened more, the question grows",
+   "from": {
+    "curiosity": "lockedBox",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we want the box opened more",
+   "then": "the question grows"
+  },
+  {
+   "id": "p:relay-bigger-stakes",
+   "proximity": "relay-bigger-stakes",
+   "label": "When each answer opens a much bigger question, the stakes climb",
+   "from": {
+    "curiosity": "questionRelay.bigger",
+    "track": "character",
+    "is": "much bigger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stakes",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "each answer opens a much bigger question",
+   "then": "the stakes climb"
+  },
+  {
+   "id": "p:red-herring-misdirection",
+   "proximity": "red-herring-misdirection",
+   "label": "When the false clue points harder, we are misled",
+   "from": {
+    "curiosity": "redHerring",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misdirection",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the false clue points harder",
+   "then": "we are misled"
+  },
+  {
+   "id": "p:red-herring-late-reversal",
+   "proximity": "red-herring-late-reversal",
+   "label": "When the false trail is cleared only at the end, the story flips",
+   "from": {
+    "curiosity": "redHerring.cleared",
+    "track": "character",
+    "is": "at the very end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reversal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the false trail is cleared only at the end",
+   "then": "the story flips"
+  },
+  {
+   "id": "p:clear-goal-empathy",
+   "proximity": "clear-goal-empathy",
+   "label": "When we know what they want, we feel with them",
+   "from": {
+    "curiosity": "sceneGoalClear",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we know what they want",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:goal-blocked-by-time-clock",
+   "proximity": "goal-blocked-by-time-clock",
+   "label": "When time is what stands in the way, a clock starts running",
+   "from": {
+    "curiosity": "sceneGoalClear.blocked",
+    "track": "character",
+    "is": "time runs out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tickingClock",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "time is what stands in the way",
+   "then": "a clock starts running"
+  },
+  {
+   "id": "p:rule-set-dread",
+   "proximity": "rule-set-dread",
+   "label": "When the rule is set more firmly, dread builds",
+   "from": {
+    "curiosity": "ruleSetEarly",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the rule is set more firmly",
+   "then": "dread builds"
+  },
+  {
+   "id": "p:rule-broken-complication",
+   "proximity": "rule-broken-complication",
+   "label": "When the rule is broken by accident, things get worse",
+   "from": {
+    "curiosity": "ruleSetEarly.broken",
+    "track": "character",
+    "is": "broken by accident",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the rule is broken by accident",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:voiced-never-answered",
+   "proximity": "voiced-never-answered",
+   "label": "When the question asked out loud is never answered, it stays open",
+   "from": {
+    "curiosity": "voicedQuestion.answered",
+    "track": "character",
+    "is": "never",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the question asked out loud is never answered",
+   "then": "it stays open"
+  },
+  {
+   "id": "p:long-read-lingers",
+   "proximity": "long-read-lingers",
+   "label": "When shots are held long after we have read them, the camera lingers",
+   "from": {
+    "curiosity": "readTime",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "lingeringShot",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "shots are held long after we have read them",
+   "then": "the camera lingers"
+  },
+  {
+   "id": "p:long-wait-hope",
+   "proximity": "long-wait-hope",
+   "label": "When the moment is held back longer, hope builds",
+   "from": {
+    "curiosity": "longAwaited",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the moment is held back longer",
+   "then": "hope builds"
+  },
+  {
+   "id": "p:long-wait-pays-relief",
+   "proximity": "long-wait-pays-relief",
+   "label": "When the moment finally comes and beats our hopes, relief floods in",
+   "from": {
+    "curiosity": "longAwaited.lands",
+    "track": "master",
+    "is": "better than hoped",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the moment finally comes and beats our hopes",
+   "then": "relief floods in"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -21966,7 +22492,7 @@
   {
    "id": "ps:camera-answers-body",
    "label": "The camera answers the body",
-   "plain": "The camera answers the body: when the camera goes handheld, gesture grows; when a person approaches, the camera pushes in; when an object enters, the frame becomes an insert.",
+   "plain": "The camera answers the body: when the camera goes handheld, gesture grows; when a person approaches, the camera pushes in; when an object enters, the frame becomes an insert. An insert is a very close shot of a small thing, like a hand or a key.",
    "proximities": [
     "handheld-gesture",
     "approach-push",
@@ -23641,7 +24167,7 @@
   {
    "id": "ps:epic-then-popped",
    "label": "Epic fuss, then popped",
-   "plain": "Something tiny gets the slow-motion hero treatment, a smash cut pops it, a topper follows and a button closes the scene.",
+   "plain": "Something tiny gets the slow-motion hero treatment, a smash cut pops it, a topper follows and a button closes the scene. A smash cut is a sudden hard cut to something opposite; a button is one small last laugh that closes the scene.",
    "proximities": [
     "epic-slow-motion",
     "epic-popped",
@@ -23707,7 +24233,7 @@
   {
    "id": "ps:sitcom-scene-shape",
    "label": "Sitcom scene shape",
-   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene.",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene. A button is one small last laugh that closes a scene; the tag is a short extra bit after the story ends.",
    "proximities": [
     "catchphrase-held-back",
     "laugh-topper",
@@ -24658,6 +25184,72 @@
     "p:real-one-arrives-collision",
     "p:collision-near-misses",
     "p:collision-ends-in-chase"
+   ]
+  },
+  {
+   "id": "ps:questions-that-keep-us",
+   "label": "Questions that keep us watching",
+   "plain": "The answer almost comes, the closed box waits, the question is asked out loud and left open, and our questions pile up.",
+   "proximities": [
+    "almost-answer-questions",
+    "closed-box-questions",
+    "voiced-never-answered",
+    "odd-detail-questions"
+   ],
+   "links": [
+    "p:almost-answer-questions",
+    "p:closed-box-questions",
+    "p:voiced-never-answered",
+    "p:odd-detail-questions"
+   ]
+  },
+  {
+   "id": "ps:leaving-at-the-peak",
+   "label": "Leaving at the peak",
+   "plain": "A cliffhanger and more cross-cutting make the film leave each story at its peak, and the question rides along into the next scene.",
+   "proximities": [
+    "cliffhanger-cut-away",
+    "cross-cutting-leave-peak",
+    "leave-peak-questions"
+   ],
+   "links": [
+    "p:cliffhanger-cut-away",
+    "p:cross-cutting-leave-peak",
+    "p:leave-peak-questions"
+   ]
+  },
+  {
+   "id": "ps:waking-the-middle",
+   "label": "Waking the middle",
+   "plain": "Nothing pulls and the audience drifts, so the fix opens a question or starts a clock, and a clear goal blocked by time gets us leaning in again.",
+   "proximities": [
+    "lull-distraction",
+    "lull-fix-voiced-question",
+    "lull-fix-clock",
+    "goal-blocked-by-time-clock"
+   ],
+   "links": [
+    "p:lull-distraction",
+    "p:lull-fix-voiced-question",
+    "p:lull-fix-clock",
+    "p:goal-blocked-by-time-clock"
+   ]
+  },
+  {
+   "id": "ps:rules-and-false-trails",
+   "label": "Rules and false trails",
+   "plain": "A firm rule builds dread and is broken by accident, while a false clue misleads us until the story flips at the end.",
+   "proximities": [
+    "rule-set-dread",
+    "rule-broken-complication",
+    "red-herring-misdirection",
+    "red-herring-late-reversal"
+   ],
+   "links": [
+    "p:rule-set-dread",
+    "p:rule-broken-complication",
+    "p:red-herring-misdirection",
+    "p:red-herring-late-reversal"
    ]
   },
   {
