@@ -320,7 +320,7 @@ Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them und
 
 While ADVANCED is open, Details shows the advanced curiosities' controls.
 
-## Sparks from outside: MIDI, speech and the camera (the Catalyst window)
+## Sparks from outside: MIDI, speech and the camera (the Live inputs window)
 
 From the music app's notes (section 7, and section 8 items 2 to 5), translated to film (`triggers.js`, `window.CurioTriggers`; the difference list is `/mnt/project-files/reference/music-vs-film-triggers.md`). Right-click (control-click on a Mac) a node, a lane's name (the curiosity as a suite: its master lane and its settings' lanes), a suite card, a suite clip or a master node: **Assign On Spark…** opens one spark, when + does + limits.
 
@@ -368,3 +368,12 @@ For other screens: `CurioScreen.splitter(el, { axis, grow, size, min, max, folda
 - `NODE_PATH=/opt/node22/lib/node_modules node apps/curiosities/screen/tests/browser.js [--shots dir]`: the Screen inside the real app in Chromium, adding the `index.html` line on the fly.
 - `node apps/curiosities/screen/tests/character.js`: the Character tab and each character's lanes in Node (the matrix's cast onto the timeline and back, exactly).
 - `NODE_PATH=... node apps/curiosities/screen/tests/character-browser.js [--shots dir] [--three three.min.js]`: the Character tab and the linked 3D matrix in the real app (`--three` serves a local three.js where cdnjs is out of reach).
+
+## The Catalyst window (⚗ Catalyst in the bar)
+
+`catalyst.js`, `window.CurioCatalyst` (Jeremy, 2026-10-05). One pop-up with two tabs:
+
+- **Spark**: one thing sets many off. Pick a curiosity or suite (Find narrows the list) and it is drawn as a burst: the cause in the middle, a line to every curiosity it sets off, with the delay in beats. **Play** runs one spark in automation, **Play all** runs every spark from that cause at once. **+ Make a spark** saves your own ("When … goes up, then … changes within N beats") through `CurioMine`.
+- **Elixir**: every ingredient must line up. Pick an elixir and a moment of My film: **Key** shows a lock with one pin per ingredient (a pin lifts when that ingredient's cause is there; all up and the key turns), **Flask** pours one colored layer per ingredient that is in and glows when full. It says at which moments the elixir lines up. **Lock** switches the elixir's `lock` lane; **Play the elixir** runs it. **+ Make an elixir** picks two or more sparks as ingredients; yours are kept in `localStorage` key `curiosities-my-elixirs-v1` and added to automation with `CurioAuto.addElixir`.
+
+The live window for MIDI, speech and the camera (the **Live** button) is separate: it shows what is close to firing.

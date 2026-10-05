@@ -780,7 +780,7 @@
     heard: "",
     start() {
       const R = root.SpeechRecognition || root.webkitSpeechRecognition;
-      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Catalyst window instead."), false;
+      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Live inputs window instead."), false;
       if (speech.on) return true;
       const rec = new R();
       rec.lang = (root.navigator && navigator.language) || "en-US";
@@ -975,8 +975,8 @@
       whenBody = `<label>Event <select data-f="when.event">${EVENTS.map((e) => opt(e[0], e[1], w.event)).join("")}</select></label><label>On <select data-f="when.track">${opt("", "Any track", w.track)}${s.tracks.map((tr) => opt(tr.id, tr.label, w.track)).join("")}</select></label><label title="Pick one: only that one event, not every one like it (the music app's 'that note, at bar 23')">Which <select data-f="when.row">${opt("", "Every one", w.row)}${evRows.map(([id, l]) => opt(id, "Only the one at " + l, w.row)).join("")}${w.row && !evRows.some((x) => x[0] === w.row) ? opt(w.row, `Only the one at moment ${rowNum(w.row)} (not there now)`, w.row) : ""}</select></label><p class="ctr-k">${esc((EVENTS.find((e) => e[0] === w.event) || EVENTS[0])[2])}</p>`;
     } else if (w.kind === "section") whenBody = secs.length ? `<label>Section <select data-f="when.section">${opt("", "Pick one", w.section)}${secs.map((x) => opt(x.id, `${x.label} (moments ${x.from + 1}–${x.to + 1})`, w.section)).join("")}</select></label><p class="ctr-k">Sections are your markers on the timeline: each one runs to the next. Write "Act 2" in a marker's note to name it.</p>` : `<p class="ctr-k">Your film has no sections yet. Add a marker (M) on the timeline: each marker starts a section that runs to the next.</p>`;
     else if (w.kind === "lfo") whenBody = `<label>Switches every <select data-f="when.every">${LFO_EVERY.map((n) => opt(n, `${n} moment${n === 1 ? "" : "s"}`, w.every)).join("")}</select></label>`;
-    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Catalyst window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Catalyst window instead, and they fire the same way."}</p>`;
-    else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Catalyst window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
+    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Live inputs window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Live inputs window instead, and they fire the same way."}</p>`;
+    else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Live inputs window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
     const d = t.does;
     const l = t.limits;
     const doesBody = `<label>Does <select data-f="does.act">${DOES.map((x) => opt(x[0], x[1], d.act)).join("")}</select></label>${d.act === "scale" ? `<label>By <input type="number" min="0" max="100" step="5" data-f="does.amount" value="${d.amount}">%</label>` : ""}${d.act === "set" ? `<label>To <input type="number" min="0" max="100" step="5" data-f="does.value" value="${d.value}">% of its scale</label>` : ""}${d.act === "press" ? `<p class="ctr-k">A press acts for one moment, then lets go.</p>` : `<span class="ctr-seg" role="group" aria-label="How it acts">${MODES.map((m) => `<button type="button" data-ctr-mode="${m[0]}" class="${d.mode === m[0] ? "on" : ""}" aria-pressed="${d.mode === m[0]}" title="${esc(m[2])}">${esc(m[1])}</button>`).join("")}</span>`}`;
@@ -1121,7 +1121,7 @@
   function openProximity() {
     if (!hasDoc) return;
     hookMidi();
-    const w = win("prox", "Catalyst", "what is close to firing, live");
+    const w = win("prox", "Live inputs", "MIDI, speech and the camera: what is close to firing");
     w.querySelector(".ctr-b").innerHTML = proxHtml();
     return w;
   }
@@ -1397,7 +1397,7 @@
   }
 
   /* The bar's two buttons (screen/ui.js asks for them). */
-  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Sparks: every spark (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Sparks${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Catalyst: MIDI, speech and the camera, and how close each spark is to firing, live">Spark</button></span>`;
+  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Sparks: every spark (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Sparks${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Live inputs: MIDI, speech and the camera, and how close each spark is to firing">Live</button><button type="button" data-cat-open title="Catalyst: make and play Sparks (one thing sets many off) and Elixirs (every ingredient must line up)">⚗ Catalyst</button></span>`;
 
   function forTarget(targetId) {
     const id = String(targetId || "");

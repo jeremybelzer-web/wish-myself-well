@@ -729,6 +729,18 @@
       PARAMS.push(p);
       PARAM[p.key] = p;
     },
+    /* The Catalyst window's own elixirs: addElixir({id, label, members: [spark ids]}) makes it automatable. */
+    addElixir(e) {
+      if (!e || !e.id || PARAM["ps:" + e.id]) return;
+      const members = (e.members || []).filter((id) => PROXIMITIES.some((x) => x.id === id));
+      if (!members.length) return;
+      PROXIMITY_SUITES.push({ id: e.id, label: e.label || e.id, members });
+      const p = { key: "ps:" + e.id, level: "proximity suite", id: e.id, label: e.label || e.id, group: "proximity suite" };
+      PARAMS.push(p);
+      PARAM[p.key] = p;
+    },
+    /* Is a spark's cause there on panel i? (the Catalyst window's ingredients) */
+    holds: (x, panels, i) => !!(x && panels && panels[i] && holds(x, panels, i)),
     patch,
     CURVES,
     FACETS,
