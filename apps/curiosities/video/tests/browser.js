@@ -50,6 +50,15 @@ const ok = (cond, text) => {
   if (!cond) failed++;
 };
 
+/* A switch sits in a section of the list that folds shut: open its section first, as a person would. */
+async function turn(page, id, on) {
+  const sec = page.locator(`details.vd-sec:has([data-on="${id}"])`);
+  if (!(await sec.evaluate((d) => d.open))) await sec.locator(":scope > summary").click();
+  await (on ? page.check(`[data-on="${id}"]`) : page.uncheck(`[data-on="${id}"]`));
+}
+/* Nothing wider than the window (no sideways scroll). */
+const sideways = (page) => page.evaluate(() => { const m = document.querySelector(".vd-main"); return m.scrollWidth - m.clientWidth + Math.max(0, document.documentElement.scrollWidth - window.innerWidth); });
+
 (async () => {
   const server = await serve();
   const url = "http://127.0.0.1:" + server.address().port + "/index.html?screen=0";
@@ -272,9 +281,52 @@ const ok = (cond, text) => {
   const said = await page.textContent(".vd-note");
   ok(/Put \d+ lanes on My film/.test(said), "says what it did: " + said);
 
+  /* The switches: a few plain sections that fold, each saying how many are on; quick picks set them. */
+  {
+    const secs = await page.evaluate(() => [...document.querySelectorAll(".vd-sec")].map((d) => ({ id: d.dataset.sec, name: d.querySelector("summary strong").textContent, count: d.querySelector(".vd-count").textContent, rows: d.querySelectorAll("[data-on]").length })));
+    const names = secs.map((x) => x.name);
+    ok(["Light and color", "Camera", "People and the set", "Look of the picture", "Rhythm and motion", "Sound and words"].every((n) => names.includes(n)), "the switches sit in plain sections: " + names.join(", "));
+    const groups = await page.evaluate(() => window.CurioVideo.GROUPS.map((g) => g.id));
+    ok(secs.reduce((n, x) => n + x.rows, 0) === groups.length && (await page.locator(".vd-apply-row").count()) === groups.length, "every switch is in exactly one section: " + groups.length);
+    ok(secs.every((x) => /^\d+ of \d+ on$/.test(x.count)), "each section says how many are on: " + secs.map((x) => x.count).join(", "));
+    ok((await page.locator(".vd-apply-row .vd-sw small").count()) === groups.length, "each switch has a plain line");
+    /* fold a section shut and open: it stays as left after a redraw and in the saved settings */
+    const cam = page.locator('details.vd-sec[data-sec="camera"]');
+    const was = await cam.evaluate((d) => d.open);
+    await cam.locator(":scope > summary").click();
+    await page.waitForFunction((w) => JSON.parse(localStorage.getItem("curiosities-video-v1")).open.camera === !w, was);
+    await page.selectOption("[data-mode]", "stretch");
+    await page.selectOption("[data-mode]", "same");
+    ok((await cam.evaluate((d) => d.open)) === !was, "a section stays open or shut across redraws and is saved");
+    /* a quick pick: Just the look turns on light and color, the palette and grain, and nothing else */
+    await page.click('[data-recipe="look"]');
+    const on = await page.evaluate(() => Object.entries(window.CurioVideoUI.state().prefs.on).filter(([, v]) => v > 0).map(([k]) => k).sort());
+    ok(JSON.stringify(on) === JSON.stringify(["color", "contrast", "grain", "light", "palette", "warmth"]), "Just the look sets its switches: " + on.join(", "));
+    ok((await page.locator('[data-recipe="look"].on').count()) === 1, "and shows as picked");
+    ok((await page.locator('details.vd-sec[data-sec="light"] .vd-count').textContent()) === "4 of 5 on", "the section counts what it turned on: " + (await page.locator('details.vd-sec[data-sec="light"] .vd-count').textContent()));
+    ok(await page.evaluate(() => document.querySelector('details.vd-sec[data-sec="look"]').open), "and its sections open");
+    ok(await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-video-v1")).on.palette === 1), "kept in the saved settings");
+    await page.click('[data-recipe="camera"]');
+    ok(await page.evaluate(() => { const o = window.CurioVideoUI.state().prefs.on; return o.shake === 1 && o.move === 1 && !o.light && !o.palette; }), "Its camera swaps them for the camera's");
+    ok((await sideways(page)) <= 0, "no sideways scroll on a desktop");
+    await page.evaluate(() => document.querySelector(".vd-apply").scrollIntoView());
+    await page.screenshot({ path: path.join(SHOTS, "video-switches.png"), fullPage: false });
+    /* a phone, 390 px wide */
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator(".vd-apply").scrollIntoViewIfNeeded();
+    ok((await sideways(page)) <= 0, "no sideways scroll at 390 px: " + (await sideways(page)));
+    await page.evaluate(() => document.querySelector(".vd-recipes").scrollIntoView());
+    await page.screenshot({ path: path.join(SHOTS, "video-switches-390.png"), fullPage: false });
+    await page.evaluate(() => document.querySelector('details.vd-sec[data-sec="camera"]').scrollIntoView());
+    await page.screenshot({ path: path.join(SHOTS, "video-switches-390-camera.png"), fullPage: false });
+    await page.evaluate(() => document.querySelector(".vd-main").scrollTo(0, 0));
+    await page.screenshot({ path: path.join(SHOTS, "video-top-390.png"), fullPage: false });
+    await page.setViewportSize({ width: 1360, height: 900 });
+  }
+
   /* Light only, then check. */
   await page.click('[data-all="0"]');
-  await page.check('[data-on="light"]');
+  await turn(page, "light", true);
   await page.click('[data-act="check"]');
   await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.light, null, { timeout: 120000 });
   const light = await page.evaluate(() => window.CurioVideoUI.state().checks.light);
@@ -282,8 +334,8 @@ const ok = (cond, text) => {
   ok((await page.locator(".vd-check .good").count()) === 1, "the check shows on the light row");
 
   /* The inspiration's warm palette only, then check. */
-  await page.uncheck('[data-on="light"]');
-  await page.check('[data-on="palette"]');
+  await turn(page, "light", false);
+  await turn(page, "palette", true);
   await page.click('[data-act="check"]');
   await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.palette, null, { timeout: 120000 });
   const pal = await page.evaluate(() => window.CurioVideoUI.state().checks.palette);
@@ -315,9 +367,9 @@ const ok = (cond, text) => {
   /* the made-up inspiration has only two loud starts (no beat, no cuts): give it four beats so the check runs */
   if (!rh || rh.beats.length < 4) await page.evaluate(() => (window.CurioVideoUI.state().a.rhythm = window.CurioRhythm.fromCuts([0.5, 1.5, 2.5, 3.5], 4.2)));
   {
-    await page.uncheck('[data-on="palette"]');
-    await page.check('[data-on="rhythm"]');
-    await page.check('[data-on="music"]');
+    await turn(page, "palette", false);
+    await turn(page, "rhythm", true);
+    await turn(page, "music", true);
     await page.click('[data-act="check"]');
     await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.rhythm, null, { timeout: 120000 });
     const rc = await page.evaluate(() => window.CurioVideoUI.state().checks.rhythm);
@@ -328,14 +380,14 @@ const ok = (cond, text) => {
     const sh = await page.evaluate(() => [window.CurioVideoUI.state().a.shutter, window.CurioVideoUI.state().b.shutter].map((s) => s && { rate: s.rate, shutter: s.shutter, n: s.moments.length }));
     ok(sh[0] && sh[1] && sh[0].n >= 1, "both clips' motion feel is measured: " + JSON.stringify(sh));
     ok((await page.locator('[data-on="shutter"]:not(:checked)').count()) === 1, "Motion feel is there, off");
-    await page.uncheck('[data-on="rhythm"]');
-    await page.uncheck('[data-on="music"]');
-    await page.check('[data-on="shutter"]');
+    await turn(page, "rhythm", false);
+    await turn(page, "music", false);
+    await turn(page, "shutter", true);
     await page.click('[data-act="check"]');
     await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.shutter, null, { timeout: 120000 });
     const sc = await page.evaluate(() => window.CurioVideoUI.state().checks.shutter);
     ok(sc.feature === "shutter" && (sc.text || sc.note), "the motion feel check reports: " + JSON.stringify(sc));
-    await page.uncheck('[data-on="shutter"]');
+    await turn(page, "shutter", false);
   }
 
   /* Everything, played and saved. */

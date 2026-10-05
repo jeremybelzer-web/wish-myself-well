@@ -15,6 +15,7 @@
       faces: [
         { face: "ladder", slider: "setting" },
         { face: "dial", slider: "progress" },
+        { face: "curve", slider: "setting", points: 5, title: "Their arc across my film" },
       ],
       groups: [
         { label: "Where they are", sliders: ["setting", "progress", "stageLength"] },

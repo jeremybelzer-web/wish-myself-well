@@ -167,7 +167,7 @@
     ],
     window: {
       faces: [
-        { face: "swatches", slider: "accentHue", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, blue: HUES.blue, purple: HUES.purple } },
+        { face: "wheel", title: "The color, and how much it stands out", hue: "accentHue", strength: "accentVsRest", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, blue: HUES.blue, purple: HUES.purple }, fallback: { face: "swatches", slider: "accentHue", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, blue: HUES.blue, purple: HUES.purple } } },
         { face: "tiles", slider: "carrier", icons: { clothing: "🧥", "a prop": "🎈", "a light": "💡", "a place": "🚪" } },
         { face: "ladder", slider: "restColor" },
       ],
@@ -614,7 +614,7 @@
     window: {
       faces: [
         { face: "dial", slider: "setting" },
-        { face: "swatches", slider: "color", colors: { none: "#d9c7b8", warm: "#f2a65a", pink: "#f28fa0", cool: "#9bb7d4" } },
+        { face: "wheel", title: "Color under the skin, and how much", hue: "color", strength: "setting", colors: { none: "#d9c7b8", warm: "#f2a65a", pink: "#f28fa0", cool: "#9bb7d4" }, fallback: { face: "swatches", slider: "color", colors: { none: "#d9c7b8", warm: "#f2a65a", pink: "#f28fa0", cool: "#9bb7d4" } } },
         { face: "tiles", slider: "whereShows", icons: { ears: "👂", "nose and cheeks": "👃", hands: "✋", "whole face": "🙂" } },
       ],
       groups: [
@@ -663,7 +663,7 @@
     ],
     window: {
       faces: [
-        { face: "swatches", slider: "mainHue", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, teal: HUES.teal, blue: HUES.blue, purple: HUES.purple } },
+        { face: "wheel", title: "Main color, and how much of the frame", hue: "mainHue", strength: "mainShare", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, teal: HUES.teal, blue: HUES.blue, purple: HUES.purple }, fallback: { face: "swatches", slider: "mainHue", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, teal: HUES.teal, blue: HUES.blue, purple: HUES.purple } } },
         { face: "swatches", slider: "secondHue", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, teal: HUES.teal, blue: HUES.blue, purple: HUES.purple } },
         { face: "ladder", slider: "setting" },
       ],
@@ -687,7 +687,7 @@
     window: {
       faces: [
         { face: "ladder", slider: "setting" },
-        { face: "swatches", slider: "paletteHue", colors: HUES },
+        { face: "wheel", title: "Main hue, and how much color", hue: "paletteHue", strength: "colorPercent", colors: HUES, fallback: { face: "swatches", slider: "paletteHue", colors: HUES } },
         { face: "tiles", slider: "filmStock", icons: { "clean digital": "💾", "slight grain": "🎞️", "film grain": "📽️", "old film": "🎬", "damaged film": "🩹" } },
       ],
       groups: [
@@ -738,7 +738,7 @@
     window: {
       faces: [
         { face: "swatches", slider: "setting", colors: { red: HUES.red, orange: HUES.orange, yellow: HUES.yellow, green: HUES.green, teal: HUES.teal, blue: HUES.blue, purple: HUES.purple } },
-        { face: "dial", slider: "tintStrength" },
+        { face: "wheel", hue: "hueAngle", strength: "tintStrength", title: "Exact color and how strong", fallback: { face: "dial", slider: "tintStrength" } },
         { face: "ladder", slider: "paleDeep" },
       ],
       groups: [
