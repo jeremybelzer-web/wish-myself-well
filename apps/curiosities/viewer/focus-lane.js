@@ -35,26 +35,29 @@
 .cf-now .cf-sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 1px; vertical-align: 0; }
 .cf-now em { font-style: normal; color: #9b9ba3; }
 .cf-now .cf-trig { color: #fde047; }
-.cf-name { flex: none; max-width: 40%; font-size: 11px; color: #fff; background: #2a2a30; border-radius: 4px; padding: 1px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cf-name:empty { display: none; }
-.cf-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
-.cf-charts { display: grid; grid-template-columns: 58px 150px 150px; gap: 6px; align-items: start; }
-.cf-charts canvas { display: block; cursor: zoom-in; background: #1d1d21; border-radius: 4px; }
-.cf-pie { width: 58px; height: 58px; border-radius: 50% !important; }
-.cf-graph { width: 150px; height: 58px; }
-.cf-list { list-style: none; margin: 0; padding: 0; max-height: 58px; overflow-y: auto; font-size: 10.5px; display: grid; gap: 1px; }
+.cf-force { flex: none; max-width: 40%; font-size: 15px; font-weight: 700; color: #fde68a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-force:empty { display: none; }
+/* Two tabs (Jeremy 2026-10-05): Viewer focus (the 2 or 3 things holding attention on top, then the pie, the graph
+   through the scene and the scrolling list) and Moments (the colored blocks, with the picked one readable on top). */
+.cf-tabs { display: flex; gap: 2px; flex: none; }
+.cv-root .cf-tabs button { padding: 2px 9px; font-size: 11px; border-radius: 5px; background: #222226; color: #b5b5bd; }
+.cv-root .cf-tabs button[aria-selected="true"] { background: #22d3ee; color: #062a31; font-weight: 600; }
+.cv-under[data-tab="focus"] .cf-pane-moments, .cv-under[data-tab="moments"] .cf-pane-focus { display: none; }
+.cf-pane { display: grid; gap: 4px; min-width: 0; }
+.cf-focus { margin: 0; font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-focus em { font-style: normal; font-weight: 400; color: #9b9ba3; }
+.cf-charts { display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(150px, 220px); gap: 8px; align-items: stretch; }
+.cf-charts canvas { display: block; background: #1d1d21; border-radius: 4px; }
+.cf-pie { width: 64px; height: 64px; border-radius: 50% !important; }
+.cf-graph { width: 100%; height: 64px; }
+.cf-list { list-style: none; margin: 0; padding: 0; height: 64px; overflow-y: auto; font-size: 10.5px; display: grid; align-content: start; gap: 1px; }
 .cf-list li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 4px; align-items: center; }
 .cf-list li i { width: 8px; height: 8px; border-radius: 2px; }
 .cf-list li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cf-list li b { font-weight: 500; color: #9b9ba3; font-variant-numeric: tabular-nums; }
-.cv-under[data-only="pie"] .cf-graph, .cv-under[data-only="graph"] .cf-pie { display: none; }
-.cv-under[data-only="pie"] .cf-charts { grid-template-columns: 120px 150px; }
-.cv-under[data-only="pie"] .cf-pie { width: 120px; height: 120px; cursor: zoom-out; }
-.cv-under[data-only="pie"] .cf-list { max-height: 120px; }
-.cv-under[data-only="graph"] .cf-charts { grid-template-columns: 300px 150px; }
-.cv-under[data-only="graph"] .cf-graph { width: 300px; height: 120px; cursor: zoom-out; }
-.cv-under[data-only="graph"] .cf-list { max-height: 120px; }
-@media (max-width: 900px) { .cf-body { grid-template-columns: minmax(0, 1fr); } .cf-charts { grid-template-columns: 58px minmax(0, 1fr) minmax(0, 1fr); } .cf-graph { width: 100%; } }
+.cf-pick { margin: 0; font-size: 12px; font-weight: 600; color: #fff; line-height: 1.35; }
+.cf-pick:empty { display: none; }
+@media (max-width: 900px) { .cf-charts { grid-template-columns: 64px minmax(0, 1fr); } .cf-list { grid-column: 1 / -1; height: auto; max-height: 90px; } }
 .cf-rows { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); row-gap: 2px; align-items: center; }
 .cf-rows > span { font-size: 10px; color: #8b8b94; letter-spacing: 0.04em; }
 .cf-row { position: relative; height: 18px; background: #1d1d21; border-radius: 3px; overflow: hidden; }
@@ -309,7 +312,7 @@
       const present = Object.keys(active(K[i])).map(base);
       return { i, at: starts[i], sec: p.sec, lead, second, suite, trigger, changes, present };
     });
-    cache = { key, total, segs, panels, stats: reading.stats, limit: reading.limit };
+    cache = { key, total, segs, panels, K, stats: reading.stats, limit: reading.limit };
     /* the graph: everyone's share of attention through the film, in small steps */
     const step = Math.max(0.1, total / 240);
     const samples = [];
@@ -321,6 +324,45 @@
       .slice(0, 6);
     cache.samples = samples;
     return cache;
+  }
+
+  /* ---------- the force driving the scene, and what holds attention (Jeremy, 2026-10-05) ----------
+     "The force driving the scene and plot forward should be the title of each storyboard", and the pie and graph
+     should say which things lead, like "Danger + Shot size": by default 2 things a panel, 3 when the scene is
+     complex (a third that pulls nearly as hard as the second). A feeling is named by its value (Melancholy),
+     anything else by its name (Shot size). */
+  const cap = (w) => String(w).charAt(0).toUpperCase() + String(w).slice(1);
+  function nameAt(r, id, i) {
+    const n = M().note(id);
+    const val = r.K[i] && r.K[i][id];
+    const feeling = n.family === "feeling" || /emotion|feeling|mood/i.test(id);
+    if (feeling && typeof val === "string" && val && isNaN(Number(val))) return cap(val);
+    return n.label || id;
+  }
+  function focusAt(r, i) {
+    const p = r.panels[i];
+    if (!p) return { force: "", focus: [] };
+    const sh = sharesAt(r, p.at + Math.min(0.5, p.sec / 2));
+    let n = 2;
+    if (sh[2] && sh[2].share >= 0.2 && sh[2].share >= 0.75 * sh[1].share) n = 3;
+    const ids = sh.slice(0, n).map((q) => q.id);
+    const names = [];
+    ids.forEach((id) => {
+      const nm = nameAt(r, id, i);
+      if (!names.includes(nm)) names.push(nm);
+    });
+    return { force: p.lead ? nameAt(r, p.lead.id, i) : names[0] || "", focus: names };
+  }
+
+  /* the storyboard cards under the picture: the force as each one's title, what holds attention at the bottom */
+  function labelCards(r) {
+    document.querySelectorAll(".cv-root .cv-card[data-i]").forEach((card) => {
+      const fa = focusAt(r, +card.dataset.i);
+      const fe = card.querySelector(".cv-force");
+      const fo = card.querySelector(".cv-focus");
+      if (fe) fe.textContent = fa.force;
+      if (fo) fo.textContent = fa.focus.join(" + ");
+    });
   }
 
   /* How much of the audience's attention each curiosity has at time t, 0 to 1, adding up to 1. A change pulls
@@ -425,6 +467,21 @@
     g.fillRect(px - 1, 0, 2, H);
   }
 
+  /* ---------- the two tabs ---------- */
+  const TAB_KEY = "curio-focus-tab-v1";
+  function savedTab() {
+    try {
+      return localStorage.getItem(TAB_KEY) === "moments" ? "moments" : "focus";
+    } catch (e) {
+      return "focus";
+    }
+  }
+  function setTab(t) {
+    if (!box) return;
+    box.dataset.tab = t === "moments" ? "moments" : "focus";
+    box.querySelectorAll("[data-cf-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.cfTab === box.dataset.tab)));
+  }
+
   /* ---------- drawing ---------- */
   let box = null;
   let lastNow = "";
@@ -467,23 +524,29 @@
       .filter((p) => p.trigger)
       .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by: ${p.trigger.when}`)}">⚡</i>`)
       .join("");
-    const was = box.dataset.only || "";
-    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><span class="cf-now" aria-live="polite"></span><span class="cf-name" aria-live="polite"></span></div>
-      <div class="cf-body">
-      <div class="cf-rows">
-        <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
-        <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
-        <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
-        <i class="cf-head"></i>
+    const tab = box.dataset.tab || savedTab();
+    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><nav class="cf-tabs" role="tablist"><button type="button" role="tab" data-cf-tab="focus" title="The things holding the audience's attention now, the pie, and the graph through the scene">Viewer focus</button><button type="button" role="tab" data-cf-tab="moments" title="Who leads, moment by moment, as colored blocks. Pick one to read it in full.">Moments</button></nav><strong class="cf-force" aria-live="polite" title="The force driving the scene and the plot forward right now"></strong></div>
+      <div class="cf-pane cf-pane-focus">
+        <p class="cf-focus" aria-live="polite" title="What holds the audience's attention in this panel: 2 things, or 3 in a busy scene"></p>
+        <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie), through the scene (the graph), and every one on now (the list).">
+          <canvas class="cf-pie" role="img" aria-label="Attention right now"></canvas>
+          <canvas class="cf-graph" role="img" aria-label="Attention through the scene"></canvas>
+          <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
+        </div>
       </div>
-      <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie) and through the whole film (the graph). Click one to see it bigger; click again for both.">
-        <canvas class="cf-pie" data-cf-only="pie" role="img" aria-label="Attention right now"></canvas>
-        <canvas class="cf-graph" data-cf-only="graph" role="img" aria-label="Attention through the film"></canvas>
-        <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
-      </div>
+      <div class="cf-pane cf-pane-moments">
+        <p class="cf-pick" aria-live="polite"></p>
+        <span class="cf-now" aria-live="polite"></span>
+        <div class="cf-rows">
+          <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
+          <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
+          <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
+          <i class="cf-head"></i>
+        </div>
       </div>`;
-    el.dataset.only = was;
+    setTab(tab);
     el.hidden = false;
+    labelCards(r);
     lastNow = "";
   }
   function now(t, i, total) {
@@ -516,6 +579,11 @@
     if (p.second) html += ` with ${sw(p.second.family)}${esc(p.second.label)}`;
     if (p.trigger) html += ` <span class="cf-trig">⚡ ${esc(whoLabel(p.trigger.who))} was set off by something else: ${esc(p.trigger.when)}${p.trigger.from < i ? ` (panel ${p.trigger.from + 1})` : ""}</span>`;
     if (p.suite) html += ` <em>· suite</em> ${esc(p.suite.label)} <em>${Math.round(p.suite.share * 100)}%</em>`;
+    const fa = focusAt(r, i);
+    const fe = box.querySelector(".cf-force");
+    if (fe) fe.textContent = fa.force;
+    const fo = box.querySelector(".cf-focus");
+    if (fo) fo.textContent = fa.focus.join(" + ");
     const line = box.querySelector(".cf-now");
     if (line) {
       line.innerHTML = html || "<em>Nothing has changed yet.</em>";
@@ -564,16 +632,19 @@
         showName(b);
         V().seek(+b.dataset.cfAt);
       }
-      const c = e.target.closest && e.target.closest(".cv-under [data-cf-only]");
+      const c = e.target.closest && e.target.closest(".cv-under [data-cf-tab]");
       if (c && box) {
-        box.dataset.only = box.dataset.only === c.dataset.cfOnly ? "" : c.dataset.cfOnly;
+        setTab(c.dataset.cfTab);
+        try {
+          localStorage.setItem(TAB_KEY, c.dataset.cfTab);
+        } catch (err) {}
         V().redraw();
       }
     });
-    /* a shortened name ("Shot…") shows in full at the top right when you point at it or pick it */
+    /* the block you point at or pick reads in full at the top of Moments */
     const showName = (b) => {
-      const n = box && box.querySelector(".cf-name");
-      if (n) n.textContent = b.getAttribute("aria-label") || b.textContent;
+      const n = box && box.querySelector(".cf-pick");
+      if (n) n.textContent = b.getAttribute("title") || b.getAttribute("aria-label") || b.textContent;
     };
     document.addEventListener("pointerover", (e) => {
       const b = e.target.closest && e.target.closest(".cv-under [data-cf-at]");
@@ -597,5 +668,10 @@
       return r && r.panels.map((p) => ({ panel: p.i + 1, lead: p.lead && p.lead.label, leadId: p.lead && p.lead.id, fresh: !!(p.lead && p.lead.fresh), second: p.second && p.second.label, secondId: p.second && p.second.id, suite: p.suite && p.suite.label, trigger: p.trigger && p.trigger.when }));
     },
     values: (i) => valuesOf(V().film(), i),
+    /* the force driving panel i (its title) and the 2 or 3 things holding attention (its label) */
+    panel: (i) => {
+      const r = read();
+      return r ? focusAt(r, i) : null;
+    },
   };
 })();

@@ -80,15 +80,21 @@ const ok = (cond, msg) => {
   ok(await page.isVisible(".cv-under .cf-pie") && await page.isVisible(".cv-under .cf-graph"), "the attention pie and graph are both shown");
   const items = await page.$$eval(".cv-under .cf-list li", (l) => l.map((x) => x.textContent));
   ok(items.length >= 3 && /Shot size/.test(items[0] + items[1]), "the list names every curiosity on, by share: " + items.slice(0, 4).join(" / "));
-  await page.click(".cv-under .cf-pie");
+  /* Jeremy 2026-10-05: two tabs, Viewer focus (the top 2 or 3 things, the pie, the graph, the list) and Moments */
+  const focus5 = await page.textContent(".cv-under .cf-focus");
+  ok(/ \+ /.test(focus5) && /Shot size/.test(focus5), "Viewer focus names the things holding attention: " + focus5);
+  ok((await page.textContent(".cv-under .cf-force")).length > 2, "the force driving the scene is the title: " + (await page.textContent(".cv-under .cf-force")));
+  const cards = await page.$$eval(".cv-card .cv-force", (l) => l.map((x) => x.textContent));
+  ok(cards.length === 13 && cards.every(Boolean), "every storyboard panel is titled with its force: " + cards.slice(0, 4).join(" / "));
+  const labels = await page.$$eval(".cv-card .cv-focus", (l) => l.map((x) => x.textContent));
+  ok(labels.every((x) => / \+ /.test(x)), "and labelled with 2 or 3 things holding attention: " + labels.slice(0, 3).join(" / "));
+  ok(!(await page.isVisible(".cv-under .cf-rows")), "the colored blocks wait in the Moments tab");
+  await page.click('.cv-under [data-cf-tab="moments"]');
   await page.waitForTimeout(150);
-  ok(!(await page.isVisible(".cv-under .cf-graph")) && (await page.$eval(".cv-under .cf-pie", (c) => c.clientWidth)) >= 100, "clicking the pie hides the graph and makes the pie bigger");
-  await page.click(".cv-under .cf-pie");
-  await page.waitForTimeout(150);
-  ok(await page.isVisible(".cv-under .cf-graph"), "clicking it again shows both");
+  ok(await page.isVisible(".cv-under .cf-rows") && !(await page.isVisible(".cv-under .cf-pie")), "Moments shows the blocks instead of the charts");
   await page.hover(".cv-under .cf-lead button:nth-of-type(4)");
-  const full = await page.textContent(".cv-under .cf-name");
-  ok(/^Leading: .{12,}/.test(full), "pointing at a shortened name shows it in full: " + full);
+  const full = await page.textContent(".cv-under .cf-pick");
+  ok(full.length > 20, "pointing at a block reads it in full at the top: " + full);
   const head0 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   await page.evaluate(() => CurioViewer.select(0));
   await page.evaluate(() => CurioViewer.play(true));

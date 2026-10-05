@@ -1481,6 +1481,8 @@
 .cv-views-menu small { color: var(--c-dim); font-size: 11px; }
 .cv-main { display: grid; grid-template-columns: 190px minmax(0, 1fr) 330px; gap: 6px; padding: 6px; min-height: 0; }
 .cv-pane { background: var(--c-panel); border-radius: 8px; min-height: 0; overflow: auto; }
+/* Jeremy 2026-10-05: the side panels scroll when their contents don't fit. */
+.cv-things, .cv-details .cv-body { overflow-y: auto; }
 .cv-things { padding: 10px; display: grid; align-content: start; gap: 6px; }
 .cv-things h3, .cv-details h3 { margin: 4px 0 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); }
 .cv-thing { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
@@ -1550,13 +1552,19 @@
 .cv-strip-head b { font-size: 13px; }
 .cv-strip-head .cv-k { color: var(--c-dim); font-size: 12px; margin-right: auto; }
 .cv-cards { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 6px; scroll-snap-type: x proximity; }
-.cv-card { flex: 0 0 228px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
+.cv-card { flex: 0 0 184px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
 .cv-root .cv-card { background: #f4efe3; color: #111; padding: 0; border-radius: 3px; }
 .cv-root .cv-card:hover { background: #fffaf0; }
 .cv-card.on { outline: 3px solid var(--c-accent); outline-offset: 2px; }
 .cv-card.now { outline: 3px solid var(--c-warm); outline-offset: 2px; }
 .cv-card canvas { width: 100%; aspect-ratio: 16 / 9; display: block; border-bottom: 3px solid #111; background: #333; }
 .cv-card .cv-cap { padding: 4px 7px 6px; font-size: 11px; line-height: 1.3; font-family: ${COMIC}; }
+/* Jeremy 2026-10-05: each panel is titled with the force driving the scene, and labelled at the bottom with the
+   2 (or 3) things holding the audience's attention, from Front and center (CurioFocusLane.panel). */
+.cv-card .cv-force { display: block; padding: 3px 44px 3px 7px; background: #111; color: #fde68a; font: 700 11px/1.3 system-ui, sans-serif; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-card .cv-focus { display: block; padding: 3px 7px 4px; border-top: 2px solid #111; background: #e6dcc6; color: #2b2418; font: 600 10.5px/1.3 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-card .cv-force:empty, .cv-card .cv-focus:empty { display: none; }
+.cv-root:not(.cv-comic) .cv-card .cv-cap { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .cv-card .cv-num { position: absolute; top: 4px; right: 4px; background: #111; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-family: system-ui; }
 .cv-card .cv-how { display: block; color: #6a5d4c; font-family: system-ui; font-size: 10px; margin-top: 2px; }
 .cv-addcard { flex: 0 0 120px; border: 2px dashed var(--c-line); background: transparent; color: var(--c-dim); border-radius: 6px; }
@@ -2166,7 +2174,7 @@
     const ps = film.panels;
     if (box.children.length !== ps.length + 1) {
       box.innerHTML =
-        ps.map((p, i) => `<button type="button" class="cv-card" data-i="${i}"><canvas width="480" height="270"></canvas><span class="cv-num"></span><span class="cv-cap"></span></button>`).join("") +
+        ps.map((p, i) => `<button type="button" class="cv-card" data-i="${i}"><span class="cv-force"></span><canvas width="480" height="270"></canvas><span class="cv-num"></span><span class="cv-cap"></span><span class="cv-focus"></span></button>`).join("") +
         `<button type="button" class="cv-addcard" data-act="addend">+ New panel<br/>at the end</button>`;
       thumbsDirty = true;
     }
@@ -2176,6 +2184,13 @@
       el.classList.toggle("on", i === cur);
       el.querySelector(".cv-num").textContent = `${i + 1} · ${p.sec}s`;
       el.querySelector(".cv-cap").innerHTML = `${esc(p.note || "(nothing written yet)")}<span class="cv-how">${esc(panelLine(p))}</span>`;
+      const fl = window.CurioFocusLane && typeof window.CurioFocusLane.panel === "function" ? window.CurioFocusLane.panel(i) : null;
+      const fe = el.querySelector(".cv-force");
+      const fo = el.querySelector(".cv-focus");
+      fe.textContent = (fl && fl.force) || "";
+      fe.title = fl && fl.force ? `What drives the scene and the plot forward here: ${fl.force}` : "";
+      fo.textContent = fl && fl.focus.length ? fl.focus.join(" + ") : "";
+      fo.title = fl && fl.focus.length ? `What holds the audience's attention here: ${fl.focus.join(", ")}` : "";
       el.title = "Click to work on this panel. Double-click to play from here.";
       if (thumbsDirty || el.dataset.drawn !== JSON.stringify([p, film.objects, film.look])) {
         const cv = el.querySelector("canvas");
