@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CHARACTER MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 65 to 80\n   1 Character path\n   2 Character speed\n   3 Toward the lens\n   4 Who moves\n   5 Body in frame\n   6 Move temper\n   7 Spacing\n   8 Drawn on\n   9 Overshoot\n  10 Overlap\n  11 Path shape\n  12 Squash and stretch\n  13 Key poses per line\n  14 Mouth shapes\n  15 Animation feel\n  16 Poses and body control\nCV-CC 2: MIDI channel 1, CC 81 to 96\n   1 Face acting\n   2 suite: Crossing\n   3 suite: Snappy cartoon\n   4 suite: Grounded realism\n   5 suite: The chase\n   6 suite: Bursting in\n   7 suite: Cartoon bounce\n   8 suite: Heavy and real\n   9 suite: Poker face\n  10 pair: When a person approaches, the camera pushes in\n  11 pair: When a character approaches, personal space shrinks\n  12 pair: When characters speed up, the cutting speeds up\n  13 pair: When the wind-up grows, the move lands bigger\n  14 pair: When the face goes big, the body follows\n  15 pair: When the eyes dart, the expression changes next\n  16 pairs: Movement drives the cutting\nCV-CC 3: MIDI channel 1, CC 97 to 97\n   1 pairs: Acting from the inside out"
+    "text": "CHARACTER MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 81 to 96\n   1 Character path\n   2 Character speed\n   3 Toward the lens\n   4 Who moves\n   5 Body in frame\n   6 Move temper\n   7 Spacing\n   8 Drawn on\n   9 Overshoot\n  10 Overlap\n  11 Path shape\n  12 Squash and stretch\n  13 Key poses per line\n  14 Mouth shapes\n  15 Animation feel\n  16 Poses and body control\nCV-CC 2: MIDI channel 1, CC 97 to 112\n   1 Face acting\n   2 suite: Crossing\n   3 suite: Snappy cartoon\n   4 suite: Grounded realism\n   5 suite: The chase\n   6 suite: Bursting in\n   7 suite: Cartoon bounce\n   8 suite: Heavy and real\n   9 suite: Poker face\n  10 suite: Old cartoon bounce\n  11 suite: Budget TV animation\n  12 pair: When a person approaches, the camera pushes in\n  13 pair: When a character approaches, personal space shrinks\n  14 pair: When characters speed up, the cutting speeds up\n  15 pair: When the wind-up grows, the move lands bigger\n  16 pair: When the face goes big, the body follows\nCV-CC 3: MIDI channel 2, CC 1 to 14\n   1 pair: When the eyes dart, the expression changes next\n   2 pair: When a character walks toward the lens, the shot becomes a close-up\n   3 pair: When a hand reaches toward the lens, it looms huge\n   4 pair: When the listener moves and the speaker stays still, the edit turns to the listener\n   5 pair: When a move snaps into place, it bounces past its mark\n   6 pair: When moves bounce past their mark, the scene feels playful\n   7 pair: When a character stops suddenly, the hair and clothes keep going\n   8 pair: When a character moves fast, every frame gets its own drawing\n   9 pair: When moves travel in straight lines, the character looks robotic\n  10 pairs: Movement drives the cutting\n  11 pairs: Acting from the inside out\n  12 pairs: Coming at the lens\n  13 pairs: Cartoon physics\n  14 pairs: Smooth or stiff"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 0
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -81,6 +49,38 @@
     }
    },
    "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
     32,
     0
    ]
@@ -91,25 +91,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     97,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
      -1,
      -1
     ],
     "midi": {
-     "channel": 0
+     "channel": 1
     }
    },
    "pos": [

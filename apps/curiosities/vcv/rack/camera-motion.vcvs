@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 33 to 48\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 suite: Handheld hunt\n  13 suite: Smooth push\n  14 suite: Object insert\n  15 suite: Loving camera\n  16 suite: Aggressive camera\nCV-CC 2: MIDI channel 1, CC 49 to 51\n   1 suite: Follows the voice\n   2 pair: When the camera goes handheld, gesture grows\n   3 pairs: The camera answers the body"
+    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 49 to 64\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 suite: Handheld hunt\n  13 suite: Smooth push\n  14 suite: Object insert\n  15 suite: Loving camera\n  16 suite: Aggressive camera\nCV-CC 2: MIDI channel 1, CC 65 to 74\n   1 suite: Follows the voice\n   2 suite: Video game camera\n   3 pair: When the camera goes handheld, gesture grows\n   4 pair: When the player takes the camera, the view becomes theirs\n   5 pair: When a character crosses the room, the camera move starts with them\n   6 pair: When the camera follows a character, it tracks alongside them\n   7 pair: When the camera moves on a breath, a small pause opens up\n   8 pair: When the camera jumps on loud moments, the shot gets shakier\n   9 pairs: The camera answers the body\n  10 pairs: Camera moves with a reason"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
     ],
     "midi": {
      "channel": 0
@@ -59,16 +59,16 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
      -1,
      -1,
      -1,
