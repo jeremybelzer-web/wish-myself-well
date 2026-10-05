@@ -267,6 +267,29 @@
     return out + k.caption(`${v("what")} standing for ${v("standsFor")}`);
   });
 
+  /* ======================= glimpseOfALife ======================= */
+  /* A passer-by crossing near the hero, with a window opening onto their own story above them. */
+  look("glimpseOfALife", (v, k, g) => {
+    const d = v.n("depth") / 5;
+    const sec = v.n("seconds");
+    const hw = idx(v, "how", 6);
+    const sh = idx(v, "ownShow", 5);
+    const ap = idx(v, "arcPoint", 5);
+    const ec = v.n("echo") / 5;
+    let out = stage(k);
+    out += guy(k, 60, { color: S.blue, look: 1, label: "hero" });
+    out += guy(k, 180, { color: k.mix(S.grey, S.orange, d), walk: 0.6 });
+    const ww = 20 + d * 110;
+    out += k.frame({ x: 180 - ww / 2, y: 8, w: ww, h: 20 + d * 40, color: S.gold });
+    out += k.text({ x: 180, y: 24 + d * 16, text: ["😂", "🎭", "💕", "🔪", "🍵"][sh], size: 10 + d * 10 });
+    out += k.text({ x: 210, y: 96, text: ["💬", "🎒", "📞", "🖼️", "🏠", "🤝"][hw], size: 12 });
+    out += marks(240, 104, 70, 5, ap + 1, S.purple, 4);
+    out += box(20, 104, Math.min(200, sec * 1.6), 4, S.gold, { rx: 2 });
+    if (ec > 0) out += `<path d="M75 50 Q120 ${r1(30 - ec * 6)} 165 50" stroke="${S.pink}" stroke-width="${r1(0.5 + ec * 2)}" fill="none" stroke-dasharray="3 3"/>`;
+    out += strip(k, [g.num("depth", "Depth"), g.num("seconds", "On screen", "s"), g.steps("how", "Shown by"), g.steps("ownShow", "Their show"), g.steps("arcPoint", "Their arc", S.purple), g.num("echo", "Echo", "", S.pink)]);
+    return out + k.caption(`${v.n("seconds")} seconds of ${v("ownShow")}`);
+  });
+
   /* ======================= typeTalk ======================= */
   /* A character with their type's number, a speech bubble sized by words, and a health bar bending toward stress. */
   look("typeTalk", (v, k, g) => {

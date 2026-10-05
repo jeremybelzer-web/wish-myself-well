@@ -107,6 +107,16 @@
     "use the weather": { what: "the weather" },
   });
 
+  W.say("glimpseOfALife", {
+    "give the extras a life": { depth: 4 },
+    "just a face in the crowd": { depth: 0 },
+    "a whole life in a moment": { depth: 5 },
+    "their life is a tragedy": { ownShow: "a tragedy" },
+    "their life is a comedy": { ownShow: "a comedy" },
+    "they're at their crisis": { arcPoint: "at their crisis" },
+    "mirrors the hero": { echo: 5 },
+  });
+
   W.say("typeTalk", {
     "talk like a perfectionist": { type: "1 the perfectionist" },
     "talk like a helper": { type: "2 the helper" },

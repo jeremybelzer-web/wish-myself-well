@@ -178,6 +178,25 @@
     },
   });
 
+  W.add("glimpseOfALife", {
+    window: {
+      faces: [
+        { face: "dial", slider: "depth" },
+        { face: "tiles", slider: "ownShow", icons: { "a comedy": "😂", "a tragedy": "🎭", "a romance": "💕", "a thriller": "🔪", "a quiet drama": "🍵" } },
+        { face: "ladder", slider: "arcPoint" },
+      ],
+      groups: [
+        { label: "The glimpse", sliders: ["depth", "seconds", "how"] },
+        { label: "Their own story", sliders: ["ownShow", "arcPoint", "echo"] },
+      ],
+      presets: [
+        { label: "The cab driver", plain: "A baby photo and a hospital bracelet on the dashboard, ten seconds of a thriller.", set: { depth: 4, seconds: 10, how: "something they carry", ownShow: "a thriller", arcPoint: "at their crisis", echo: 2 } },
+        { label: "The waitress's call", plain: "One side of a phone call reveals a romance ending.", set: { depth: 3, seconds: 20, how: "a phone call", ownShow: "a romance", arcPoint: "at the end", echo: 4 } },
+        { label: "Face in the crowd", plain: "Just a face, barely a life.", set: { depth: 0, seconds: 2, how: "a line they say", ownShow: "a quiet drama", arcPoint: "just starting out", echo: 0 } },
+      ],
+    },
+  });
+
   W.add("typeTalk", {
     window: {
       faces: [

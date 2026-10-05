@@ -108442,6 +108442,176 @@
    }
   },
   {
+   "id": "glimpseOfALife",
+   "level": "curiosity",
+   "label": "A glimpse of someone's whole life",
+   "plain": "A minor character crosses the story for a moment, and we see their whole life: their own arc, their own troubles, the show they'd be the star of. Like stepping into a different book for a moment.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "depth",
+   "sliders": [
+    {
+     "id": "depth",
+     "label": "How much of their life we see",
+     "plain": "From a face in passing (0) to a whole life in one moment (5).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "seconds",
+     "label": "How long they're on screen",
+     "plain": "How long the glimpse lasts.",
+     "range": {
+      "min": 1,
+      "max": 120,
+      "unit": "seconds",
+      "step": 5
+     },
+     "from": 1,
+     "to": 120,
+     "curve": "linear"
+    },
+    {
+     "id": "how",
+     "label": "What shows us their life",
+     "plain": "The detail that opens their world.",
+     "scale": [
+      "a line they say",
+      "something they carry",
+      "a phone call",
+      "a photo",
+      "their home",
+      "how they treat someone"
+     ],
+     "from": "a line they say",
+     "to": "how they treat someone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "ownShow",
+     "label": "The show they'd star in",
+     "plain": "What kind of story their own life is.",
+     "scale": [
+      "a comedy",
+      "a tragedy",
+      "a romance",
+      "a thriller",
+      "a quiet drama"
+     ],
+     "from": "a comedy",
+     "to": "a quiet drama",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "arcPoint",
+     "label": "Where they are in their own arc",
+     "plain": "The point of their own story we catch them at.",
+     "scale": [
+      "just starting out",
+      "climbing",
+      "at their crisis",
+      "after the fall",
+      "at the end"
+     ],
+     "from": "just starting out",
+     "to": "at the end",
+     "curve": "linear"
+    },
+    {
+     "id": "echo",
+     "label": "How much it echoes the hero",
+     "plain": "How much their life mirrors or answers the main character's.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A stranger's life can show the hero what they could become, or what they're about to lose.",
+    "theme": "Shows that everyone is the hero of their own story.",
+    "pull": "We want to follow the stranger, just for a minute.",
+    "cue": "visual",
+    "tryThis": "Let the cab driver's dashboard hold a baby photo and a hospital bracelet, and let him drive a little too fast."
+   }
+  },
+  {
    "id": "typeTalk",
    "level": "curiosity",
    "label": "Talks like their personality type",
@@ -277297,6 +277467,199 @@
    "tags": []
   },
   {
+   "id": "glimpse-echo-theme",
+   "level": "proximity",
+   "label": "When a stranger's life echoes the hero's, the theme sharpens",
+   "plain": "When a passing character's life echoes the hero's more, the theme said out loud rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "glimpseOfALife",
+    "slider": "echo",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "themeAloud",
+    "change": "rises"
+   },
+   "whenText": "a stranger's life echoes the hero's",
+   "thenText": "the theme sharpens",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "glimpse-foil",
+   "level": "proximity",
+   "label": "When we glimpse a whole life, a road not taken appears",
+   "plain": "When we see more of a passing character's life, the character they could become rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "glimpseOfALife",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "foil",
+    "change": "rises"
+   },
+   "whenText": "we glimpse a whole life",
+   "thenText": "a road not taken appears",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "approval-copying",
    "level": "proximity",
    "label": "When the need for approval grows, they copy the others",
@@ -315944,7 +316307,9 @@
     "inciting-open-questions",
     "hint-planted",
     "symbol-broken-theme",
-    "knows-more-suspense"
+    "knows-more-suspense",
+    "glimpse-echo-theme",
+    "glimpse-foil"
    ],
    "sliders": [
     {
@@ -316062,6 +316427,62 @@
     {
      "id": "chance:knows-more-suspense",
      "label": "How often knows-more-suspense",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:glimpse-echo-theme",
+     "label": "Delay of glimpse-echo-theme",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:glimpse-echo-theme",
+     "label": "How often glimpse-echo-theme",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:glimpse-foil",
+     "label": "Delay of glimpse-foil",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:glimpse-foil",
+     "label": "How often glimpse-foil",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

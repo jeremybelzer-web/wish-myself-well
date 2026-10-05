@@ -1,10 +1,10 @@
 /* data/db-depth-telling.js: the telling, borrowed from writing (Jeremy, 2026-10-05: research the curiosities of
    writing, keep the ones that apply most directly to film here, and send the writing-only ones to the separate
-   writing app). 11 curiosities: where the audience stands in the telling (the writing app's "listener's
+   writing app). 12 curiosities: where the audience stands in the telling (the writing app's "listener's
    perspective"), the telling we can't trust, the order the story is told in, a story told inside a story, a hint of
    what's to come, planted early and used later, how we learn what happened before, the moment that starts it all, a
    thing that stands for something bigger, talking like their personality type (Enneagram), and the theme said out
-   loud. Each has its own graded sliders and a momentum note, tied into suites, proximities and proximity suites.
+   loud, plus a glimpse of someone's whole life (like walking into a different book for a moment). Each has its own graded sliders and a momentum note, tied into suites, proximities and proximity suites.
    Ideas already in the database (whose eyes the shot sees through, story point of view, who knows first, talking to
    the camera, voice-over, a glimpse of what is coming, said against meant, the promise of the opening, the same
    moment from another side, a memory laid over the present, reading words out loud, how they talk marks who they
@@ -139,6 +139,18 @@
     ],
     [1, "When the thing breaks or is passed on, we feel the story turn without a word.", "Carries the theme in something we can see and hear.", "We watch the thing to know how the story is going.", "visual", "Let the cracked teapot from the wedding show up at each family dinner, and finally be glued back together."]);
 
+  c("glimpseOfALife", "A glimpse of someone's whole life", "structure",
+    "A minor character crosses the story for a moment, and we see their whole life: their own arc, their own troubles, the show they'd be the star of. Like stepping into a different book for a moment.",
+    [
+      ["depth", "How much of their life we see", [0, 5], "From a face in passing (0) to a whole life in one moment (5)."],
+      ["seconds", "How long they're on screen", [1, 120, "seconds"], "How long the glimpse lasts."],
+      ["how", "What shows us their life", ["a line they say", "something they carry", "a phone call", "a photo", "their home", "how they treat someone"], "The detail that opens their world.", U],
+      ["ownShow", "The show they'd star in", ["a comedy", "a tragedy", "a romance", "a thriller", "a quiet drama"], "What kind of story their own life is.", U],
+      ["arcPoint", "Where they are in their own arc", ["just starting out", "climbing", "at their crisis", "after the fall", "at the end"], "The point of their own story we catch them at."],
+      ["echo", "How much it echoes the hero", [0, 5], "How much their life mirrors or answers the main character's."],
+    ],
+    [1, "A stranger's life can show the hero what they could become, or what they're about to lose.", "Shows that everyone is the hero of their own story.", "We want to follow the stranger, just for a minute.", "visual", "Let the cab driver's dashboard hold a baby photo and a hospital bracelet, and let him drive a little too fast."]);
+
   /* ---------- the words ---------- */
 
   c("typeTalk", "Talks like their personality type", "lines",
@@ -253,6 +265,13 @@
     "When their type shows more strongly in their lines, how much their way of talking marks them rises within 2 beats.",
     { curiosity: "typeTalk", change: "rises" }, { curiosity: "wayOfTalking", change: "rises" }, 2);
 
+  P("glimpse-echo-theme", "When a stranger's life echoes the hero's, the theme sharpens", "structure",
+    "When a passing character's life echoes the hero's more, the theme said out loud rises within 2 beats.",
+    { curiosity: "glimpseOfALife", slider: "echo", change: "rises" }, { curiosity: "themeAloud", change: "rises" }, 2, { also: ["lines"] });
+  P("glimpse-foil", "When we glimpse a whole life, a road not taken appears", "structure",
+    "When we see more of a passing character's life, the character they could become rises within 2 beats.",
+    { curiosity: "glimpseOfALife", change: "rises" }, { curiosity: "foil", change: "rises" }, 2, { also: ["arc"] });
+
   /* ---------- proximity suites ---------- */
 
   PS("the-telling-turns", "The telling turns", "structure",
@@ -260,7 +279,7 @@
     ["addressed-fourth-wall", "doubt-same-moment", "doubt-subtext", "closer-telling-voiceover"]);
   PS("seeds-and-harvest", "Seeds and harvest", "plot",
     "A hard start raises questions, hints point ahead, the planted thing pays off, and the broken symbol says the theme.",
-    ["inciting-open-questions", "hint-planted", "symbol-broken-theme", "knows-more-suspense"]);
+    ["inciting-open-questions", "hint-planted", "symbol-broken-theme", "knows-more-suspense", "glimpse-echo-theme", "glimpse-foil"]);
   PS("time-out-of-order", "Time out of order", "structure",
     "The story starts at the end, jumps around, lays memories over the present and reads an old diary aloud.",
     ["ends-first-flash-forward", "jumps-memory", "frame-read-aloud", "told-not-shown-flat"]);

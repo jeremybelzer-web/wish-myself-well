@@ -22422,6 +22422,44 @@
    "then": "their way of talking stands out"
   },
   {
+   "id": "p:glimpse-echo-theme",
+   "proximity": "glimpse-echo-theme",
+   "label": "When a stranger's life echoes the hero's, the theme sharpens",
+   "from": {
+    "curiosity": "glimpseOfALife.echo",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "themeAloud",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a stranger's life echoes the hero's",
+   "then": "the theme sharpens"
+  },
+  {
+   "id": "p:glimpse-foil",
+   "proximity": "glimpse-foil",
+   "label": "When we glimpse a whole life, a road not taken appears",
+   "from": {
+    "curiosity": "glimpseOfALife",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "foil",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we glimpse a whole life",
+   "then": "a road not taken appears"
+  },
+  {
    "id": "p:approval-copying",
    "proximity": "approval-copying",
    "label": "When the need for approval grows, they copy the others",
@@ -28002,13 +28040,17 @@
     "inciting-open-questions",
     "hint-planted",
     "symbol-broken-theme",
-    "knows-more-suspense"
+    "knows-more-suspense",
+    "glimpse-echo-theme",
+    "glimpse-foil"
    ],
    "links": [
     "p:inciting-open-questions",
     "p:hint-planted",
     "p:symbol-broken-theme",
-    "p:knows-more-suspense"
+    "p:knows-more-suspense",
+    "p:glimpse-echo-theme",
+    "p:glimpse-foil"
    ]
   },
   {
