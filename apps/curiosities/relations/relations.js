@@ -69,12 +69,12 @@
     }
     const saved = load();
     const st = {
-      view: VIEWS.includes(saved.view) ? saved.view : "cube",
+      view: "cube", // the Cube matrix is always the first thing you see
       sel: [],
       picked: saved.picked || [],
       mine: { nodes: (saved.mine && saved.mine.nodes) || [], ties: (saved.mine && saved.mine.ties) || [] },
       slabBy: saved.slabBy === "workspace" ? "workspace" : "family",
-      camera: saved.camera || null,
+      camera: null, // each visit starts at the corridor; the camera is kept only while switching views
       tieFrom: "",
       adding: false,
       showAll: !!saved.showAll,
@@ -94,7 +94,7 @@
     st.mine.place = st.mine.place || saved.place || {};
     let g = G.build(G.fromDB(db), A, st.mine);
     st.picked = st.picked.filter((id) => g.byId.has(id));
-    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll, camera: st.camera });
+    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll });
     /* After the user adds or removes something: build the graph again and redraw, keeping the camera. */
     function rebuild() {
       g = G.build(G.fromDB(db), A, st.mine);
