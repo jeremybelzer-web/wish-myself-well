@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relationship map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="relations.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <p>Curiomatic · relationship map</p>
+        <h1>Relationship map</h1>
+        <p>Every curiosity, feeling, movement and character trait, and what each one is directly tied to. Flat, or as a 3D cube you can spin and fly into.</p>
+      </div>
+      <p><a href="../index.html">Back to Curiomatic</a></p>
+    </header>
+    <main><div id="relations"></div></main>
+    <script src="snapshot.js"></script>
+    <script src="archive.js"></script>
+    <script src="graph.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="relations.js"></script>
+    <script>
+      CurioRelations.mount(document.getElementById("relations"));
+    </script>
+  </body>
+</html>
