@@ -19,10 +19,16 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
 - **Cube slices**: the same block seen face on. Swipe right (or the right arrow) and the front slab goes to the
   back; swipe left and the back slab comes to the front. Click a slab's name to bring that face forward; each
   name counts the selection's ties on it. You can still turn it and double-click to zoom in.
-- **Lanes in depth**: the film's automation lanes over time as ribbons in 3D, the curiosity that moves most at the
-  back and the stiller ones in front. Turn it to any angle (Straight on, From the side, Spin). It reads the
-  Screen's own lanes (`CurioEngine`) when a film is open, else shows an example film and says so.
-- **Lanes, swipe**: the same lanes; swipe right or left to send the front lane back or bring the back one forward.
+- **Graph & pie**: a pie of the category by group on the left (click a slice to light that group) and a flat
+  graph on the right: every item a node round a circle, sorted by group, ties as lines bent toward the middle.
+- **3D graph**: the automation lanes as ribbons in depth, busiest at the back, shuffled like a deck: swipe right
+  sends the front lane back, swipe left brings the back one forward, click a lane or its name to bring it front.
+- **Storyboard**: a time card per moment; the big box is the curiosity changing most (front and center), the
+  small one the runner-up.
+- **Tracks**: Ableton Live style, one track per suite (its lane is the mix of its parts). ▸ opens it to its parts'
+  lanes and the Sparks inside; ⚙ opens a pop-up with a slider per part, Play and Record (touch-style: a held
+  slider is written in as the playhead passes), without opening the group. Recordings: `rec` in `curio-relations-v1`.
+- **Category picker**: every view can show all curiosities, one of the six groups, or one workspace.
 - **Flat list**: six columns, split by workspace, for reading names quickly.
 - **Your own**: Add a curiosity (tied to whatever is selected), Tie to… then click anything to draw a line,
   × to remove one. Inside the app these go into the curiosity database as your own ("my-") curiosities and
