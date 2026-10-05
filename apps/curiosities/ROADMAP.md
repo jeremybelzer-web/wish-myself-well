@@ -127,6 +127,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 772
 ## 4. Automation and performance
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
+- [x] A pop-up window for each category of suites (◎ Categories on the Screen): a pie of which suites play now, a knob per suite, a slider per curiosity, a radar web and a line graph across the film (Jeremy, 2026-10-05)
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
 - [x] Every database item shows up as automation lanes: all 393 curiosities, 204 suites, 190 proximities and 51 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
 - [x] Wearable MIDI (straps, gloves) presets for performers: Dancer, Actor and Comedian, with step-by-step learn and undo (PR #4)
