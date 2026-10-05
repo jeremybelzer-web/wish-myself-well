@@ -14,7 +14,9 @@
   const line = (x1, y1, x2, y2, c, w, dash) => `<line x1="${r1(x1)}" y1="${r1(y1)}" x2="${r1(x2)}" y2="${r1(y2)}" stroke="${c || INK}" stroke-width="${w || 1.5}"${dash ? ` stroke-dasharray="${dash}"` : ""} stroke-linecap="round"/>`;
   const path = (pts, c, w, fill, dash) => `<path d="${pts.map((p, i) => (i ? "L" : "M") + r1(p[0]) + " " + r1(p[1])).join(" ")}${fill ? " Z" : ""}" fill="${fill || "none"}" stroke="${c || INK}" stroke-width="${w || 1.5}" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`;
   const tag = (k, x, y, text, color, anchor, size) => k.label({ x, y, text, size: size || 8, color: color || "#aaa", anchor: anchor || "middle" });
-  const cap = (k, text) => `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.label({ x: k.W / 2, y: k.H - 5, text, size: r1(k.clamp(560 / Math.max(1, String(text).length), 6.5, 10)), color: "#f4f4f4" });
+  /* the size is worked out here, a hair under the exact fit, so a caption that fits is never cut by one letter */
+  const capSize = (t, max, min) => Math.max(min, Math.min(max, (312 / (Math.max(1, String(t).length) * 0.55)) * 0.995));
+  const cap = (k, text) => `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text, size: capSize(text, 10, 7), min: 7, w: 312, color: "#f4f4f4" });
   const box = (x, y, w, h, o) => rect(x, y, w, h, (o && o.fill) || "#fff", { stroke: INK, sw: (o && o.sw) || 1.5, op: o && o.op });
   const star = (x, y, r, c, n, inner) => {
     n = n || 8;
@@ -95,11 +97,12 @@
     out += tag(k, 290, 16, "next page", "#999", "middle", 7);
     /* big turns, page by page */
     const every = Math.max(1, v.n("turnsBetween"));
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 14; i++) {
       const big = i % every === every - 1;
       out += rect(18 + i * 14, 148, 10, 10, big ? "#ffd166" : "#3a3a40", { stroke: "#555" });
     }
-    return out + cap(k, `${mode} · hook on the ${v("hookSide")} · ${v("lastPanel")} · ${v("turnUrge")} · big turn every ${every} page${every === 1 ? "" : "s"}`);
+    out += k.label({ x: 312, y: 156, text: `big turn every ${every} page${every === 1 ? "" : "s"}`, size: 7, color: "#ffd166", anchor: "end" });
+    return out + cap(k, `${mode} · hook on the ${v("hookSide")} · ${v("lastPanel")} · ${v("turnUrge")}`);
   });
 
   /* Panels per page: rows, how strict the grid is, the reading order, and how the count swings page to page. */
@@ -155,7 +158,7 @@
     out += `<ellipse cx="160" cy="128" rx="14" ry="8" fill="#fff"/><circle cx="${r1(160 + pace * 6)}" cy="128" r="4" fill="${INK}"/>`;
     for (let i = 0; i < 1 + Math.round(pace * 4); i++) out += line(178, 122 + i * 4, 186 + pace * 16, 122 + i * 4, "#ffd166", 1.5);
     const tp = Math.log(v.n("timePerPanel") / 0.5) / Math.log(1200);
-    out += k.clock({ x: 270, y: 128, r: 14, p: tp }) + tag(k, 270, 154, `${r1(v.n("timePerPanel"))} s of story`, "#ccc", "middle", 7);
+    out += k.clock({ x: 270, y: 128, r: 14, p: tp }) + tag(k, 270, 154, `${Math.round(v.n("timePerPanel") * 100) / 100} s of story`, "#ccc", "middle", 7);
     return out + cap(k, `${n} panel${n === 1 ? "" : "s"} · ${rows} row${rows === 1 ? "" : "s"} · ${v("grid")} · ${flow} · ${v("readPace")}`);
   });
 
@@ -188,7 +191,7 @@
     const dots = Math.round(cl * 6);
     for (let i = 0; i < dots; i++) out += `<circle cx="${r1(mx - 10 + i * 4)}" cy="${r1(10 - (i % 2) * 2)}" r="${r1(1.5 + cl * 1.5)}" fill="#ffd166"/>`;
     if (cl > 0) out += `<ellipse cx="${mx}" cy="10" rx="${r1(8 + cl * 18)}" ry="${r1(4 + cl * 4)}" fill="none" stroke="#ffd166" stroke-width="1"/>`;
-    return out + cap(k, `${mode} gutter · width ${v.n("width")} · ${v("gutterColor")} · ${v.n("gutterSlant")}° · skips ${skip} · reader fills ${v("closure")}`);
+    return out + cap(k, `${mode} · width ${v.n("width")} · ${v("gutterColor")} · ${v.n("gutterSlant")}° · skips ${skip} · reader fills ${v("closure")}`);
   });
 
   /* Balloons and captions in a panel: shape, size, where it sits, its tail, and how much the caption knows. */
@@ -204,8 +207,14 @@
     /* the balloon */
     const bw = 50 + size * 70;
     const bh = 22 + size * 22;
-    const bx = k.clamp(40 + across * 220, 18 + bw / 2, 302 - bw / 2);
-    const by = k.clamp(24 + place * 90, 14 + bh / 2, 148 - bh / 2);
+    const bx = 18 + bw / 2 + across * Math.max(0, 284 - bw); /* the whole slider maps inside the panel, no clamping */
+    let by = k.clamp(24 + place * 90, 14 + bh / 2, 148 - bh / 2);
+    const iv = v("innerVoice");
+    /* keep clear of the caption box (top left) and the inner-voice box or bubble */
+    if (bx - bw / 2 < 142 && by - bh / 2 < 34) by = 36 + bh / 2;
+    if (iv === "caption box" && bx + bw / 2 > 224 && by + bh / 2 > 118) by = Math.max(36 + bh / 2, 116 - bh / 2);
+    if (iv === "thought bubble" && bx + bw / 2 > 226 && by - bh / 2 < 66) by = Math.max(by, 70 + bh / 2);
+    by = Math.min(by, 148 - bh / 2);
     const balOp = mode === "caption" ? 0.25 : 1;
     let bal = "";
     if (tail === "the speaker") bal += path([[bx - 6, by + bh / 2 - 3], [204, 76], [bx + 6, by + bh / 2 - 3]], INK, 1.5, "#fff");
@@ -218,10 +227,9 @@
     const capOp = mode === "balloon" ? 0.3 : 1;
     out += `<g opacity="${capOp}">${rect(20, 14, 120, 18, "#fff3b0", { stroke: INK, sw: 1.5 })}${k.text({ x: 80, y: 27, text: capText, size: 9, color: INK, italic: knows === "everything" })}</g>`;
     /* inner thoughts */
-    const iv = v("innerVoice");
     if (iv === "thought bubble") out += `<ellipse cx="262" cy="34" rx="34" ry="16" fill="#fff" stroke="${INK}" stroke-width="1.5"/><circle cx="234" cy="56" r="4" fill="#fff" stroke="${INK}"/><circle cx="226" cy="64" r="2.5" fill="#fff" stroke="${INK}"/>` + k.text({ x: 262, y: 38, text: "hmm…", size: 10, color: INK, italic: true });
     if (iv === "caption box") out += rect(226, 120, 72, 24, "#d8ecff", { stroke: INK, sw: 1.5 }) + k.text({ x: 262, y: 136, text: "I knew it.", size: 9, color: INK, italic: true });
-    return out + cap(k, `${mode} · ${shape} · size ${v.n("size")} · ${v("placement")} · tail to ${tail} · caption knows ${knows}`);
+    return out + cap(k, `${mode} · ${shape} · size ${v.n("size")} · ${v("placement")} · ${tail === "no tail" ? "no tail" : `tail to ${tail.replace(/^the /, "")}`} · knows ${knows}`);
   });
 
   /* Panel sizes on a page: the biggest panel and what it holds, the smallest, and how often a splash comes. */
@@ -282,6 +290,7 @@
       const splash = every > 0 && i % every === every - 1;
       out += rect(140 + (i % 10) * 16, 90 + Math.floor(i / 10) * 22, 12, 18, splash ? "#ffd166" : "#3a3a40", { stroke: "#555" });
     }
+    out += k.label({ x: 312, y: 12, text: `biggest panel ${v.n("biggestShare")}%`, size: 7, color: "#ddd", anchor: "end" });
     return out + cap(k, `${v("setting")} · ${shape} biggest panel for ${bf} · variation ${v.n("variation")} · ${v("eyePull")}`);
   });
 
@@ -373,22 +382,35 @@
     out += fig(k, 61, 130, 1.2, { arms: 0.6 }) + rect(150, 70, 30, 40, "#a08060", { stroke: INK }) + fig(k, 259, 130, 1.2, { mood: -0.6, eyes: 1 });
     /* the main sound word */
     const span = spread === "a whole page" ? 3 : spread === "two panels" ? 2 : 1;
-    const fs = (mode === "page-sized" ? 46 : mode === "small" ? 16 : 26) * (0.6 + size * 0.8) * (0.7 + span * 0.3);
+    const want = (mode === "page-sized" ? 46 : mode === "small" ? 16 : 26) * (0.6 + size * 0.8) * (0.7 + span * 0.3);
+    /* keep the word inside the panels it spans and the frame's height */
+    const shownTilt = tilt * 0.6; /* drawn a little gentler so a big word still fits */
+    const tr = (Math.abs(shownTilt) * Math.PI) / 180;
+    const wk = style === "explosive" ? 3.7 : 3.2; /* word width per font size (bold, spaced letters run wide) */
+    const fs = Math.min(want, (span * 99 - 10) / (wk * Math.cos(tr) + Math.sin(tr)), 124 / (wk * Math.sin(tr) + Math.cos(tr)), 70);
     const cx = 14 + (span * 99) / 2;
-    const cy = 64;
+    const cy = 16 + (wk * fs * Math.sin(tr) + fs * Math.cos(tr)) / 2 + fs * 0.35;
     const op = mode === "none" ? 0.3 : 1;
     let word = "";
-    if (style === "explosive") word += star(cx, cy - fs * 0.3, fs * 0.9 + 6, "#ffffff", 10, 0.6);
+    if (style === "explosive") word += star(cx, cy - fs * 0.3, Math.min(fs * 0.9 + 6, 56), "#ffffff", 10, 0.6);
     const tx = k.text({ x: cx, y: cy, text: "KRAK", size: fs, color: col, weight: style === "clean" ? 600 : 900, italic: style === "hand-drawn", outline: style === "explosive" ? INK : style === "hand-drawn" ? INK : null, outlineW: style === "explosive" ? 3 : 1, spacing: style === "explosive" ? 2 : 0 });
     if (inP === "in a box") word += rect(cx - fs * 1.5, cy - fs * 0.9, fs * 3, fs * 1.2, "#fff", { stroke: INK, sw: 1.5 });
     word += tx;
-    out += `<g opacity="${op}" transform="rotate(${r1(tilt)} ${r1(cx)} ${r1(cy)})">${word}</g>`;
+    out += `<g opacity="${op}" transform="rotate(${r1(shownTilt)} ${r1(cx)} ${r1(cy)})">${word}</g>`;
     if (inP === "woven into the art") out += fig(k, 61, 130, 1.2, { arms: 0.6 }) + rect(150, 70, 30, 40, "#a08060", { stroke: INK, op: 0.9 });
     /* the smaller sound words elsewhere on the page */
     const sp = v.n("soundsPerPage");
     const extras = ["tak", "fwip", "thud", "clik", "vrrm", "pok", "zing", "bonk", "whup", "tsss"];
-    for (let i = 1; i < sp; i++) out += k.text({ x: 30 + k.rnd(i + 3) * 260, y: 118 - k.rnd(i + 8) * 70, text: extras[i % 10], size: 9, color: col, weight: 700, italic: style === "hand-drawn", alpha: op });
+    const hw = (wk * fs * Math.cos(tr) + fs * Math.sin(tr)) / 2 + 6;
+    const hh = (wk * fs * Math.sin(tr) + fs * Math.cos(tr)) / 2 + 4;
+    const wcy = cy - fs * 0.35;
+    const slots = [];
+    [30, 128, 112, 76].forEach((y, r) => [0, 1, 2].forEach((pi) => [20, 76].forEach((dx) => slots.push([14 + pi * 99 + dx, y]))));
+    const free = slots.filter(([x, y]) => Math.abs(x - cx) > hw || Math.abs(y - wcy) > hh);
+    /* only where the big word is not: past that, the count under the page still says how many */
+    for (let i = 1; i < Math.min(sp, free.length + 1); i++) { const [x, y] = free[i - 1]; out += k.text({ x, y, text: extras[i % 10], size: 9, color: col, weight: 700, italic: style === "hand-drawn", alpha: op }); }
     out += tag(k, 160, 154, `${sp} sound word${sp === 1 ? "" : "s"} on the page`, "#aaa");
+    out += k.label({ x: 312, y: 12, text: `size ${v.n("size")}/5`, size: 7, color: "#ddd", anchor: "end" });
     return out + cap(k, `${mode} · ${style} · ${v("soundColor")} · ${inP} · ${spread} · tilt ${tilt}°`);
   });
 
