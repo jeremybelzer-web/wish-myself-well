@@ -6,9 +6,16 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
 
 - **Flat matrix**: six columns (Character, Feeling, Body & movement, Camera & look, Sound & words, Story & cut),
   split by workspace. Click anything and lines run to everything it is directly tied to.
+- **Layers**: flat grids stacked like the slices of a cube (6 layers, or one per workspace). Swipe right, the
+  right arrow or a sideways trackpad swipe sends the front layer to the back; left brings the back one forward.
+  A picked curiosity draws lines on the front layer and each tab counts its ties on that layer.
 - **3D cube**: the same six columns as six slabs of a cube. Drag to spin it all the way round, scroll or pinch to
-  zoom, click to select. Double-click a curiosity to fly inside the cube to it; double-click empty space to fly
-  to the middle, or back out.
+  zoom, click to select. Double-click flies closer to what you clicked (or to the curiosity nearest that spot),
+  and each double-click goes further in, like a map. Once you are inside, dragging looks around you. Show every
+  proximity draws the whole web of cause and effect; Move curiosities lets you drag them somewhere else.
+- **Your own**: Add a curiosity (tied to whatever is selected), Tie to… then click anything to draw a line,
+  × to remove one. Your curiosities, ties and moves stay on this device (`curio-relations-v1`); they are not
+  in CuriosityDB yet.
 - **Movement archive** (a pop-up): what a body does, or stops doing, for each feeling. Pick a feeling to see its
   movements, or pick movements and it says which feelings they read as. Show on the map, or Copy as a note.
 
@@ -22,6 +29,7 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
 | Feels, Reacts to, Moves like this | a trait to a feeling, a figure, a movement | `archive.js` |
 | Made on screen with | an archive item to the film curiosity that sets it | `archive.js` |
 | A word on | a feeling to the database's Emotion curiosity | `archive.js` |
+| Your tie | anything to anything | drawn on the map |
 
 Feelings the database already has (shame, pride, grief...) are those curiosities, not copies.
 

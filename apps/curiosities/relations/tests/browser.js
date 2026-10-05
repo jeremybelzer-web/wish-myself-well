@@ -102,7 +102,16 @@ const ok = (cond, msg) => {
         return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
       });
       await page.mouse.dblclick(spot.x, spot.y);
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1100);
+      // Like a map: the curiosity is now in the middle, and each double-click on it goes further in.
+      const mid = await page.evaluate(() => {
+        const r = document.querySelector(".rl-cube canvas").getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      });
+      for (let i = 0; i < 2; i++) {
+        await page.mouse.dblclick(mid.x, mid.y);
+        await page.waitForTimeout(1100);
+      }
       const flown = await page.evaluate(() => {
         const c = document.getElementById("relations")._curioRelations.view().inner();
         return { r: c.orbit.r, sel: document.getElementById("relations")._curioRelations.selected() };
@@ -119,6 +128,96 @@ const ok = (cond, msg) => {
       ok(await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().orbit.r > 150), "Fly out goes back outside the cube");
       await page.screenshot({ path: path.join(SHOTS, "relations-cube.png") });
     } else ok(await page.locator(".rl-cube .rl-note").count(), "without three.js the cube says so");
+
+    // Round two: layers, adding your own, ties, moving, flying in step by step, looking around.
+    await page.click('[data-view="layers"]');
+    await page.waitForSelector(".rl-layer.front");
+    const before = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
+    const st0 = await page.locator(".rl-stack").boundingBox();
+    await page.mouse.move(st0.x + 100, st0.y + st0.height - 20);
+    await page.mouse.down();
+    await page.mouse.move(st0.x + 300, st0.y + st0.height - 20, { steps: 5 });
+    await page.mouse.up();
+    let after = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
+    ok(after[after.length - 1] === before[0] && after[0] === before[1], "swiping right sends the front layer to the back");
+    await page.keyboard.press("ArrowLeft");
+    after = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
+    ok(after[0] === before[0], "the left arrow brings the back layer to the front");
+    await page.click('[data-by="workspace"]');
+    const many = await page.locator(".rl-layer").count();
+    ok(many > 30, `one layer per workspace (${many})`);
+    await page.click('[data-by="family"]');
+    await page.click('.rl-cell[data-id="tr-suspicious-authority"]');
+    ok((await page.locator(".rl-layer.front .rl-svg line").count()) > 0 && (await page.locator(".rl-tabs b").count()) >= 3, "a picked cell draws lines on its layer and counts ties on the other layers");
+    await page.screenshot({ path: path.join(SHOTS, "relations-layers.png") });
+
+    await page.click('[data-act="add"]');
+    await page.fill("#rl-new-name", "Distrust of doctors");
+    await page.selectOption("#rl-new-family", "character");
+    await page.click('.rl-form button[type="submit"]');
+    ok((await page.textContent(".rl-side h2")) === "Distrust of doctors", "Add a curiosity puts a new one on the map");
+    const mine = await page.evaluate(() => document.getElementById("relations")._curioRelations.graph.links("mine-distrust-of-doctors").map((l) => l.id));
+    ok(mine.includes("tr-suspicious-authority"), "it is tied to what was selected");
+    await page.click('.rl-side [data-act="tie"]');
+    await page.fill(".rl-find input", "Shallow breathing");
+    await page.click('.rl-hits button[data-id="mv-shallow-breath"]');
+    const tied = await page.evaluate(() => document.getElementById("relations")._curioRelations.graph.links("mine-distrust-of-doctors").map((l) => l.id));
+    ok(tied.includes("mv-shallow-breath"), "Tie to… then clicking another draws a new line");
+    await page.click('.rl-side .rl-mine button[aria-label="Remove this tie"]');
+    const left = await page.evaluate(() => document.getElementById("relations")._curioRelations.graph.links("mine-distrust-of-doctors").length);
+    ok(left === 1, "× removes a tie you drew");
+
+    await page.click('[data-view="cube"]');
+    if (THREE_FILE) {
+      await page.waitForSelector(".rl-cube canvas");
+      await page.waitForTimeout(300);
+      const view = () => page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner());
+      const box = await page.locator(".rl-cube canvas").boundingBox();
+      const cx = box.x + box.width / 2;
+      const cy = box.y + box.height / 2;
+      await page.click('[data-c="out"]');
+      await page.waitForTimeout(1100);
+      const r = async () => page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().orbit.r);
+      const r0 = await r();
+      await page.mouse.dblclick(box.x + 20, box.y + 20);
+      await page.waitForTimeout(1100);
+      const r1 = await r();
+      await page.mouse.dblclick(box.x + 20, box.y + 20);
+      await page.waitForTimeout(1100);
+      const r2 = await r();
+      ok(r1 < r0 * 0.6 && r2 < r1 * 0.6, `each double-click flies further in (${r0.toFixed(0)}, ${r1.toFixed(0)}, ${r2.toFixed(0)})`);
+      const eye0 = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().camera.position.toArray());
+      await page.mouse.move(cx, cy);
+      await page.mouse.down();
+      await page.mouse.move(cx + 250, cy + 40, { steps: 6 });
+      await page.mouse.up();
+      await page.waitForTimeout(100);
+      const eye1 = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().camera.position.toArray());
+      ok(eye0.every((v, i) => Math.abs(v - eye1[i]) < 0.5), "inside, dragging looks around without moving where you stand");
+      await page.click('[data-c="all"]');
+      ok(await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).showAll === true), "Show every proximity stays on");
+      await page.click('[data-c="out"]');
+      await page.waitForTimeout(1100);
+      await page.screenshot({ path: path.join(SHOTS, "relations-cube-web.png") });
+      // Move: drag the selected curiosity somewhere else.
+      await page.click('[data-c="out"]');
+      await page.evaluate(() => document.getElementById("relations")._curioRelations.select("em-suspicion"));
+      await page.waitForTimeout(1100);
+      const sp = await page.evaluate(() => {
+        const c = document.getElementById("relations")._curioRelations.view().inner();
+        const p = c.pos.get("em-suspicion");
+        const v = new THREE.Vector3(p[0], p[1], p[2]).project(c.camera);
+        const r = c.host.getBoundingClientRect();
+        return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+      });
+      await page.click('[data-c="move"]');
+      await page.mouse.move(sp.x, sp.y);
+      await page.mouse.down();
+      await page.mouse.move(sp.x + 120, sp.y + 80, { steps: 6 });
+      await page.mouse.up();
+      const moved = await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).moved["em-suspicion"]);
+      ok(Array.isArray(moved), "Move curiosities: a dragged curiosity stays where it was put");
+    }
 
     // Inside the app, from the Library.
     await page.goto(base + "index.html");

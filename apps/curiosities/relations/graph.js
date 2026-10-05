@@ -11,8 +11,9 @@
      moves    a trait shows in a movement
      film     an archive item is made on screen with this curiosity
      word     a feeling is one of the words on the database's Emotion curiosity
+     mine     a tie the user drew on the map (A leads to B)
 
-   CurioRelations.build(data, archive) returns { nodes, byId, edges, links(id), families }.
+   CurioRelations.build(data, archive, mine) returns { nodes, byId, edges, links(id), families }.
    Node families are the six slabs of the cube and the six columns of the flat matrix. */
 (function (root) {
   const FAMILIES = [
@@ -23,7 +24,7 @@
     { id: "sound", label: "Sound & words", kinds: [], workspaces: ["lines", "music", "audio-mix", "titles"] },
     { id: "story", label: "Story & cut", kinds: [], workspaces: ["structure", "transitions", "speed", "page"] },
   ];
-  const KIND_LABEL = { trait: "Character traits", figure: "People they react to", emotion: "Feelings", movement: "Movements & stillness" };
+  const KIND_LABEL = { mine: "Made by you", trait: "Character traits", figure: "People they react to", emotion: "Feelings", movement: "Movements & stillness" };
   const TYPES = {
     leads: { label: "Leads to", back: "Follows from" },
     suite: { label: "Together in a suite", back: "Together in a suite" },
@@ -33,6 +34,7 @@
     moves: { label: "Moves like this", back: "Shown by the trait" },
     film: { label: "Made on screen with", back: "Used for" },
     word: { label: "A word on", back: "Has the word" },
+    mine: { label: "Your tie: leads to", back: "Your tie: follows from" },
   };
   const SUITE_CAP = 12; // a suite bigger than this is a whole look, not a direct tie between its members
 
@@ -41,7 +43,8 @@
     return f ? f.id : "story";
   }
 
-  function build(data, archive) {
+  /* mine: { nodes: [{ id: "mine-...", label, family }], ties: [{ a, b }] }, what the user added on the map. */
+  function build(data, archive, mine) {
     const nodes = [];
     const byId = new Map();
     const wsLabel = new Map((data.workspaces || []).map((w) => [w.id, w.label]));
@@ -67,6 +70,9 @@
     A.movements.forEach((m) => add({ id: m.id, label: m.label, plain: m.plain, kind: "movement", group: "kind:movement", groupLabel: KIND_LABEL.movement, family: "body", part: m.group, still: !!m.still }));
     A.traits.forEach((t) => add({ id: t.id, label: t.label, plain: t.plain, kind: "trait", group: "kind:trait", groupLabel: KIND_LABEL.trait, family: "character" }));
     A.figures.forEach((f) => add({ id: f.id, label: f.label, plain: f.plain, kind: "figure", group: "kind:figure", groupLabel: KIND_LABEL.figure, family: "character" }));
+
+    const M = mine || { nodes: [], ties: [] };
+    (M.nodes || []).forEach((n) => add({ id: n.id, label: n.label, plain: n.plain || "Made by you on the map.", kind: "mine", group: "kind:mine", groupLabel: KIND_LABEL.mine, family: FAMILIES.some((f) => f.id === n.family) ? n.family : "story" }));
 
     const edges = [];
     const seen = new Map();
@@ -108,6 +114,8 @@
       t.movements.forEach((m) => edge(t.id, m, "moves"));
       t.curiosities.forEach((c) => edge(t.id, c, "film"));
     });
+
+    (M.ties || []).forEach((t) => edge(t.a, t.b, "mine"));
 
     const adj = new Map(nodes.map((n) => [n.id, []]));
     edges.forEach((e) => {

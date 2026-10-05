@@ -127,7 +127,7 @@ Library, Bring in a video (`media/media.js`, `window.CurioMedia`) follows Final 
 
 ## Relationship map (relations/)
 
-Library, Relationship map (`relations/load.js`, `window.CurioRelations`): every curiosity plus the emotion-movement archive (`relations/archive.js`: feelings, movements and stillness, character traits, the people they react to), shown as a flat matrix or a 3D cube you can spin and fly into; selecting one draws lines to everything it is directly tied to (proximities, suites, and the archive's ties). The Movement archive pop-up picks movements for a feeling. After a database change run `node relations/tools/make-snapshot.js`. See `relations/README.md`.
+Library, Relationship map (`relations/load.js`, `window.CurioRelations`): every curiosity plus the emotion-movement archive (`relations/archive.js`: feelings, movements and stillness, character traits, the people they react to), shown as a flat matrix, swipeable stacked layers, or a 3D cube you can spin, fly into by double-clicking and look around inside; users can add their own curiosities and ties and move nodes (kept in localStorage `curio-relations-v1`); selecting one draws lines to everything it is directly tied to (proximities, suites, and the archive's ties). The Movement archive pop-up picks movements for a feeling. After a database change run `node relations/tools/make-snapshot.js`. See `relations/README.md`.
 
 ## 3D characters (rig/)
 
