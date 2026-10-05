@@ -471,6 +471,17 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-knav-b { background: none; box-shadow: none; padding: 0 2px; font-size: 9px; line-height: 1; color: var(--cc-dim); border-radius: 3px; }
 .sc-page .sc-knav-b:hover:not(:disabled) { background: var(--cc-hover); color: var(--cc-accent); }
 .sc-page .sc-knav-b:disabled { opacity: 0.25; cursor: default; }
+/* CapCut's place for the keyframe ◇: the right end of each setting's row (after the value), in Details and in the
+   windows; a heading's ◇ (CapCut's section diamond) sits at the right of the heading. */
+.sc-ctl.sc-ctl-k { grid-template-columns: 92px minmax(0, 1fr) auto; }
+.sc-ctl-k > .sc-knav { margin: 0 0 0 4px; }
+.sc-ctl-k > .sc-key { padding: 0 0 0 4px; }
+.sc-wctl-h > .sc-knav { margin: 0 0 0 2px; }
+.sc-wpart-h { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.sc-page .sc-keyall { font-size: 13px; padding: 0 2px; }
+.sc-page .sc-keyall.some { color: var(--cc-warm); opacity: 0.7; }
+.sc-page .sc-keyall.here { color: var(--cc-warm); }
+.sc-page .sc-win-h .sc-keyall-t { margin-left: auto; }
 /* Frame shape (CapCut's Ratio): my film's frame takes the shape, no taller than the wide frame, the picture cropped to fill it in the middle. */
 .sc-ratio { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--cc-dim); }
 .sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) { container-type: size; margin-inline: auto; }
