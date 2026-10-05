@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COLOR\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 33 to 48\n   1 Black and white to full color\n   2 Color tint\n   3 Filter color\n   4 Number of main colors\n   5 One color that pops\n   6 Warm to cool\n   7 Color change in the scene\n   8 How true skin looks\n   9 A color for each character\n  10 Color across the whole film\n  11 A color for each place or time\n  12 A color that warns\n  13 Colors that clash on purpose\n  14 A color saved for big moments\n  15 Two colors of light on one face\n  16 Dressed in the colors of the room\nCV-CC 2: MIDI channel 12, CC 49 to 64\n   1 suite: Color lens\n   2 suite: The whole look\n   3 suite: Teal and orange\n   4 suite: Faded memory\n   5 suite: Black and white with one color\n   6 suite: Bleak gray\n   7 suite: Color-coded worlds\n   8 suite: Red means danger\n   9 suite: A fight under neon\n  10 suite: The gold moments\n  11 pair: When the color filter gets strong, the number of main colors drops\n  12 pair: When anger rises, the color runs warm\n  13 pair: When fear rises, the color drains\n  14 pair: When one color pops, the audience's eye locks on it\n  15 pair: When the filter turns red, the danger feels close\n  16 pair: When skin color looks far from real, the audience feels something is wrong\nCV-CC 3: MIDI channel 12, CC 65 to 80\n   1 pair: When one person's color rubs off on a friend, the warmth grows\n   2 pair: When two people's colors fight, their egos clash\n   3 pair: When the color travels far, the hero's change shows\n   4 pair: When colors leak between worlds, the storylines cross\n   5 pair: When the warning color shows up, dread rises\n   6 pair: When one color keeps popping, it becomes a warning\n   7 pair: When the colors clash harder, the tension climbs\n   8 pair: When one piece clashes, the whole frame starts to clash\n   9 pair: When the saved color comes back, the old feeling comes with it\n  10 pair: When a color is saved for big moments, it pops when it comes\n  11 pair: When the two colors mean a torn mind, the colors start to go wrong\n  12 pair: When they melt into the room, loneliness grows\n  13 pair: When they dress apart from the crowd, they stop melting into the room\n  14 pairs: Color follows anger, fear and joy\n  15 pairs: One red thing\n  16 pairs: Red means run\nCV-CC 4: MIDI channel 12, CC 81 to 82\n   1 pairs: Worlds collide\n   2 pairs: Colors that speak"
+    "text": "COLOR\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 81 to 96\n   1 Black and white to full color\n   2 Color tint\n   3 Filter color\n   4 Number of main colors\n   5 One color that pops\n   6 Warm to cool\n   7 Color change in the scene\n   8 How true skin looks\n   9 A color for each character\n  10 Color across the whole film\n  11 A color for each place or time\n  12 A color that warns\n  13 Colors that clash on purpose\n  14 A color saved for big moments\n  15 Two colors of light on one face\n  16 Dressed in the colors of the room\nCV-CC 2: MIDI channel 12, CC 97 to 112\n   1 suite: Color lens\n   2 suite: The whole look\n   3 suite: Teal and orange\n   4 suite: Faded memory\n   5 suite: Black and white with one color\n   6 suite: Bleak gray\n   7 suite: Color-coded worlds\n   8 suite: Red means danger\n   9 suite: A fight under neon\n  10 suite: The gold moments\n  11 pair: When the color filter gets strong, the number of main colors drops\n  12 pair: When anger rises, the color runs warm\n  13 pair: When fear rises, the color drains\n  14 pair: When one color pops, the audience's eye locks on it\n  15 pair: When the filter turns red, the danger feels close\n  16 pair: When skin color looks far from real, the audience feels something is wrong\nCV-CC 3: MIDI channel 13, CC 1 to 16\n   1 pair: When one person's color rubs off on a friend, the warmth grows\n   2 pair: When two people's colors fight, their egos clash\n   3 pair: When the color travels far, the hero's change shows\n   4 pair: When colors leak between worlds, the storylines cross\n   5 pair: When the warning color shows up, dread rises\n   6 pair: When one color keeps popping, it becomes a warning\n   7 pair: When the colors clash harder, the tension climbs\n   8 pair: When one piece clashes, the whole frame starts to clash\n   9 pair: When the saved color comes back, the old feeling comes with it\n  10 pair: When a color is saved for big moments, it pops when it comes\n  11 pair: When the two colors mean a torn mind, the colors start to go wrong\n  12 pair: When they melt into the room, loneliness grows\n  13 pair: When they dress apart from the crowd, they stop melting into the room\n  14 pairs: Color follows anger, fear and joy\n  15 pairs: One red thing\n  16 pairs: Red means run\nCV-CC 4: MIDI channel 13, CC 17 to 18\n   1 pairs: Worlds collide\n   2 pairs: Colors that speak"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
      "channel": 11
@@ -59,22 +59,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
     ],
     "midi": {
      "channel": 11
@@ -91,25 +91,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
-     "channel": 11
+     "channel": 12
     }
    },
    "pos": [
@@ -123,8 +123,8 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
+     17,
+     18,
      -1,
      -1,
      -1,
@@ -141,7 +141,7 @@
      -1
     ],
     "midi": {
-     "channel": 11
+     "channel": 12
     }
    },
    "pos": [

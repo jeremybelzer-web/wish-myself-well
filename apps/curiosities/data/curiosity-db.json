@@ -110816,6 +110816,2076 @@
     "cue": "plot",
     "tryThis": "Let the kid who has said nothing knock over the candle, and the argument stops."
    }
+  },
+  {
+   "id": "whoIsNear",
+   "level": "curiosity",
+   "label": "Who is near them",
+   "plain": "Who is close to this character in this scene, and where they are. A relationship curiosity starts here: \"when an authority figure is near, trust drops\" is a proximity from this one.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "who",
+   "sliders": [
+    {
+     "id": "who",
+     "label": "Who is near",
+     "plain": "The kind of person, or group, close to them right now.",
+     "scale": [
+      "nobody, they are alone",
+      "a parent",
+      "a boss",
+      "a teacher",
+      "the police",
+      "a doctor",
+      "a priest or guru",
+      "a partner",
+      "an ex",
+      "a best friend",
+      "a sibling",
+      "their child",
+      "friends their age",
+      "a party or crowd of peers",
+      "a family gathering",
+      "strangers",
+      "a rival",
+      "spiritual seekers",
+      "artists",
+      "rich people",
+      "poor people",
+      "famous people"
+     ],
+     "from": "nobody, they are alone",
+     "to": "famous people",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "where",
+     "label": "Where they are",
+     "plain": "The kind of place they are in, which changes how they feel too.",
+     "scale": [
+      "their own home",
+      "their parents' house",
+      "someone else's house",
+      "a party",
+      "a bar",
+      "work",
+      "school",
+      "a hospital",
+      "a place of worship",
+      "an ashram",
+      "a courtroom",
+      "a police station",
+      "the street",
+      "nature",
+      "a room alone"
+     ],
+     "from": "their own home",
+     "to": "a room alone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "close",
+     "label": "How close",
+     "plain": "How near the other person or group is.",
+     "scale": [
+      "across the room",
+      "nearby",
+      "side by side",
+      "touching"
+     ],
+     "from": "across the room",
+     "to": "touching",
+     "curve": "linear"
+    },
+    {
+     "id": "many",
+     "label": "How many",
+     "plain": "How many people are near.",
+     "scale": [
+      "one",
+      "a few",
+      "a crowd"
+     ],
+     "from": "one",
+     "to": "a crowd",
+     "curve": "linear"
+    },
+    {
+     "id": "power",
+     "label": "Their power over this character",
+     "plain": "Whether the people near them sit below, level with, or above them.",
+     "scale": [
+      "much less",
+      "less",
+      "equal",
+      "more",
+      "much more"
+     ],
+     "from": "much less",
+     "to": "much more",
+     "curve": "linear"
+    },
+    {
+     "id": "wanted",
+     "label": "Wanted or not",
+     "plain": "Whether the character wants them there.",
+     "scale": [
+      "unwanted",
+      "put up with",
+      "welcome",
+      "longed for"
+     ],
+     "from": "unwanted",
+     "to": "longed for",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Bringing the wrong person into the room changes everything the character does next.",
+    "theme": "Shows that people are different people around different people.",
+    "pull": "We watch to see how they change when someone walks in.",
+    "cue": "visual",
+    "tryThis": "Let him be loud and funny with his friends, then go silent the moment his father opens the door."
+   }
+  },
+  {
+   "id": "whatIsNear",
+   "level": "curiosity",
+   "label": "What is near them",
+   "plain": "An object or substance close to the character that pulls at them: a medicine cabinet, a bottle, money, a phone, a weapon, a photo.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "pull",
+   "sliders": [
+    {
+     "id": "pull",
+     "label": "How hard it pulls",
+     "plain": "How strongly the thing draws the character.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What it is",
+     "plain": "The thing near them.",
+     "scale": [
+      "nothing in particular",
+      "a medicine cabinet",
+      "alcohol",
+      "drugs",
+      "money",
+      "a phone or screen",
+      "a weapon",
+      "food",
+      "a car",
+      "a mirror",
+      "a photo",
+      "a gift"
+     ],
+     "from": "nothing in particular",
+     "to": "a gift",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "reach",
+     "label": "How easy to reach",
+     "plain": "How easy it would be to take or use it.",
+     "scale": [
+      "out of reach",
+      "takes effort",
+      "within reach",
+      "in their hand"
+     ],
+     "from": "out of reach",
+     "to": "in their hand",
+     "curve": "linear"
+    },
+    {
+     "id": "whose",
+     "label": "Whose it is",
+     "plain": "Who it belongs to.",
+     "scale": [
+      "their own",
+      "someone they know",
+      "a stranger's",
+      "nobody's"
+     ],
+     "from": "their own",
+     "to": "nobody's",
+     "curve": "linear"
+    },
+    {
+     "id": "watched",
+     "label": "Is anyone watching",
+     "plain": "Whether anyone would see them take or use it.",
+     "scale": [
+      "no one",
+      "maybe",
+      "someone is"
+     ],
+     "from": "no one",
+     "to": "someone is",
+     "curve": "linear"
+    },
+    {
+     "id": "means",
+     "label": "What it means to them",
+     "plain": "What the thing stands for to this character.",
+     "scale": [
+      "comfort",
+      "danger",
+      "temptation",
+      "a memory",
+      "power"
+     ],
+     "from": "comfort",
+     "to": "power",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "An object in reach is a choice waiting to happen.",
+    "theme": "Shows what a character reaches for when they hurt.",
+    "pull": "We watch their eyes find the thing.",
+    "cue": "visual",
+    "tryThis": "Leave the bathroom cabinet open a crack while she washes her hands, and hold on it a beat too long."
+   }
+  },
+  {
+   "id": "copingStyle",
+   "level": "curiosity",
+   "label": "How they cope with shame",
+   "plain": "What a character does when shame hits. Nathanson's \"compass of shame\" has four ways: pull away, turn on themselves, numb or avoid it, or turn on someone else. Some learn a fifth: face it.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "style",
+   "sliders": [
+    {
+     "id": "style",
+     "label": "How they cope",
+     "plain": "Their usual answer to shame.",
+     "scale": [
+      "face it",
+      "pull away",
+      "turn on themselves",
+      "numb or avoid it",
+      "turn on someone else"
+     ],
+     "from": "face it",
+     "to": "turn on someone else",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "How strong the habit is",
+     "plain": "How automatic this way of coping is for them.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "fast",
+     "label": "How fast it kicks in",
+     "plain": "How quickly they reach for it.",
+     "scale": [
+      "slowly",
+      "after a while",
+      "at once"
+     ],
+     "from": "slowly",
+     "to": "at once",
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "Do others see it",
+     "plain": "Whether the people around them see the pattern.",
+     "scale": [
+      "hidden",
+      "a few know",
+      "everyone knows"
+     ],
+     "from": "hidden",
+     "to": "everyone knows",
+     "curve": "linear"
+    },
+    {
+     "id": "since",
+     "label": "Since when",
+     "plain": "How long they have coped this way.",
+     "scale": [
+      "recently",
+      "a few years",
+      "since childhood"
+     ],
+     "from": "recently",
+     "to": "since childhood",
+     "curve": "linear"
+    },
+    {
+     "id": "changing",
+     "label": "Is it changing",
+     "plain": "Whether they are moving toward facing it.",
+     "scale": [
+      "getting worse",
+      "stuck",
+      "learning to face it"
+     ],
+     "from": "getting worse",
+     "to": "learning to face it",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "The way they cope decides what they do in the worst moment of the story.",
+    "theme": "Shows the hidden engine under a character's choices.",
+    "pull": "We wait to see whether they face it this time.",
+    "cue": "thought",
+    "tryThis": "When she is laughed at, have her apologize to everyone, then go home and pick a fight with her sister."
+   }
+  },
+  {
+   "id": "reliefSeeking",
+   "level": "curiosity",
+   "label": "Seeking relief from inner pain",
+   "plain": "How hard the character is looking for relief from pain or conflict inside, and what they reach for: a substance, food, risk, work, a screen, faith, or helping someone else.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "urge",
+   "sliders": [
+    {
+     "id": "urge",
+     "label": "How strong the urge is",
+     "plain": "0 at peace; 100 nothing else matters but relief.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "by",
+     "label": "What they reach for",
+     "plain": "The thing that gives relief.",
+     "scale": [
+      "a drink",
+      "pills",
+      "food",
+      "sex",
+      "risk",
+      "work",
+      "a screen",
+      "faith",
+      "helping others"
+     ],
+     "from": "a drink",
+     "to": "helping others",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "act",
+     "label": "What they do to get it",
+     "plain": "How far they go to get the relief.",
+     "scale": [
+      "nothing hidden",
+      "sneak it",
+      "lie about it",
+      "steal it"
+     ],
+     "from": "nothing hidden",
+     "to": "steal it",
+     "curve": "linear"
+    },
+    {
+     "id": "hidden",
+     "label": "How hidden it is",
+     "plain": "Whether anyone knows.",
+     "scale": [
+      "out in the open",
+      "half hidden",
+      "a deep secret"
+     ],
+     "from": "out in the open",
+     "to": "a deep secret",
+     "curve": "linear"
+    },
+    {
+     "id": "after",
+     "label": "How they feel after",
+     "plain": "What the relief leaves behind.",
+     "scale": [
+      "better",
+      "numb",
+      "ashamed",
+      "worse"
+     ],
+     "from": "better",
+     "to": "worse",
+     "curve": "linear"
+    },
+    {
+     "id": "loop",
+     "label": "How fast it comes back",
+     "plain": "How quickly the urge returns after relief (0 rarely, 5 again and again).",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "The urge and the hiding put a ticking secret under every scene.",
+    "theme": "Shows pain looking for a way out.",
+    "pull": "We fear they'll be caught, and hope they'll stop.",
+    "cue": "thought",
+    "tryThis": "At the dinner party she excuses herself to the bathroom, and we hear the pill bottle rattle under the running tap."
+   }
+  },
+  {
+   "id": "attachment",
+   "level": "curiosity",
+   "label": "How they attach to people",
+   "plain": "Their attachment style: secure, anxious (fears being left, holds on tight), avoidant (fears closeness, needs control and space), or fearful (wants closeness and fears it).",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "style",
+   "sliders": [
+    {
+     "id": "style",
+     "label": "Attachment style",
+     "plain": "How they bond with the people close to them.",
+     "scale": [
+      "secure",
+      "anxious",
+      "avoidant",
+      "fearful"
+     ],
+     "from": "secure",
+     "to": "fearful",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "How strongly it shows",
+     "plain": "How much the style drives them in this scene.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "to",
+     "label": "With whom",
+     "plain": "Who the attachment is about here.",
+     "scale": [
+      "a partner",
+      "a parent",
+      "a friend",
+      "a child",
+      "everyone"
+     ],
+     "from": "a partner",
+     "to": "everyone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "stress",
+     "label": "Under stress they",
+     "plain": "What they do when closeness feels at risk.",
+     "scale": [
+      "reach out",
+      "cling",
+      "pull away",
+      "freeze"
+     ],
+     "from": "reach out",
+     "to": "freeze",
+     "curve": "linear"
+    },
+    {
+     "id": "trust",
+     "label": "How much they trust closeness",
+     "plain": "0 closeness feels dangerous; 100 it feels safe.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "healing",
+     "label": "Is it healing",
+     "plain": "Whether a relationship in the story is changing their style.",
+     "scale": [
+      "getting worse",
+      "the same",
+      "slowly healing",
+      "secure now"
+     ],
+     "from": "getting worse",
+     "to": "secure now",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Anxious meets avoidant, and the push and pull drives the whole relationship.",
+    "theme": "Shows how early love shapes every later love.",
+    "pull": "We wait to see if they can let someone close.",
+    "cue": "movement",
+    "tryThis": "Every time he steps closer, she finds a reason to leave the room; when he finally leaves, she runs after him."
+   }
+  },
+  {
+   "id": "authorityStance",
+   "level": "curiosity",
+   "label": "How they are with authority",
+   "plain": "How the character behaves toward people with power over them (parents, bosses, teachers, police, doctors, gurus): relying on them, obeying, testing, defying or hiding.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "stance",
+   "sliders": [
+    {
+     "id": "stance",
+     "label": "Stance",
+     "plain": "Their usual way with authority.",
+     "scale": [
+      "relies on it",
+      "obeys",
+      "respects",
+      "tests it",
+      "defies it",
+      "hides from it"
+     ],
+     "from": "relies on it",
+     "to": "hides from it",
+     "curve": "linear"
+    },
+    {
+     "id": "trust",
+     "label": "Trust in authority",
+     "plain": "0 no trust at all; 100 complete trust.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "which",
+     "label": "Which authority most",
+     "plain": "The authority that brings it out most.",
+     "scale": [
+      "a parent",
+      "a boss",
+      "a teacher",
+      "the police",
+      "a doctor",
+      "a priest or guru",
+      "the government"
+     ],
+     "from": "a parent",
+     "to": "the government",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shows",
+     "label": "How it shows",
+     "plain": "What they do when an authority figure is near.",
+     "scale": [
+      "goes quiet",
+      "lies",
+      "shows off",
+      "argues",
+      "jokes",
+      "does what they're told"
+     ],
+     "from": "goes quiet",
+     "to": "does what they're told",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "why",
+     "label": "Where it comes from",
+     "plain": "The history behind the stance.",
+     "scale": [
+      "a strict parent",
+      "being let down",
+      "being protected",
+      "being punished unfairly",
+      "their faith"
+     ],
+     "from": "a strict parent",
+     "to": "their faith",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "changing",
+     "label": "Is it changing",
+     "plain": "Whether their stance is moving.",
+     "scale": [
+      "hardening",
+      "the same",
+      "softening"
+     ],
+     "from": "hardening",
+     "to": "softening",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A character who defies authority makes trouble; one who relies on it is lost when it fails them.",
+    "theme": "Shows how people answer power.",
+    "pull": "We wait for the clash, or the betrayal.",
+    "cue": "thought",
+    "tryThis": "Let the rule-follower lie to a police officer for the first time, and watch her hands."
+   }
+  },
+  {
+   "id": "groupStance",
+   "level": "curiosity",
+   "label": "How they are with groups",
+   "plain": "How comfortable the character is in groups: a party of peers, a family gathering, a crowd of strangers, a team. Some love a crowd, some tolerate it, some would rather be alone.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "comfort",
+   "sliders": [
+    {
+     "id": "comfort",
+     "label": "Comfort in a group",
+     "plain": "0 can't stand it; 100 completely at ease.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Which group is hardest",
+     "plain": "The kind of group that bothers them most.",
+     "scale": [
+      "a party of peers",
+      "a family gathering",
+      "strangers",
+      "a team",
+      "a congregation",
+      "a gang"
+     ],
+     "from": "a party of peers",
+     "to": "a gang",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "prefers",
+     "label": "What they prefer",
+     "plain": "The company they choose when they can.",
+     "scale": [
+      "being alone",
+      "one other person",
+      "a few friends",
+      "a crowd"
+     ],
+     "from": "being alone",
+     "to": "a crowd",
+     "curve": "linear"
+    },
+    {
+     "id": "strangers",
+     "label": "With strangers",
+     "plain": "How they handle people they don't know.",
+     "scale": [
+      "can't bear them",
+      "tolerates them",
+      "warms up",
+      "loves meeting them"
+     ],
+     "from": "can't bear them",
+     "to": "loves meeting them",
+     "curve": "linear"
+    },
+    {
+     "id": "move",
+     "label": "What they do in a crowd",
+     "plain": "Their move once inside a group.",
+     "scale": [
+      "find the exit",
+      "find a corner",
+      "find one person",
+      "work the room",
+      "take the stage"
+     ],
+     "from": "find the exit",
+     "to": "take the stage",
+     "curve": "linear"
+    },
+    {
+     "id": "after",
+     "label": "Afterwards",
+     "plain": "How being with a group leaves them.",
+     "scale": [
+      "drained",
+      "fine",
+      "energized"
+     ],
+     "from": "drained",
+     "to": "energized",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Putting a loner in a crowd, or a crowd-lover alone, makes a scene without a word.",
+    "theme": "Shows how much of themselves people can give a group.",
+    "pull": "We feel them looking for the door.",
+    "cue": "movement",
+    "tryThis": "At the party, let him spend the whole scene with the host's dog in the kitchen."
+   }
+  },
+  {
+   "id": "kindredPeople",
+   "level": "curiosity",
+   "label": "Their kind of people",
+   "plain": "The people a character is only truly comfortable with: spiritual seekers, artists, people from home, people who have suffered the same thing. With them they open up; elsewhere they hold back.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "who",
+   "sliders": [
+    {
+     "id": "who",
+     "label": "Their kind of people",
+     "plain": "The people they feel at home with.",
+     "scale": [
+      "spiritual seekers",
+      "artists",
+      "people from home",
+      "people who've been through the same",
+      "the outcasts",
+      "the ambitious",
+      "children",
+      "animals rather than people"
+     ],
+     "from": "spiritual seekers",
+     "to": "animals rather than people",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "with",
+     "label": "Comfort with them",
+     "plain": "How at ease they are among their own kind.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "without",
+     "label": "Comfort everywhere else",
+     "plain": "How at ease they are anywhere else.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "where",
+     "label": "Where they find them",
+     "plain": "The place their kind of people gather.",
+     "scale": [
+      "online",
+      "a club",
+      "a place of worship",
+      "an ashram",
+      "a meeting",
+      "the street",
+      "work"
+     ],
+     "from": "online",
+     "to": "work",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "opens",
+     "label": "How much they open up there",
+     "plain": "How much of themselves they show among their own kind.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "exclusive",
+     "label": "Closed to others",
+     "plain": "Whether they shut out people who aren't their kind.",
+     "scale": [
+      "no",
+      "a little",
+      "completely"
+     ],
+     "from": "no",
+     "to": "completely",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Finding their kind of people, or losing them, is a turning point.",
+    "theme": "Shows belonging as something you find, not something you're given.",
+    "pull": "We hope they find their people.",
+    "cue": "visual",
+    "tryThis": "Let her be stiff all film, then laugh out loud at the ashram among strangers in orange."
+   }
+  },
+  {
+   "id": "socialPlace",
+   "level": "curiosity",
+   "label": "Their place in society",
+   "plain": "Where the character stands in the wider world: money, class, status, and whether they are an insider or an outsider.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "standing",
+   "sliders": [
+    {
+     "id": "standing",
+     "label": "Standing",
+     "plain": "Where they sit in the pecking order of the wider world.",
+     "scale": [
+      "the bottom",
+      "struggling",
+      "the middle",
+      "comfortable",
+      "the top"
+     ],
+     "from": "the bottom",
+     "to": "the top",
+     "curve": "linear"
+    },
+    {
+     "id": "money",
+     "label": "Money",
+     "plain": "0 nothing; 100 more than they could spend.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "insider",
+     "label": "Insider or outsider",
+     "plain": "Whether the world they live in treats them as one of its own.",
+     "scale": [
+      "outsider",
+      "on the edge",
+      "accepted",
+      "insider"
+     ],
+     "from": "outsider",
+     "to": "insider",
+     "curve": "linear"
+    },
+    {
+     "id": "born",
+     "label": "Born into it",
+     "plain": "Whether they rose, fell or stayed where they started.",
+     "scale": [
+      "born lower",
+      "born here",
+      "born higher"
+     ],
+     "from": "born lower",
+     "to": "born higher",
+     "curve": "linear"
+    },
+    {
+     "id": "feel",
+     "label": "How they feel about it",
+     "plain": "Their feeling about their place.",
+     "scale": [
+      "ashamed",
+      "angry",
+      "fine",
+      "proud"
+     ],
+     "from": "ashamed",
+     "to": "proud",
+     "curve": "linear"
+    },
+    {
+     "id": "moving",
+     "label": "Moving",
+     "plain": "Which way their place is moving.",
+     "scale": [
+      "falling",
+      "stuck",
+      "rising"
+     ],
+     "from": "falling",
+     "to": "rising",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A character moving up or down the ladder brings every scene a new room to walk into.",
+    "theme": "Shows class and status as pressures people carry.",
+    "pull": "We watch where they fit, and where they don't.",
+    "cue": "visual",
+    "tryThis": "Let him check the price on the menu twice while everyone else orders without looking."
+   }
+  },
+  {
+   "id": "livingSituation",
+   "level": "curiosity",
+   "label": "Where and how they live",
+   "plain": "Who the character lives with and how they feel about it: alone, with parents, with a partner, roommates, a group home, nowhere.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "with",
+   "sliders": [
+    {
+     "id": "with",
+     "label": "Lives with",
+     "plain": "Who shares their home.",
+     "scale": [
+      "alone",
+      "their parents",
+      "a partner",
+      "roommates",
+      "their children",
+      "a group home",
+      "nowhere fixed"
+     ],
+     "from": "alone",
+     "to": "nowhere fixed",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "feel",
+     "label": "How they feel about it",
+     "plain": "How their home feels to them.",
+     "scale": [
+      "trapped",
+      "uneasy",
+      "fine",
+      "happy"
+     ],
+     "from": "trapped",
+     "to": "happy",
+     "curve": "linear"
+    },
+    {
+     "id": "free",
+     "label": "How independent they are",
+     "plain": "0 fully dependent; 100 fully on their own.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "leave",
+     "label": "Want to leave",
+     "plain": "Whether they want to change it.",
+     "scale": [
+      "want to stay",
+      "not sure",
+      "want out",
+      "planning to leave"
+     ],
+     "from": "want to stay",
+     "to": "planning to leave",
+     "curve": "linear"
+    },
+    {
+     "id": "space",
+     "label": "Room of their own",
+     "plain": "How much space is theirs.",
+     "scale": [
+      "none",
+      "a corner",
+      "a room",
+      "a whole place"
+     ],
+     "from": "none",
+     "to": "a whole place",
+     "curve": "linear"
+    },
+    {
+     "id": "shown",
+     "label": "How much we see of home",
+     "plain": "How much of the story happens at home.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Home is either the place they need to escape or the place they fight to keep.",
+    "theme": "Shows dependence and independence where people sleep.",
+    "pull": "We want them to get out, or get home.",
+    "cue": "visual",
+    "tryThis": "Show the thirty-year-old's childhood bedroom: the trophies on the shelf, the laptop on the tiny desk."
+   }
+  },
+  {
+   "id": "craft",
+   "level": "curiosity",
+   "label": "What they're learning or good at",
+   "plain": "The work or skill the character is building: what it is, how good they are, how fast they're learning, and how much it matters to them.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "skill",
+   "sliders": [
+    {
+     "id": "skill",
+     "label": "How good they are",
+     "plain": "0 a beginner; 100 a master.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What it is",
+     "plain": "The craft.",
+     "scale": [
+      "a trade",
+      "an art",
+      "a sport",
+      "fixing code",
+      "caring for people",
+      "a business",
+      "a crime"
+     ],
+     "from": "a trade",
+     "to": "a crime",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "speed",
+     "label": "How fast they're learning",
+     "plain": "How quickly they are improving.",
+     "scale": [
+      "stuck",
+      "slowly",
+      "steadily",
+      "fast"
+     ],
+     "from": "stuck",
+     "to": "fast",
+     "curve": "linear"
+    },
+    {
+     "id": "love",
+     "label": "How much it matters to them",
+     "plain": "How much of themselves they put into it.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "Recognized by others",
+     "plain": "Whether others see their skill.",
+     "scale": [
+      "nobody knows",
+      "a few know",
+      "known for it"
+     ],
+     "from": "nobody knows",
+     "to": "known for it",
+     "curve": "linear"
+    },
+    {
+     "id": "tools",
+     "label": "Help they have",
+     "plain": "What is helping them learn.",
+     "scale": [
+      "nothing",
+      "a teacher",
+      "a book or course",
+      "AI tools",
+      "a whole team"
+     ],
+     "from": "nothing",
+     "to": "a whole team",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A skill learned early is often the one that saves them, or tempts them, at the end.",
+    "theme": "Shows a person becoming someone through what they do.",
+    "pull": "We watch them get better, and wait for it to matter.",
+    "cue": "movement",
+    "tryThis": "Let him fix one line of code at 3 a.m. and smile for the first time in the film."
+   }
+  },
+  {
+   "id": "worldShift",
+   "level": "curiosity",
+   "label": "A change in the world that helps or hurts them",
+   "plain": "Something changes in the wider world (a new technology, a law, a war, an illness, the economy) and it makes this character's path easier or harder.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "effect",
+   "sliders": [
+    {
+     "id": "effect",
+     "label": "Easier or harder",
+     "plain": "What the change does to their path.",
+     "scale": [
+      "much harder",
+      "harder",
+      "no change",
+      "easier",
+      "much easier"
+     ],
+     "from": "much harder",
+     "to": "much easier",
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What changed",
+     "plain": "The change in the world.",
+     "scale": [
+      "a new technology",
+      "a law",
+      "a war",
+      "an illness",
+      "the economy",
+      "a disaster"
+     ],
+     "from": "a new technology",
+     "to": "a disaster",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "fast",
+     "label": "How fast it arrived",
+     "plain": "How suddenly the world changed.",
+     "scale": [
+      "slowly",
+      "over a year",
+      "overnight"
+     ],
+     "from": "slowly",
+     "to": "overnight",
+     "curve": "linear"
+    },
+    {
+     "id": "adapt",
+     "label": "How they adapt",
+     "plain": "What they do with the change.",
+     "scale": [
+      "refuse it",
+      "struggle",
+      "adapt",
+      "ride it"
+     ],
+     "from": "refuse it",
+     "to": "ride it",
+     "curve": "linear"
+    },
+    {
+     "id": "others",
+     "label": "Is it the same for others",
+     "plain": "How widely the change is felt.",
+     "scale": [
+      "only them",
+      "people like them",
+      "everyone"
+     ],
+     "from": "only them",
+     "to": "everyone",
+     "curve": "linear"
+    },
+    {
+     "id": "big",
+     "label": "How big it feels",
+     "plain": "How much of the story the change takes up.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A change in the world can lift a struggling character or sink a thriving one, without anyone choosing it.",
+    "theme": "Shows people carried by history.",
+    "pull": "We wonder who the change will lift and who it will drown.",
+    "cue": "plot",
+    "tryThis": "Let her finish the course just as the AI tool arrives that does half her job, and watch her decide what to do."
+   }
   }
  ],
  "suites": [
@@ -176998,6 +179068,490 @@
     {
      "id": "weight:plotPull.chaos",
      "label": "Weight of plotPull chaos",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hidden-relief",
+   "level": "suite",
+   "label": "The hidden relief",
+   "plain": "Shame, numbing as the way to cope, a secret urge for relief, and things that can be taken in other people's houses.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "copingStyle",
+     "value": "numb or avoid it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "reliefSeeking",
+     "value": 80
+    },
+    {
+     "weight": 100,
+     "curiosity": "reliefSeeking",
+     "slider": "act",
+     "value": "steal it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "reliefSeeking",
+     "slider": "hidden",
+     "value": "a deep secret"
+    },
+    {
+     "weight": 100,
+     "curiosity": "shame",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:copingStyle",
+     "label": "Weight of copingStyle",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:reliefSeeking",
+     "label": "Weight of reliefSeeking",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:reliefSeeking.act",
+     "label": "Weight of reliefSeeking act",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:reliefSeeking.hidden",
+     "label": "Weight of reliefSeeking hidden",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:shame",
+     "label": "Weight of shame",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "seeker-apart",
+   "level": "suite",
+   "label": "The seeker apart",
+   "plain": "Only at ease among spiritual seekers, drained by parties, tolerates strangers, would rather be alone.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "kindredPeople",
+     "value": "spiritual seekers"
+    },
+    {
+     "weight": 100,
+     "curiosity": "groupStance",
+     "value": 15
+    },
+    {
+     "weight": 100,
+     "curiosity": "groupStance",
+     "slider": "prefers",
+     "value": "being alone"
+    },
+    {
+     "weight": 100,
+     "curiosity": "groupStance",
+     "slider": "strangers",
+     "value": "tolerates them"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kindredPeople",
+     "label": "Weight of kindredPeople",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupStance",
+     "label": "Weight of groupStance",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupStance.prefers",
+     "label": "Weight of groupStance prefers",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupStance.strangers",
+     "label": "Weight of groupStance strangers",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "wary-of-power",
+   "level": "suite",
+   "label": "Wary of power",
+   "plain": "Doesn't trust authority, goes quiet or lies around it, and learned it from being punished unfairly.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "authorityStance",
+     "value": "hides from it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "authorityStance",
+     "slider": "trust",
+     "value": 10
+    },
+    {
+     "weight": 100,
+     "curiosity": "authorityStance",
+     "slider": "why",
+     "value": "being punished unfairly"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:authorityStance",
+     "label": "Weight of authorityStance",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:authorityStance.trust",
+     "label": "Weight of authorityStance trust",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:authorityStance.why",
+     "label": "Weight of authorityStance why",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "back-at-home",
+   "level": "suite",
+   "label": "Back at home, starting over",
+   "plain": "Living with their parents, learning a new craft with new tools, and the world changing in their favor.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "livingSituation",
+     "value": "their parents"
+    },
+    {
+     "weight": 100,
+     "curiosity": "craft",
+     "slider": "what",
+     "value": "fixing code"
+    },
+    {
+     "weight": 100,
+     "curiosity": "craft",
+     "slider": "tools",
+     "value": "AI tools"
+    },
+    {
+     "weight": 100,
+     "curiosity": "worldShift",
+     "value": "easier"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:livingSituation",
+     "label": "Weight of livingSituation",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:craft.what",
+     "label": "Weight of craft what",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:craft.tools",
+     "label": "Weight of craft tools",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:worldShift",
+     "label": "Weight of worldShift",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -280081,6 +282635,1607 @@
    "tags": []
   },
   {
+   "id": "near-authority-distrust",
+   "level": "proximity",
+   "label": "When an authority figure is near, trust drops",
+   "plain": "When someone with power over them comes near, their trust in authority drops within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "slider": "power",
+    "is": "much more"
+   },
+   "then": {
+    "curiosity": "authorityStance",
+    "slider": "trust",
+    "change": "drops"
+   },
+   "whenText": "an authority figure is near",
+   "thenText": "trust drops",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "near-police-lie",
+   "level": "proximity",
+   "label": "When the police are near, the lies start",
+   "plain": "When the police come near, how willing they are to bend the truth rises within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "the police"
+   },
+   "then": {
+    "curiosity": "cm-truth",
+    "change": "rises"
+   },
+   "whenText": "the police are near",
+   "thenText": "the lies start",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "near-parent-voice",
+   "level": "proximity",
+   "label": "When a parent is near, the voice in their head gets louder",
+   "plain": "When a parent is near, a parent's voice in their head rises within a beat.",
+   "workspace": "herd",
+   "also": [
+    "mindset"
+   ],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "a parent"
+   },
+   "then": {
+    "curiosity": "innerVoice",
+    "change": "rises"
+   },
+   "whenText": "a parent is near",
+   "thenText": "the voice in their head gets louder",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "near-party-uneasy",
+   "level": "proximity",
+   "label": "When a party of peers is near, comfort drops",
+   "plain": "When a party or crowd of peers is near, comfort in a group drops within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "a party or crowd of peers"
+   },
+   "then": {
+    "curiosity": "groupStance",
+    "change": "drops"
+   },
+   "whenText": "a party of peers is near",
+   "thenText": "comfort drops",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "near-strangers-guarded",
+   "level": "proximity",
+   "label": "When strangers are near, they close up",
+   "plain": "When strangers are near, how secretive they are rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "strangers"
+   },
+   "then": {
+    "curiosity": "cm-openness",
+    "change": "rises"
+   },
+   "whenText": "strangers are near",
+   "thenText": "they close up",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "alone-peace",
+   "level": "proximity",
+   "label": "When they are alone, they settle",
+   "plain": "When nobody is near, how driven they are drops within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "nobody, they are alone"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "drops"
+   },
+   "whenText": "they are alone",
+   "thenText": "they settle",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "near-seekers-open",
+   "level": "proximity",
+   "label": "When spiritual seekers are near, they open up",
+   "plain": "When spiritual seekers are near, how much they open up among their own kind rises within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "is": "spiritual seekers"
+   },
+   "then": {
+    "curiosity": "kindredPeople",
+    "slider": "opens",
+    "change": "rises"
+   },
+   "whenText": "spiritual seekers are near",
+   "thenText": "they open up",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "ashram-belonging",
+   "level": "proximity",
+   "label": "When they are in the ashram, the need to belong is met",
+   "plain": "When they are in an ashram, their need being met rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "slider": "where",
+    "is": "an ashram"
+   },
+   "then": {
+    "curiosity": "needMet",
+    "change": "rises"
+   },
+   "whenText": "they are in the ashram",
+   "thenText": "the need to belong is met",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "shame-relief",
+   "level": "proximity",
+   "label": "When shame rises, the urge for relief rises",
+   "plain": "When shame weighs more, the urge for relief rises within a beat.",
+   "workspace": "herd",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "shame",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "reliefSeeking",
+    "change": "rises"
+   },
+   "whenText": "shame rises",
+   "thenText": "the urge for relief rises",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cabinet-steal",
+   "level": "proximity",
+   "label": "When a medicine cabinet is near, they take the pills",
+   "plain": "When a medicine cabinet is near, the urge for relief turns into stealing within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whatIsNear",
+    "slider": "what",
+    "is": "a medicine cabinet"
+   },
+   "then": {
+    "curiosity": "reliefSeeking",
+    "slider": "act",
+    "is": "steal it"
+   },
+   "whenText": "a medicine cabinet is near",
+   "thenText": "they take the pills",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "someone-elses-house-temptation",
+   "level": "proximity",
+   "label": "When they are in someone else's house, things pull harder",
+   "plain": "When they are in someone else's house, how hard nearby things pull rises within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "whoIsNear",
+    "slider": "where",
+    "is": "someone else's house"
+   },
+   "then": {
+    "curiosity": "whatIsNear",
+    "change": "rises"
+   },
+   "whenText": "they are in someone else's house",
+   "thenText": "things pull harder",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "relief-shame-loop",
+   "level": "proximity",
+   "label": "When the relief is stolen, the shame comes back",
+   "plain": "When the urge for relief is fed by stealing, shame rises again within 3 beats.",
+   "workspace": "herd",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "reliefSeeking",
+    "slider": "act",
+    "is": "steal it"
+   },
+   "then": {
+    "curiosity": "shame",
+    "change": "rises"
+   },
+   "whenText": "the relief is stolen",
+   "thenText": "the shame comes back",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "anxious-cling",
+   "level": "proximity",
+   "label": "When a partner pulls away, the anxious one clings",
+   "plain": "When attachment shows more strongly, loneliness rises within 2 beats.",
+   "workspace": "herd",
+   "also": [
+    "emo-road"
+   ],
+   "when": {
+    "curiosity": "attachment",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "loneliness",
+    "change": "rises"
+   },
+   "whenText": "a partner pulls away",
+   "thenText": "the anxious one clings",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "world-easier-thrive",
+   "level": "proximity",
+   "label": "When the world makes it easier, life starts climbing",
+   "plain": "When a change in the world makes their path easier, how well they're doing rises within 3 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "worldShift",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "thriving",
+    "change": "rises"
+   },
+   "whenText": "the world makes it easier",
+   "thenText": "life starts climbing",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "craft-rank",
+   "level": "proximity",
+   "label": "When the craft grows, so does their standing",
+   "plain": "When they get better at their craft, their place in society rises within 4 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "craft",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "socialPlace",
+    "change": "rises"
+   },
+   "whenText": "the craft grows",
+   "thenText": "so does their standing",
+   "within": 4,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 4,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "home-trapped-drive",
+   "level": "proximity",
+   "label": "When home feels like a trap, the drive to leave grows",
+   "plain": "When living at home feels more like a trap, how driven they are rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "livingSituation",
+    "slider": "feel",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "rises"
+   },
+   "whenText": "home feels like a trap",
+   "thenText": "the drive to leave grows",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "shame-cope-attack",
+   "level": "proximity",
+   "label": "When shame is turned outward, the group pressure rises",
+   "plain": "When they turn their shame on someone else, group pressure rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "copingStyle",
+    "is": "turn on someone else"
+   },
+   "then": {
+    "curiosity": "groupPressure",
+    "change": "rises"
+   },
+   "whenText": "shame is turned outward",
+   "thenText": "the group pressure rises",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -318998,6 +323153,609 @@
     {
      "id": "chance:influence-chaos",
      "label": "How often influence-chaos",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-shame-loop",
+   "level": "proximitySuite",
+   "label": "The shame loop",
+   "plain": "Shame rises, the urge for relief rises, in someone else's house the cabinet pulls, the pills are taken, and the shame comes back.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "shame-relief",
+    "someone-elses-house-temptation",
+    "cabinet-steal",
+    "relief-shame-loop"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:shame-relief",
+     "label": "Delay of shame-relief",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:shame-relief",
+     "label": "How often shame-relief",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:someone-elses-house-temptation",
+     "label": "Delay of someone-elses-house-temptation",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:someone-elses-house-temptation",
+     "label": "How often someone-elses-house-temptation",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cabinet-steal",
+     "label": "Delay of cabinet-steal",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cabinet-steal",
+     "label": "How often cabinet-steal",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:relief-shame-loop",
+     "label": "Delay of relief-shame-loop",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:relief-shame-loop",
+     "label": "How often relief-shame-loop",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-authority-chain",
+   "level": "proximitySuite",
+   "label": "The authority chain",
+   "plain": "An authority figure comes near, trust drops, a parent's voice gets louder, and the lies start.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "near-authority-distrust",
+    "near-parent-voice",
+    "near-police-lie"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-authority-distrust",
+     "label": "Delay of near-authority-distrust",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-authority-distrust",
+     "label": "How often near-authority-distrust",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-parent-voice",
+     "label": "Delay of near-parent-voice",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-parent-voice",
+     "label": "How often near-parent-voice",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-police-lie",
+     "label": "Delay of near-police-lie",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-police-lie",
+     "label": "How often near-police-lie",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "safe-harbor",
+   "level": "proximitySuite",
+   "label": "Safe harbor",
+   "plain": "Uneasy at parties and closed with strangers, but among spiritual seekers at the ashram they open up and belong.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "near-party-uneasy",
+    "near-strangers-guarded",
+    "near-seekers-open",
+    "ashram-belonging",
+    "alone-peace"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-party-uneasy",
+     "label": "Delay of near-party-uneasy",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-party-uneasy",
+     "label": "How often near-party-uneasy",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-strangers-guarded",
+     "label": "Delay of near-strangers-guarded",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-strangers-guarded",
+     "label": "How often near-strangers-guarded",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:near-seekers-open",
+     "label": "Delay of near-seekers-open",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:near-seekers-open",
+     "label": "How often near-seekers-open",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:ashram-belonging",
+     "label": "Delay of ashram-belonging",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:ashram-belonging",
+     "label": "How often ashram-belonging",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:alone-peace",
+     "label": "Delay of alone-peace",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:alone-peace",
+     "label": "How often alone-peace",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "starting-over",
+   "level": "proximitySuite",
+   "label": "Starting over",
+   "plain": "Home feels like a trap, the drive to leave grows, the world makes the new craft easier, and their standing rises.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "home-trapped-drive",
+    "world-easier-thrive",
+    "craft-rank"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:home-trapped-drive",
+     "label": "Delay of home-trapped-drive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:home-trapped-drive",
+     "label": "How often home-trapped-drive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:world-easier-thrive",
+     "label": "Delay of world-easier-thrive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:world-easier-thrive",
+     "label": "How often world-easier-thrive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:craft-rank",
+     "label": "Delay of craft-rank",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:craft-rank",
+     "label": "How often craft-rank",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,
