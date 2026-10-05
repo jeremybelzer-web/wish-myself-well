@@ -117,6 +117,8 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
 .cv-under[data-out] { margin-left: calc(-1 * var(--cf-out-l, 0px)); margin-right: calc(-1 * var(--cf-out-r, 0px)); z-index: 6; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
 .cv-player:has(> .cv-under[data-out]) { overflow: visible; z-index: 6; }
 .cv-root .cvd-border { z-index: 8; }
+.cv-root .cv-things { padding-bottom: var(--cf-cover-l, 0px); }
+.cv-root .cv-details .cv-body { padding-bottom: var(--cf-cover-r, 0px); }
 @media (max-width: 900px) { .cf-grip { display: none; } .cv-under[data-out] { margin: 0; } .cf-ln { grid-template-columns: 100px minmax(0, 1fr); } }
 .cf-pane-moments { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); align-items: start; gap: 8px; }
 .cf-mag { background: #1d1d21; border: 1px solid #2e2e33; border-radius: 6px; padding: 6px 8px; max-height: 96px; overflow-y: auto; display: grid; gap: 4px; font-size: 11.5px; line-height: 1.35; }
@@ -767,6 +769,15 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     box.style.setProperty("--cf-out-r", R + "px");
     if (L || R) box.dataset.out = "1";
     else delete box.dataset.out;
+    /* the side panel it covers gets room at the bottom, so everything in it can still scroll up into view */
+    const root = box.closest(".cv-root");
+    if (!root) return;
+    const top = box.getBoundingClientRect().top;
+    [["l", L, ".cv-things"], ["r", R, ".cv-details .cv-body"]].forEach(([side, w, q]) => {
+      const el = root.querySelector(q);
+      const cover = w && el ? Math.max(0, Math.round(el.getBoundingClientRect().bottom - top)) : 0;
+      root.style.setProperty("--cf-cover-" + side, cover + "px");
+    });
   }
   function gripDrag(e, g) {
     const side = g.dataset.cfGrip;

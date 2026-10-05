@@ -50,6 +50,8 @@ const ok = (cond, msg) => {
     localStorage.removeItem("curiosities-viewer-v1");
     localStorage.removeItem("curiosities-viewer-windows-v1");
     localStorage.removeItem("curiosities-viewer-winmode-v1");
+    /* Front and center stays under the picture, off the Details panel, so the drags below land on the flight path */
+    localStorage.setItem("curio-focus-out-v1", JSON.stringify({ l: 0, r: 0 }));
   });
   await page.reload();
   await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen(), null, { timeout: 20000 });
