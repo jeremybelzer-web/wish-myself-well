@@ -196,8 +196,10 @@ const ok = (cond, msg) => {
   await real.waitForSelector(".cw-bubble", { timeout: 20000 });
   await real.waitForTimeout(200);
   ok(await real.evaluate(() => !!document.querySelector(".cv-root[data-other]") && CurioScreen.isOpen() && CurioViewer.isOpen()), "second walk: the Screen is open under the Viewer, with another part's .cv-root on the page");
-  const seen2 = await walkAll(real, steps, "real");
-  ok(seen2.length >= steps.length - 1, `second walk: Next walks the tour (${seen2.length} of ${steps.length} steps shown)`);
+  /* ?screen=1 brings the Screen's own steps back, so this tour is longer than the first. */
+  const steps2 = await real.evaluate(() => CurioWalkthrough.steps());
+  const seen2 = await walkAll(real, steps2, "real");
+  ok(seen2.length >= steps2.length - 1, `second walk: Next walks the tour (${seen2.length} of ${steps2.length} steps shown)`);
   checkParts(seen2, "second walk", true);
   ok(await real.evaluate(() => { const o = document.querySelector(".cv-root[data-other]").getBoundingClientRect(); return o.width < 200 && o.height < 200; }), "the Viewer's full-window layout stays on its own root, not on another part's .cv-root");
   ok(await real.evaluate(() => CurioViewer.isOpen() && CurioScreen.isOpen()), "second walk: Done puts back the Viewer over the Screen");
@@ -205,7 +207,7 @@ const ok = (cond, msg) => {
   /* Started from the Screen in Arrange view with the Viewer closed: ending (or skipping) puts all of it back. */
   await real.evaluate(() => { CurioViewer.close(); CurioScreen.view("arrange"); });
   await real.waitForTimeout(150);
-  const lib = steps.findIndex((s) => s.title === "The curiosity library");
+  const lib = steps2.findIndex((s) => s.title === "The curiosity library");
   await real.evaluate((i) => CurioWalkthrough.start(i), lib);
   await real.waitForTimeout(300);
   const mid = await real.evaluate(partSeen, ".sc-page .sc-lib");
@@ -213,7 +215,7 @@ const ok = (cond, msg) => {
   await real.keyboard.press("Escape");
   await real.waitForTimeout(150);
   ok(await real.evaluate(() => !CurioViewer.isOpen() && CurioScreen.isOpen() && CurioScreen.view() === "arrange"), "skipping puts back what was open: the Screen in Arrange view, the Viewer closed");
-  const ws = steps.findIndex((s) => s.title === "Workspaces");
+  const ws = steps2.findIndex((s) => s.title === "Workspaces");
   await real.evaluate((i) => CurioWalkthrough.start(i), ws);
   await real.waitForTimeout(300);
   ok((await real.evaluate(partSeen, "#ws-buttons")).ok, "an app step shows the app's own Workspaces");
