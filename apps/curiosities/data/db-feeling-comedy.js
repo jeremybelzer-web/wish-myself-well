@@ -224,7 +224,7 @@
   ], { also: ["structure"] });
 
   /* emotion proximities */
-  P("trigger-turns", "When a trigger appears, the feeling turns", E, "An object, a line or news sets off a turn in the feeling within a beat.", { curiosity: "emoTurn", slider: "trigger", change: "changes" }, { curiosity: "emoTurn", change: "rises" }, 1);
+  P("trigger-turns", "When a spark appears, the feeling turns", E, "An object, a line or news sets off a turn in the feeling within a beat.", { curiosity: "emoTurn", slider: "trigger", change: "changes" }, { curiosity: "emoTurn", change: "rises" }, 1);
   P("held-in-release", "When enough feeling is held in, it comes out", E, "Feeling held in for long enough bursts out within a scene or two.", { curiosity: "emotionalDebt", change: "rises" }, { curiosity: "emoRelease", slider: "size", change: "rises" }, 8, { workspace: "emo-road" });
   P("release-lighter", "After a release, the character is lighter", E, "Once the feeling is out, the character is lighter within a few beats.", { curiosity: "emoRelease", slider: "size", change: "rises" }, { curiosity: "emoRelease", slider: "after", change: "rises" }, 3, { whenText: "a feeling is let out", thenText: "the character is lighter" });
   P("subtext-pause", "When said and meant pull apart, the pauses grow", E, "A widening gap between words and meaning brings longer pauses within a beat.", { curiosity: "subtext", change: "rises" }, { curiosity: "silence", change: "rises" }, 1, { also: ["lines"] });
@@ -233,7 +233,7 @@
   P("we-know-tension", "When we know more than they do, tension rises", E, "Knowing what the character doesn't raises the tension within a beat.", { curiosity: "audienceFeeling", slider: "why", is: "we know more" }, { curiosity: "tensionCurve", change: "rises" }, 1, { also: ["structure"] });
   P("mixed-face-flicker", "When feelings mix, the face flickers", E, "Mixed feelings show as a face that changes more often within a beat.", { curiosity: "mixedFeelings", change: "rises" }, { curiosity: "faceIntensity", change: "changes" }, 1);
 
-  PS("the-dam-breaks", "The dam breaks", "emo-road", "A trigger turns the feeling, what was held in comes out, and the character is lighter after.", ["trigger-turns", "held-in-release", "release-lighter", "hidden-then-burst"], { also: ["emotion", "arc"] });
+  PS("the-dam-breaks", "The dam breaks", "emo-road", "A spark turns the feeling, what was held in comes out, and the character is lighter after.", ["trigger-turns", "held-in-release", "release-lighter", "hidden-then-burst"], { also: ["emotion", "arc"] });
   PS("what-isnt-said", "What isn't said", E, "Words and meaning pull apart, pauses grow, the face flickers and the camera moves in on the eyes.", ["subtext-pause", "mixed-face-flicker", "tears-close-up"], { also: ["lines"] });
   PS("closeness-and-dread", "Closeness and dread", E, "People move closer and feel more while we, knowing more, dread what is coming.", ["space-closes-intensity", "we-know-tension"], { also: ["placement", "structure"] });
 

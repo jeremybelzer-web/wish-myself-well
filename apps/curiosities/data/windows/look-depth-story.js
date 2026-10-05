@@ -337,7 +337,7 @@
     if (sh === 1) out += k.hand({ x: 160, y: 96, s: 0.5, open: 0.3 });
     if (sh === 2) out += k.bubble({ x: 230, y: 70, w: 70, h: 20, text: "I see now", tail: -20, size: 9 });
     out += film(k, 200, 14, 110, { pins: [{ p: v.p("late"), color: S.gold }], ends: false });
-    out += strip(k, [g.num("clarity", "Clear", " of 5"), g.word("trigger", "Trigger"), g.steps("speed", "Speed"), g.steps("shown", "Shown"), g.when("late", "When", "%")]);
+    out += strip(k, [g.num("clarity", "Clear", " of 5"), g.word("trigger", "Spark"), g.steps("speed", "Speed"), g.steps("shown", "Shown"), g.when("late", "When", "%")]);
     return out + k.caption(`${v("trigger")} · ${v("speed")} · ${v("shown")}`);
   });
 
@@ -574,7 +574,7 @@
     out += emo(k, 100, 22, ["🎤", "🤥", "🗣️", "⚡", "🦁"][trig], 14);
     out += guy(k, 270, { s: 0.85, color: [S.blue, S.purple, S.grey, S.gold][ag], mood: -turn, look: -1 });
     out += stopwatch(k, 20, 100, 120, sp, 30, S.ice, `${fmt(sp)} s to spread`);
-    out += strip(k, [g.num("turn", "Turns", " of 5", S.red), g.word("trigger", "Trigger"), g.word("first", "First"), g.num("speed", "Spreads in", " s", S.ice), g.word("against", "Against")]);
+    out += strip(k, [g.num("turn", "Turns", " of 5", S.red), g.word("trigger", "Spark"), g.word("first", "First"), g.num("speed", "Spreads in", " s", S.ice), g.word("against", "Against")]);
     return out + k.caption(`${turned} of ${n} turn on ${v("against")}`);
   });
 

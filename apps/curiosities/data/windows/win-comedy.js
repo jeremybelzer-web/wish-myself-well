@@ -1233,7 +1233,7 @@
         { label: "How visible", sliders: ["noticeable", "change"] },
       ],
       presets: [
-        { label: "Family Guy 'like the time'", plain: "A line triggers a long memory, back as if nothing happened.", set: { trigger: "a line", kind: "a memory", length: 10, comingBack: "as if nothing" } },
+        { label: "Family Guy 'like the time'", plain: "A line sparks a long memory, back as if nothing happened.", set: { trigger: "a line", kind: "a memory", length: 10, comingBack: "as if nothing" } },
         { label: "Scrubs daydream", plain: "An imagined moment in a new style.", set: { kind: "an imagined moment", looksDifferent: "a new style", length: 5 } },
         { label: "Quick contradiction", plain: "A one-second cut proving them wrong.", set: { kind: "a contradiction", length: 1, perScene: 3 } },
       ],

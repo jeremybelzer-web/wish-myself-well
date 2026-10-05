@@ -451,15 +451,15 @@
   const get = (id) => list().find((t) => t.id === id) || null;
   function add(t) {
     const before = new Set(list().map((x) => x.id));
-    const r = store().send({ type: "add", trigger: t, label: `Assign On Trigger: ${t && t.name ? t.name : "a trigger"}` });
+    const r = store().send({ type: "add", trigger: t, label: `Assign On Spark: ${t && t.name ? t.name : "a spark"}` });
     const made = list().find((x) => !before.has(x.id));
     return Object.assign({}, r, { id: made ? made.id : null });
   }
-  const set = (id, patch) => store().send({ type: "set", id, patch, label: `Change a trigger: ${(get(id) || {}).name || id}` });
+  const set = (id, patch) => store().send({ type: "set", id, patch, label: `Change a spark: ${(get(id) || {}).name || id}` });
   function remove(id) {
     const name = (get(id) || {}).name || id;
     release(id);
-    return store().send({ type: "remove", id, label: `Remove a trigger: ${name}` });
+    return store().send({ type: "remove", id, label: `Remove a spark: ${name}` });
   }
 
   /* ---------- names in plain words ---------- */
@@ -832,7 +832,7 @@
     if (playingNow && !playing) {
       playingNow = false;
       lastRow = -1;
-      return putBack("Playback stopped: everything the triggers did is put back.");
+      return putBack("Playback stopped: everything the sparks did is put back.");
     }
     if (!playingNow && playing) {
       playingNow = true;
@@ -893,7 +893,7 @@
     heard: "",
     start() {
       const R = root.SpeechRecognition || root.webkitSpeechRecognition;
-      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Curiosity Proximity window instead."), false;
+      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Live inputs window instead."), false;
       if (speech.on) return true;
       const rec = new R();
       rec.lang = (root.navigator && navigator.language) || "en-US";
@@ -905,7 +905,7 @@
       rec.onerror = (e) => {
         if (e && (e.error === "not-allowed" || e.error === "service-not-allowed")) {
           speech.on = false;
-          toast("The microphone was refused, so speech can't fire triggers. Type the words instead.");
+          toast("The microphone was refused, so speech can't fire sparks. Type the words instead.");
           drawProx();
         }
       };
@@ -959,7 +959,7 @@
     now: { any: 0, left: 0, right: 0, high: 0 },
     start() {
       const md = root.navigator && navigator.mediaDevices;
-      if (!md || !md.getUserMedia) return toast("This browser can't use a camera here. The camera trigger stays off."), Promise.resolve(false);
+      if (!md || !md.getUserMedia) return toast("This browser can't use a camera here. The camera spark stays off."), Promise.resolve(false);
       if (camera.on) return Promise.resolve(true);
       return md
         .getUserMedia({ video: { width: 320, height: 240 }, audio: false })
@@ -978,7 +978,7 @@
           drawProx(true);
           return true;
         })
-        .catch(() => (toast("The camera was refused or isn't there. The camera trigger stays off."), false));
+        .catch(() => (toast("The camera was refused or isn't there. The camera spark stays off."), false));
     },
     stop() {
       clearInterval(camera.timer);
@@ -1035,7 +1035,7 @@
      version), with the pose model from Google's model store. Runs in this browser; nothing is uploaded. */
   const POSE_MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
   const POSE_WAIT = 90000; /* a download that hasn't finished in this long counts as blocked */
-  const POSE_FAILED = "The pose model couldn't load (you may be offline, or the download was blocked). The camera's movement zones still work, and pose triggers listen for movement instead.";
+  const POSE_FAILED = "The pose model couldn't load (you may be offline, or the download was blocked). The camera's movement zones still work, and pose sparks listen for movement instead.";
   /* Every pose trigger, fed: fn(t) -> [down, value]. */
   function poseTriggers(fn) {
     let n = 0;
@@ -1185,7 +1185,7 @@
   let draft = null;
   function assign(target, at) {
     const tg = cleanTarget(target);
-    if (!tg) return toast("That can't take a trigger."), null;
+    if (!tg) return toast("That can't take a spark."), null;
     if (tg.kind === "node" && locked(tg.lk)) return toast(`${label(tg.lk.slice(tg.lk.indexOf("|") + 1))} is locked (🔒 by its name), so its nodes stay as they are. Click the 🔒 to unlock it.`), null;
     draft = cleanOne({ id: "new", target: tg, when: { kind: "midi" }, does: {}, limits: {} }, 0);
     draft.id = "";
@@ -1217,11 +1217,11 @@
       whenBody = `<label>Event <select data-f="when.event">${EVENTS.map((e) => opt(e[0], e[1], w.event)).join("")}</select></label><label>On <select data-f="when.track">${opt("", "Any track", w.track)}${s.tracks.map((tr) => opt(tr.id, tr.label, w.track)).join("")}</select></label><label title="Pick one: only that one event, not every one like it (the music app's 'that note, at bar 23')">Which <select data-f="when.row">${opt("", "Every one", w.row)}${evRows.map(([id, l]) => opt(id, "Only the one at " + l, w.row)).join("")}${w.row && !evRows.some((x) => x[0] === w.row) ? opt(w.row, `Only the one at moment ${rowNum(w.row)} (not there now)`, w.row) : ""}</select></label><p class="ctr-k">${esc((EVENTS.find((e) => e[0] === w.event) || EVENTS[0])[2])}</p>`;
     } else if (w.kind === "section") whenBody = secs.length ? `<label>Section <select data-f="when.section">${opt("", "Pick one", w.section)}${secs.map((x) => opt(x.id, `${x.label} (moments ${x.from + 1}–${x.to + 1})`, w.section)).join("")}</select></label><p class="ctr-k">Sections are your markers on the timeline: each one runs to the next. The stretch before your first marker is the Opening, a section like any other. Write "Act 2" in a marker's note to name it.</p>` : `<p class="ctr-k">Your film has no sections yet. Add a marker (M) on the timeline: each marker starts a section that runs to the next, and the stretch before the first is the Opening.</p>`;
     else if (w.kind === "lfo") whenBody = `<label>Switches every <select data-f="when.every">${LFO_EVERY.map((n) => opt(n, `${n} moment${n === 1 ? "" : "s"}`, w.every)).join("")}</select></label>`;
-    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Curiosity Proximity window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Curiosity Proximity window instead, and they fire the same way."}</p>`;
+    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Live inputs window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Live inputs window instead, and they fire the same way."}</p>`;
     else if (w.kind === "pose") {
       const fb = (ZONES.find((z) => z[0] === POSE_FALLBACK[w.pose]) || ZONES[0])[1].toLowerCase();
-      whenBody = `<label>Pose <select data-f="when.pose">${POSES.map((p) => opt(p[0], p[1], w.pose)).join("")}</select></label><label title="How strong the pose must be to fire: higher fires on a hint of it, lower needs the full pose">Sensitivity <input type="range" min="0" max="100" step="5" data-f="when.sens" value="${w.sens}" aria-label="Sensitivity"> <output>${w.sens}%</output></label><p class="ctr-k">${esc((POSES.find((p) => p[0] === w.pose) || POSES[0])[2])} Poses stay off until you switch them on in the Curiosity Proximity window: a one-time download of about 6 MB (Google's free pose model) that stays in this browser. The camera picture is read here only; nothing is recorded or uploaded. Until then this trigger listens for ${esc(fb)} instead.</p>`;
-    } else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Curiosity Proximity window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
+      whenBody = `<label>Pose <select data-f="when.pose">${POSES.map((p) => opt(p[0], p[1], w.pose)).join("")}</select></label><label title="How strong the pose must be to fire: higher fires on a hint of it, lower needs the full pose">Sensitivity <input type="range" min="0" max="100" step="5" data-f="when.sens" value="${w.sens}" aria-label="Sensitivity"> <output>${w.sens}%</output></label><p class="ctr-k">${esc((POSES.find((p) => p[0] === w.pose) || POSES[0])[2])} Poses stay off until you switch them on in the Live inputs window: a one-time download of about 6 MB (Google's free pose model) that stays in this browser. The camera picture is read here only; nothing is recorded or uploaded. Until then this spark listens for ${esc(fb)} instead.</p>`;
+    } else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Live inputs window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
     const d = t.does;
     const l = t.limits;
     const doesBody = `<label>Does <select data-f="does.act">${DOES.map((x) => opt(x[0], x[1], d.act)).join("")}</select></label>${d.act === "scale" ? `<label>By <input type="number" min="0" max="100" step="5" data-f="does.amount" value="${d.amount}">%</label>` : ""}${d.act === "set" ? `<label>To <input type="number" min="0" max="100" step="5" data-f="does.value" value="${d.value}">% of its scale</label>` : ""}${d.act === "press" ? `<p class="ctr-k">A press acts for one moment, then lets go.</p>` : `<span class="ctr-seg" role="group" aria-label="How it acts">${MODES.map((m) => `<button type="button" data-ctr-mode="${m[0]}" class="${d.mode === m[0] ? "on" : ""}" aria-pressed="${d.mode === m[0]}" title="${esc(m[2])}">${esc(m[1])}</button>`).join("")}</span>`}`;
@@ -1236,11 +1236,11 @@
       <fieldset><legend>When</legend><label>Source <select data-f="when.kind">${WHEN.map((x) => opt(x[0], x[1], w.kind)).join("")}</select></label>${whenBody}</fieldset>
       <fieldset><legend>Does</legend>${doesBody}</fieldset>
       <fieldset><legend>Limits</legend>${limBody}</fieldset>
-      <p class="ctr-acts"><button type="button" class="on" data-ctr-save>${t.id ? "Save" : "Assign"}</button>${t.id ? '<button type="button" data-ctr-del>Remove this trigger</button>' : ""}<button type="button" data-ctr-close>Cancel</button></p>`;
+      <p class="ctr-acts"><button type="button" class="on" data-ctr-save>${t.id ? "Save" : "Assign"}</button>${t.id ? '<button type="button" data-ctr-del>Remove this spark</button>' : ""}<button type="button" data-ctr-close>Cancel</button></p>`;
   }
   function drawEditor() {
     if (!hasDoc || !draft) return;
-    const w = win("edit", draft.id ? "Trigger" : "Assign On Trigger", "when + does + limits");
+    const w = win("edit", draft.id ? "Spark" : "Assign On Spark", "when + does + limits");
     w.querySelector(".ctr-b").innerHTML = editorHtml();
   }
   function setPath(o, path, v) {
@@ -1287,7 +1287,7 @@
     if (draft.id) {
       release(draft.id);
       r = set(draft.id, { name: t.name, on: t.on, target: t.target, when: t.when, does: t.does, limits: t.limits });
-      toast(`Trigger saved: ${nameOf(t)}. Undo takes it back.`);
+      toast(`Spark saved: ${nameOf(t)}. Undo takes it back.`);
     } else {
       delete t.id;
       r = add(t);
@@ -1307,17 +1307,17 @@
   /* The Triggers window: every trigger, switched on or off, edited or removed. */
   function listHtml() {
     const ts = list();
-    if (!ts.length) return `<p class="ctr-k">No triggers yet. Right-click (or control-click) a node, a lane's name (its curiosity suite), a suite card or a master node, then Assign On Trigger….</p>`;
+    if (!ts.length) return `<p class="ctr-k">No sparks yet. Right-click (or control-click) a node, a lane's name (its curiosity suite), a suite card or a master node, then Assign On Spark….</p>`;
     return `<ul class="ctr-list">${ts
       .map((t) => {
         const x = live[t.id] || {};
-        return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-trig="${esc(t.id)}"><button type="button" class="ctr-sw${t.on ? " on" : ""}" data-ctr-onoff="${esc(t.id)}" aria-pressed="${t.on}" title="${t.on ? "On: click to switch this trigger off" : "Off: click to switch it on"}">${t.on ? "ON" : "OFF"}</button><span><b>${esc(nameOf(t))}</b><br><small>When ${esc(whenName(t.when))} · ${esc(doesName(t.does))} · on ${esc(targetName(t.target))}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span><button type="button" data-ctr-edit="${esc(t.id)}">Edit</button><button type="button" data-ctr-rm="${esc(t.id)}" aria-label="Remove">×</button></li>`;
+        return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-trig="${esc(t.id)}"><button type="button" class="ctr-sw${t.on ? " on" : ""}" data-ctr-onoff="${esc(t.id)}" aria-pressed="${t.on}" title="${t.on ? "On: click to switch this spark off" : "Off: click to switch it on"}">${t.on ? "ON" : "OFF"}</button><span><b>${esc(nameOf(t))}</b><br><small>When ${esc(whenName(t.when))} · ${esc(doesName(t.does))} · on ${esc(targetName(t.target))}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span><button type="button" data-ctr-edit="${esc(t.id)}">Edit</button><button type="button" data-ctr-rm="${esc(t.id)}" aria-label="Remove">×</button></li>`;
       })
       .join("")}</ul>`;
   }
   function openList() {
     if (!hasDoc) return;
-    const w = win("list", "Triggers", "curiosity proximity: when + does + limits");
+    const w = win("list", "Sparks", "when + does + limits");
     w.querySelector(".ctr-b").innerHTML = listHtml();
     return w;
   }
@@ -1364,19 +1364,19 @@
     const perf = E() && E().performing ? E().performing() : [];
     return `<div class="ctr-inputs">
       <p><b>MIDI</b> <span class="ctr-k">${esc(midiStatus())}</span> <button type="button" data-ctr-midi>Connect</button></p>
-      <p><b>Speech</b> ${speech.supported ? `<button type="button" data-ctr-listen class="${speech.on ? "on" : ""}" aria-pressed="${speech.on}">${speech.on ? "Listening (click to stop)" : "Listen"}</button>` : `<span class="ctr-k">This browser has no free speech recognition. Type instead:</span>`} <input type="text" data-ctr-type placeholder="Type words and press Enter" aria-label="Type words for the speech triggers">${speech.heard ? ` <span class="ctr-k">Heard: "${esc(speech.heard)}"</span>` : ""}</p>
+      <p><b>Speech</b> ${speech.supported ? `<button type="button" data-ctr-listen class="${speech.on ? "on" : ""}" aria-pressed="${speech.on}">${speech.on ? "Listening (click to stop)" : "Listen"}</button>` : `<span class="ctr-k">This browser has no free speech recognition. Type instead:</span>`} <input type="text" data-ctr-type placeholder="Type words and press Enter" aria-label="Type words for the speech sparks">${speech.heard ? ` <span class="ctr-k">Heard: "${esc(speech.heard)}"</span>` : ""}</p>
       <p><b>Camera</b> <button type="button" data-ctr-cam class="${camera.on ? "on" : ""}" aria-pressed="${camera.on}">${camera.on ? "On (click to switch off)" : "Off: switch on"}</button> <span class="ctr-k">In this browser only; nothing is recorded or uploaded.</span></p>
       ${poseHtml()}
       <div class="ctr-live">${liveHtml()}</div>
     </div>
-    <p class="ctr-perf">${perf.length ? `<b>Performing</b> (not saved, not an undo step) <button type="button" data-ctr-putback>Put everything back</button>` : `<span class="ctr-k">Nothing is performing. Triggers that fire during playback are put back when it stops.</span>`}</p>
+    <p class="ctr-perf">${perf.length ? `<b>Performing</b> (not saved, not an undo step) <button type="button" data-ctr-putback>Put everything back</button>` : `<span class="ctr-k">Nothing is performing. Sparks that fire during playback are put back when it stops.</span>`}</p>
     ${ts.length ? `<ul class="ctr-list ctr-near">${ts
       .map((t) => {
         const [words, p] = nearness(t);
         const x = live[t.id] || {};
         return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-near="${esc(t.id)}"><span class="ctr-meter"><i style="width:${Math.round(p * 100)}%"></i></span><span><b>${esc(nameOf(t))}</b> <small>${esc(words)}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span></li>`;
       })
-      .join("")}</ul>` : `<p class="ctr-k">No triggers yet.</p>`}`;
+      .join("")}</ul>` : `<p class="ctr-k">No sparks yet.</p>`}`;
   }
   /* Poses in the Proximity window: off, the plain-words question before the download, loading, on, or failed. */
   function poseHtml() {
@@ -1413,7 +1413,7 @@
   function openProximity() {
     if (!hasDoc) return;
     hookMidi();
-    const w = win("prox", "Curiosity Proximity", "what is close to firing, live");
+    const w = win("prox", "Live inputs", "MIDI, speech and the camera: what is close to firing");
     w.querySelector(".ctr-b").innerHTML = proxHtml();
     return w;
   }
@@ -1446,10 +1446,10 @@
     const same = (t) => JSON.stringify(t) === k || (c.from === "curiosity" && t.from === "curiosity" && t.cur === c.cur && (!t.track || !c.track || t.track === c.track));
     return list().filter((t) => same(t.target));
   }
-  const ASSIGN_LABEL = "Assign On Trigger…";
+  const ASSIGN_LABEL = "Assign On Spark…";
   function menuButtons(tg) {
     return `<button type="button" data-ctr-assign>${ASSIGN_LABEL}</button>${existingFor(tg)
-      .map((t) => `<button type="button" data-ctr-edit="${esc(t.id)}">Trigger: ${esc(nameOf(t))}</button>`)
+      .map((t) => `<button type="button" data-ctr-edit="${esc(t.id)}">Spark: ${esc(nameOf(t))}</button>`)
       .join("")}`;
   }
   function wireButtons(box, tg, after) {
@@ -1572,7 +1572,7 @@
       const id = draft && draft.id;
       draft = null;
       closeWin("edit");
-      if (id) remove(id), toast("Trigger removed. Undo brings it back.");
+      if (id) remove(id), toast("Spark removed. Undo brings it back.");
       return drawList();
     }
     if (d.ctrMode) return draft && ((draft.does.mode = d.ctrMode), drawEditor());
@@ -1608,7 +1608,7 @@
     }
     if (d.rangeDel != null) return draft.limits.ranges.splice(Number(d.rangeDel), 1), drawEditor();
     if (d.ctrEdit) return edit(d.ctrEdit);
-    if (d.ctrRm) return remove(d.ctrRm), toast("Trigger removed. Undo brings it back."), drawList();
+    if (d.ctrRm) return remove(d.ctrRm), toast("Spark removed. Undo brings it back."), drawList();
     if (d.ctrOnoff) {
       const tr = get(d.ctrOnoff);
       if (tr) {
@@ -1706,7 +1706,7 @@
   }
 
   /* The bar's two buttons (screen/ui.js asks for them). */
-  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Triggers: every trigger (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Triggers${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Curiosity Proximity: MIDI, speech and the camera, and how close each trigger is to firing, live">Proximity</button></span>`;
+  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Sparks: every spark (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Sparks${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Live inputs: MIDI, speech and the camera, and how close each spark is to firing">Live</button><button type="button" data-cat-open title="Catalyst: make and play Sparks (one thing sets many off) and Elixirs (every ingredient must line up)">⚗ Catalyst</button></span>`;
 
   function forTarget(targetId) {
     const id = String(targetId || "");
@@ -1767,7 +1767,7 @@
       apply();
       drawList();
       const bar = document.querySelector(".ctr-bar [data-ctr-open='list']");
-      if (bar) bar.textContent = "Triggers" + (list().length ? " · " + list().length : "");
+      if (bar) bar.textContent = "Sparks" + (list().length ? " · " + list().length : "");
     });
     store();
     const st2 = document.createElement("style");

@@ -222,11 +222,11 @@
           <button type="button" id="passes-delete">Delete layer</button></p>
           <p class="cap">Only curiosities live on the board go to it, one value per panel. Studio ones stay here and still count toward suites.</p>` : `<p class="cap">The master layer has no overrides. Pick or make a layer to override curiosities.</p>`}
           <h3>Light groups</h3>
-          <p class="cap">Which suites fire on which panels (every key matched), and which proximities' seed tests hold.</p>
+          <p class="cap">Which suites fire on which panels (every key matched), and which sparks' seed tests hold.</p>
           <table class="trace"><thead><tr><th>Suite</th><th>Panels firing</th><th>Keys matched</th></tr></thead><tbody>
             ${suiteRows.map((r) => `<tr><td><span class="chip ${r.full.length ? "lit" : "suite"}">${esc(r.su.label)}</span></td><td>${r.full.join(", ") || "none"}</td><td>${r.best}/${r.total}</td></tr>`).join("") || `<tr><td colspan="3" class="cap">No suite keys match.</td></tr>`}
           </tbody></table>
-          <table class="trace"><thead><tr><th>Proximity</th><th>Holds on panels</th></tr></thead><tbody>
+          <table class="trace"><thead><tr><th>Spark</th><th>Holds on panels</th></tr></thead><tbody>
             ${proxRows.map((r) => `<tr><td>When ${esc(r.p.when)}, ${esc(r.p.then)} within ${r.p.within}</td><td>${r.on.length ? `<span class="chip lit">${r.on.join(", ")}</span>` : "none"}</td></tr>`).join("")}
           </tbody></table>
         </div>

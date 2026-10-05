@@ -395,7 +395,7 @@
     const nodes = [...keys].map(split);
     for (const n of nodes) {
       const to = ix[n.row] + d;
-      if (ix[n.row] == null || to < 0 || to >= st.rows.length) return { error: "That would push part of the proximity off the end of the film." };
+      if (ix[n.row] == null || to < 0 || to >= st.rows.length) return { error: "That would push part of the spark off the end of the film." };
     }
     const at = (rowId) => st.rows[ix[rowId] + d].id;
     const cmds = [];
@@ -489,11 +489,11 @@
       const out = E().send({ type: "batch", label: "Paste automation", commands: r.cmds });
       return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: r.cmds.filter((x) => x.type === "addLink").length, skipped } : out;
     }
-    if (!clip || !clip.nodes || !clip.nodes.length) return { ok: false, error: "Copy a proximity first (pick a node, then Copy)." };
+    if (!clip || !clip.nodes || !clip.nodes.length) return { ok: false, error: "Copy a spark first (pick a node, then Copy)." };
     let st = E().state();
     const span = Math.max(...clip.nodes.map((n) => n.at));
     const start = Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - span));
-    if (start + span >= st.rows.length) return { ok: false, error: "The film is shorter than that proximity." };
+    if (start + span >= st.rows.length) return { ok: false, error: "The film is shorter than that spark." };
     /* Put each curiosity on a track: the same track if this film has it with that curiosity, else the usual one. */
     const place = {};
     const adds = [];
@@ -527,9 +527,9 @@
     const lockedLk = (t, c) => isLocked(t + "|" + c);
     const kept = cmds.filter((c) => !(c.type === "setPoint" ? lockedLk(c.track, c.curiosity) : lockedLk(c.from.track, c.from.curiosity) || lockedLk(c.to.track, c.to.curiosity)));
     const skipped = cmds.filter((c) => c.type === "setPoint").length - kept.filter((c) => c.type === "setPoint").length;
-    if (!kept.length) return { ok: false, error: skipped ? "Every lane that proximity lands on is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
+    if (!kept.length) return { ok: false, error: skipped ? "Every lane that spark lands on is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
     const links = kept.filter((c) => c.type === "addLink").length;
-    const out = E().send({ type: "batch", label: links > 1 ? "Paste a proximity suite" : links ? "Paste a proximity" : "Paste nodes", commands: adds.concat(kept) });
+    const out = E().send({ type: "batch", label: links > 1 ? "Paste an elixir" : links ? "Paste a spark" : "Paste nodes", commands: adds.concat(kept) });
     return out.ok ? { ok: true, nodes: kept.length - links, links, skipped } : out;
   }
 
@@ -2443,7 +2443,7 @@
               y2 = y1 + band.mh * 0.4;
             }
             const mx = (x1 + x2) / 2;
-            svg.push(`<path class="sl-mtrig" d="M${x1} ${y1} C${mx} ${y1 - 18}, ${mx} ${y2 - 18}, ${x2} ${y2}" data-mtrig="${esc(tr.id || "")}"><title>${esc(p.m.label)} ← trigger: ${esc(tr.label || s.kind || "a trigger")}</title></path>`);
+            svg.push(`<path class="sl-mtrig" d="M${x1} ${y1} C${mx} ${y1 - 18}, ${mx} ${y2 - 18}, ${x2} ${y2}" data-mtrig="${esc(tr.id || "")}"><title>${esc(p.m.label)} ← spark: ${esc(tr.label || s.kind || "a trigger")}</title></path>`);
             if (li < 0) svg.push(`<text class="sl-mtag sl-mtrigtag" x="${x2}" y="${y2 + 9}">${esc(String(tr.label || s.kind || "trigger").slice(0, 18))}</text>`);
           });
       });
@@ -2610,7 +2610,7 @@
       mWin.innerHTML = `<div class="sl-mwin-h"><strong>Master Nodes</strong><button type="button" data-mw="close" aria-label="Close">✕</button></div>
         <label class="sl-mwin-sw"><input type="checkbox" data-mw="pastemaster"${tools.masterPaste !== false ? " checked" : ""}> A paste makes a master node (START ◆ to END ◆ over the pasted moments)</label>
         <label class="sl-mwin-sw"><input type="checkbox" data-mw="tracks"${tools.allTracks ? " checked" : ""}> Tracks: a master lane for every track (Master, Camera, each character) under the lanes. Click a track's name to light it (⌘-click for more, ⇧-click for a run); ▸ folds its lanes</label>
-        <label class="sl-mwin-sw"><input type="checkbox" data-mw="prox"${tools.proxView ? " checked" : ""}> Suite / Proximity view: curved lines from each master node to its triggers</label>
+        <label class="sl-mwin-sw"><input type="checkbox" data-mw="prox"${tools.proxView ? " checked" : ""}> Suite / Spark view: curved lines from each master node to its sparks</label>
         ${list.length ? "" : `<p class="sl-mwin-none">No master nodes yet. Select an area, Copy, then Paste: the paste becomes a master node you can switch, gate, scale, pulse and move as one thing.</p>`}
         ${list
           .map((m) => {
@@ -3110,7 +3110,7 @@
         const y1 = yFor(l.from.curiosity, Eng.value(l.scope.from, l.from.track, l.from.curiosity), a);
         const y2 = yFor(l.to.curiosity, Eng.value(l.scope.to, l.to.track, l.to.curiosity), b);
         const mx = (x1 + x2) / 2 + (x1 === x2 ? 18 : 0);
-        svg.push(`<path class="sl-link${l.on ? "" : " off"}" d="M${x1} ${y1} Q${mx} ${(y1 + y2) / 2} ${x2} ${y2}" data-link="${esc(l.id)}"><title>${esc(l.label || "Proximity")}${l.suite ? " (in a proximity suite)" : ""}. Click to switch off or remove.</title></path>`);
+        svg.push(`<path class="sl-link${l.on ? "" : " off"}" d="M${x1} ${y1} Q${mx} ${(y1 + y2) / 2} ${x2} ${y2}" data-link="${esc(l.id)}"><title>${esc(l.label || "Spark")}${l.suite ? " (in an elixir)" : ""}. Click to switch off or remove.</title></path>`);
       });
       const others = st.links.filter((l) => !l.scope && laneIx[l.from.track + "|" + l.from.curiosity] != null && laneIx[l.to.track + "|" + l.to.curiosity] != null).length;
       const tb = (act, label, title, on) => `<button type="button" data-act="${act}" class="sl-tb${on ? " on" : ""}" title="${esc(title)}"${on == null ? "" : ` aria-pressed="${!!on}"`}>${label}</button>`;
@@ -3122,14 +3122,14 @@
           <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot or a line to add a node there, drag a line to move both its nodes, Alt + drag a line to curve it, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
           ${opts.ripple ? `<span class="sl-seg sl-moments" role="group" aria-label="Moments">${tb("ripple-add", "+ Moment", `Add a moment here (⌥M): a copy of moment ${playRow + 1} goes right after it, so nothing jumps. Everything after it (nodes, joins, markers, transitions and words) slides one moment later.`)}${tb("ripple-delete", "− Moment", `Take out moment ${playRow + 1} (⌥⌫) and close the gap: everything after it slides one moment earlier. With a stretch selected, takes out the whole stretch.`)}</span>` : ""}
           <button type="button" data-act="undo" ${(opts.canUndo ? opts.canUndo("undo") : Eng.canUndo()) ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${(opts.canUndo ? opts.canUndo("redo") : Eng.canRedo()) ? "" : "disabled"}>Redo</button>
-          <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
+          <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy spark"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
           ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}${opts.ripple ? tb("ripple-duplicate", "Duplicate moments", `Duplicate moments (⇧⌥M): a copy of moments ${area.j0 + 1} to ${area.j1 + 1} (every lane, not only the selected ones) goes right after them, and everything after slides later.`) + tb("ripple-delete", "Take out moments", `Take out moments ${area.j0 + 1} to ${area.j1 + 1} (⌥⌫) on every lane and close the gap: everything after slides earlier. Remove nodes keeps the moments and only clears the selected lanes.`) : ""}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (or hold Alt and drag a line, or right-click it)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
-          ${M() ? tb("master-win", `◆${mastersOf(st).length ? " " + mastersOf(st).length : ""}`, "Master nodes: open the Master Nodes window: every master node (a pasted suite you can switch, gate, scale, pulse and move as one thing), plus the switches for a paste making a master node, a master lane for every track (Tracks) and the Suite / Proximity view", !!mWin) : ""}
+          ${M() ? tb("master-win", `◆${mastersOf(st).length ? " " + mastersOf(st).length : ""}`, "Master nodes: open the Master Nodes window: every master node (a pasted suite you can switch, gate, scale, pulse and move as one thing), plus the switches for a paste making a master node, a master lane for every track (Tracks) and the Suite / Spark view", !!mWin) : ""}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
@@ -3138,7 +3138,7 @@
           ${tb("film-lines", "Film lines", filmTip("lines"), filmLinesOn())}
           ${momentumLane() ? "" : tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
-          <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
+          <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more sparks between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
         <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
           <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${txt.head}${att.head}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
@@ -3950,7 +3950,7 @@
         const lockLk = [from.lk, split(target.dataset.node).lk].find(isLocked);
         if (lockLk) return draw(), say(lockSay(lockLk));
         const r = send(Object.assign(linkCommand(st, from, split(target.dataset.node)), {}));
-        if (r.ok) say("Joined: they now move and copy together. Copy proximity takes the pair to another scene.");
+        if (r.ok) say("Joined: they now move and copy together. Copy spark takes the pair to another scene.");
         return draw();
       }
       const ix = st.rows.findIndex((r) => r.id === from.row);
@@ -3969,7 +3969,7 @@
         const sh = shiftCommands(st, d.key, dj, copy, { solo: !tools.linkage, ripple: tools.magnet && !copy, allow: kindOk });
         if (sh.error) return say(sh.error), draw();
         cmds.push(...sh.cmds);
-        label = (copy ? "Copy " : "Move ") + (sh.links ? (sh.links > 1 ? "a proximity suite" : "a proximity") : "a node");
+        label = (copy ? "Copy " : "Move ") + (sh.links ? (sh.links > 1 ? "an elixir" : "a spark") : "a node");
         if (sh.links) say(`${copy ? "Copied" : "Moved"} ${sh.size} joined nodes together.`);
       }
       if (onOwnLane && a.p != null) {
@@ -4305,7 +4305,7 @@
         const n = split(key);
         sel = key;
         const pop = popAt("sl-linemenu", "Node", e.clientX, e.clientY);
-        pop.innerHTML = `<p><strong>Node</strong> · ${esc(S().label(n.cur))}: ${esc(pointValue(E().state(), n))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="remove">Remove this node</button><button type="button" data-m="copy">Copy proximity</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
+        pop.innerHTML = `<p><strong>Node</strong> · ${esc(S().label(n.cur))}: ${esc(pointValue(E().state(), n))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="remove">Remove this node</button><button type="button" data-m="copy">Copy spark</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
         pop.onclick = (ev) => {
           ev.stopPropagation();
           const b = ev.target.closest("[data-m]");
@@ -4404,12 +4404,12 @@
       const r = el.getBoundingClientRect();
       pop.style.left = Math.max(0, e.clientX - r.left - 60) + "px";
       pop.style.top = Math.max(0, e.clientY - r.top + 8) + "px";
-      pop.innerHTML = `<p>${esc(l.label || "Proximity")}</p><button type="button" data-l="toggle">${l.on ? "Switch off" : "Switch on"}</button><button type="button" data-l="remove">Remove the line</button><button type="button" data-l="close">Close</button>`;
+      pop.innerHTML = `<p>${esc(l.label || "Spark")}</p><button type="button" data-l="toggle">${l.on ? "Switch off" : "Switch on"}</button><button type="button" data-l="remove">Remove the line</button><button type="button" data-l="close">Close</button>`;
       pop.onclick = (ev) => {
         const b = ev.target.closest("[data-l]");
         if (!b) return;
         if (b.dataset.l === "toggle") send({ type: "toggleLink", link: id });
-        if (b.dataset.l === "remove") send({ type: "removeLink", link: id, label: "Remove a proximity" });
+        if (b.dataset.l === "remove") send({ type: "removeLink", link: id, label: "Remove a spark" });
         pop.remove();
         draw();
       };

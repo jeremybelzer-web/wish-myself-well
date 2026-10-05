@@ -2194,7 +2194,7 @@ document.addEventListener("click", function (e) {
      - nodes on every lane: kept by moment id, so they slide along by themselves. A copied moment gets copies of its
        nodes (and its own material and pins), and where a lane's line would now play something else (a glide that
        got one moment longer, a node taken out), a node with what it played before goes in, so nothing jumps.
-     - joins (proximities): a join inside a duplicated stretch is copied with it; one that spans the new or missing
+     - joins (sparks): a join inside a duplicated stretch is copied with it; one that spans the new or missing
        moments has its gap (within) changed; one that touches a moment taken out goes with it.
      - markers (curiosities-screen-tools-v1): kept by moment id, so they slide along; one on a moment taken out goes.
      - transitions (screenTransitions) and words on the frame (screenText): kept by moment NUMBER, so they are
@@ -2640,7 +2640,7 @@ document.addEventListener("click", function (e) {
   function category() {
     return L().CATEGORIES.find((c) => c.id === prefs.cat) || L().CATEGORIES[0];
   }
-  /* The sidebar's groups for a category: its workspaces, then its suites, proximities and proximity suites. */
+  /* The sidebar's groups for a category: its workspaces, then its suites, sparks and elixirs. */
   /* ADVANCED (Jeremy, 2026-10-02 20:21Z): "keep the features of Final Cut Pro and hide them under a tab that
      says ADVANCED and then focus on the features of CapCut". Rows tagged "advanced" (Final Cut Pro features
      CapCut has no match for, data/db-editing.js) stay out of the category grids and Details, and live under
@@ -2677,7 +2677,7 @@ document.addEventListener("click", function (e) {
   ];
   function advancedGroups() {
     const out = [{ id: "adv:fcp", label: "Final Cut Pro's own", level: "curiosity", items: L().items("curiosity").filter(isAdv) }];
-    [["suite", "Advanced suites"], ["proximity", "Advanced proximities"], ["proximitySuite", "Advanced proximity suites"]].forEach(([lv, label]) => {
+    [["suite", "Advanced suites"], ["proximity", "Advanced sparks"], ["proximitySuite", "Advanced elixirs"]].forEach(([lv, label]) => {
       const items = L().items(lv).filter(isAdv);
       if (items.length) out.push({ id: "adv:" + lv, label, level: lv, items });
     });
@@ -2689,13 +2689,13 @@ document.addEventListener("click", function (e) {
     const out = cat.workspaces
       .map((w) => ({ id: "ws:" + w, label: (ws.find((x) => x.id === w) || {}).label || w, level: "curiosity", items: mainOnly(L().curiosities(cat.id)).filter((c) => c.workspace === w) }))
       .filter((g) => g.items.length);
-    [["suite", "Suites"], ["proximity", "Proximities"], ["proximitySuite", "Proximity suites"]].forEach(([lv, label]) => {
+    [["suite", "Suites"], ["proximity", "Sparks"], ["proximitySuite", "Elixirs"]].forEach(([lv, label]) => {
       const items = mainOnly(L().items(lv, cat.id));
       if (items.length) out.push({ id: lv, label, level: lv, items });
     });
     return out;
   }
-  /* "My film": every lane with nodes (an outliner), then the proximities and suites already joined in. */
+  /* "My film": every lane with nodes (an outliner), then the sparks and suites already joined in. */
   function mineGroups() {
     const st = E() && E().state();
     if (!st) return [];
@@ -2706,11 +2706,11 @@ document.addEventListener("click", function (e) {
       return { id: cur, label: labelOf(cur), plain: `${n} node${n === 1 ? "" : "s"} on ${t ? t.label : "a track"}${st.lanes[lk].mode === "hold" ? ", jumps between them" : ""}` };
     });
     const out = [{ id: "mine:lanes", label: "Automated curiosities", level: "curiosity", items: lanes }];
-    const links = st.links.map((l) => ({ id: l.id, label: l.label || "A proximity", plain: (l.on ? "" : "Switched off. ") + (l.scope ? "Joins two nodes." : "A rule for the whole lane."), link: true }));
-    if (links.length) out.push({ id: "mine:links", label: "Proximities in my film", level: "link", items: links });
+    const links = st.links.map((l) => ({ id: l.id, label: l.label || "A spark", plain: (l.on ? "" : "Switched off. ") + (l.scope ? "Joins two nodes." : "A rule for the whole lane."), link: true }));
+    if (links.length) out.push({ id: "mine:links", label: "Sparks in my film", level: "link", items: links });
     return out;
   }
-  /* "Templates": every suite, by category, and the proximity suites as linked recipes. */
+  /* "Templates": every suite, by category, and the elixirs as linked recipes. */
   function templateGroups() {
     const out = L()
       .CATEGORIES.map((c) => ({ id: "tpl:" + c.id, label: c.label, level: "suite", items: L().items("suite", c.id) }))
@@ -3118,7 +3118,7 @@ document.addEventListener("click", function (e) {
   }
   function cardHtml(level, it) {
     if (level === "fcp") return it.cur ? `<div class="sc-card sc-fcp" data-card="fcp"><button type="button" class="sc-card-b" data-pick-card="curiosity|${esc(it.cur)}"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></button></div>` : `<div class="sc-card sc-fcp" data-card="fcp"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></div></div>`;
-    if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
+    if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Spark</em></div></div>`;
     const on = prefs.sel.level === level && prefs.sel.id === it.id;
     let sub = it.plain || "";
     if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
@@ -3312,11 +3312,11 @@ document.addEventListener("click", function (e) {
   const MY = () => window.CurioMine || null;
   const isMineIt = (id) => !!(MY() && MY().isMine(id));
   const MY_WORD = { curiosity: "curiosity", suite: "suite", proximity: "proximity" };
-  const MY_NEW = { curiosity: "+ New curiosity", suite: "+ New suite", proximity: "+ New proximity" };
+  const MY_NEW = { curiosity: "+ New curiosity", suite: "+ New suite", proximity: "+ New spark" };
   const MY_TIP = {
     curiosity: "Make your own curiosity: one thing about a scene you can look at and change, with a scale from one end to the other",
     suite: "Make your own suite: a few curiosities you look at together",
-    proximity: "Make your own proximity: when one curiosity changes, another one follows soon after",
+    proximity: "Make your own spark: when one curiosity changes, another one follows soon after",
   };
   const MY_CUES = [["visual", "the eye"], ["audio", "the ear"], ["thought", "the mind"], ["movement", "movement"], ["plot", "the plot"]];
   let myDlg = null; /* { el, level, it, picked } while the form is open */
@@ -3346,7 +3346,7 @@ document.addEventListener("click", function (e) {
     const d = MY().data();
     const n = d.curiosities.length + d.suites.length + d.proximities.length;
     const btn = (l, on) => `<button type="button" class="sc-my-new${on ? " on" : ""}" data-my-new="${l}" title="${esc(MY_TIP[l])}">${MY_NEW[l]}</button>`;
-    return `<div class="sc-mybar">${btn(lv, true)}${extra.map((l) => btn(l)).join("")}<span class="sc-mybar-r"><button type="button" data-my-act="export"${n ? "" : " disabled"} title="Save everything you made (${n}) as one .json file to share">Export mine</button><button type="button" data-my-act="import" title="Bring in curiosities, suites and proximities someone shared as a .json file">Import…</button><input type="file" accept=".json,application/json" data-my-file hidden></span></div>`;
+    return `<div class="sc-mybar">${btn(lv, true)}${extra.map((l) => btn(l)).join("")}<span class="sc-mybar-r"><button type="button" data-my-act="export"${n ? "" : " disabled"} title="Save everything you made (${n}) as one .json file to share">Export mine</button><button type="button" data-my-act="import" title="Bring in curiosities, suites and sparks someone shared as a .json file">Import…</button><input type="file" accept=".json,application/json" data-my-file hidden></span></div>`;
   }
   /* Every curiosity the engine can play, by category, yours first in each: [{ key, label, cat, mine }]. */
   function myAllCurs() {
@@ -3433,7 +3433,7 @@ document.addEventListener("click", function (e) {
     const t = it ? it.then : { curiosity: "", change: "changes" };
     const chg = (name, cur, then) => `<select name="${name}" data-my-chg>${[["rises", "goes up"], ["drops", "goes down"], ["changes", then ? "changes too" : "changes"], ["is", "becomes…"]].map(([v, l]) => `<option value="${v}"${cur === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
     return `<form class="sc-myform" data-my-form="proximity" novalidate>${head}
-      <p class="sc-k">A proximity is when one curiosity leads to another soon after: when the music swells, the camera pushes in within a moment or two.</p>
+      <p class="sc-k">A spark is when one curiosity leads to another soon after: when the music swells, the camera pushes in within a moment or two.</p>
       <div class="sc-mysent"><span>When</span>${myCurSelect("whenCur", w.curiosity, all)}${chg("whenChange", w.change)}<span data-my-val="when">${w.change === "is" ? myValueCtl("whenIs", w.curiosity, w.is) : ""}</span>
         <span>then</span>${myCurSelect("thenCur", t.curiosity, all)}${chg("thenChange", t.change, true)}<span data-my-val="then">${t.change === "is" ? myValueCtl("thenIs", t.curiosity, t.is) : ""}</span>
         <span>within</span><input type="number" name="within" min="0" max="16" step="1" value="${it ? it.within : 2}" aria-label="Moments"><span>moments.</span></div>
@@ -3641,7 +3641,7 @@ document.addEventListener("click", function (e) {
       const data = MY().data();
       const users = data.suites.filter((s) => s.members.some((m) => L().base(m.curiosity) === id)).map((s) => s.label).concat(data.proximities.filter((p) => [p.when, p.then].some((e) => L().base(e.curiosity) === id)).map((p) => p.label));
       const q = users.slice(0, 3).map((u) => `"${u}"`);
-      if (users.length) parts.push(`Your ${users.length === 1 ? "suite or proximity" : "suites and proximities"} ${q.join(", ")}${users.length > 3 ? " and " + (users.length - 3) + " more" : ""} will skip it.`);
+      if (users.length) parts.push(`Your ${users.length === 1 ? "suite or spark" : "suites and sparks"} ${q.join(", ")}${users.length > 3 ? " and " + (users.length - 3) + " more" : ""} will skip it.`);
     }
     return `Delete ${d.it.label}? ${parts.join(" ")}${MY().store().undo === false ? " This can't be undone." : lanesIn ? " ⌘Z twice brings both back." : " ⌘Z brings it back."}`;
   }
@@ -5254,7 +5254,7 @@ document.addEventListener("click", function (e) {
           ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${mainOnly(L().curiosities(c.id)).length}</small></button>`).join("")}</div>` : ""}
           ${prefs.showSuites ? `<div class="sc-chips">${L().CATEGORIES.map((c) => { const list = L().items("suite", c.id); return list.length ? `<details${list.some((s) => prefs.openSuites[s.id]) ? " open" : ""}><summary>${esc(c.label)} <small>${list.length} suites</small></summary>${list.map((s) => `<button type="button" data-open-suite="${esc(s.id)}" class="${prefs.openSuites[s.id] ? "on" : ""}" title="${esc(s.plain || "")}">${esc(s.label)}</button>`).join("")}</details>` : ""; }).join("")}</div>` : ""}
         </div>`
-        : `<p class="sc-tl-h"><strong>Timeline</strong> ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}${prefs.lanes.length ? ` · ${prefs.lanes.length} track${prefs.lanes.length === 1 ? "" : "s"} you added <button type="button" data-act="clear-lanes" title="Take the tracks you added off the timeline (their nodes stay in your film)">Clear</button>` : ""}</p>`;
+        : `<p class="sc-tl-h"><strong>Timeline</strong> ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} spark${sel.pairs.length === 1 ? "" : "s"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this elixir" : "this proximity"} to my film</button>` : ""}${prefs.lanes.length ? ` · ${prefs.lanes.length} track${prefs.lanes.length === 1 ? "" : "s"} you added <button type="button" data-act="clear-lanes" title="Take the tracks you added off the timeline (their nodes stay in your film)">Clear</button>` : ""}</p>`;
     if (!fromEngine || !lanes) {
       if (lanes) lanes.destroy();
       box.innerHTML = potential + `<div class="sc-lanes"></div>`;

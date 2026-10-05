@@ -194,12 +194,17 @@
         out.push(lane("chance:" + id, "chance:" + id, `How often: ${x.then}`, 1, 0.5));
       });
       out.push(psBlendLane());
+      out.push(psLockLane());
     }
     return out;
   }
   /* A proximity suite's Blend: the share of each member's effects that land (one dice roll per panel and member). */
   function psBlendLane() {
     return lane("blend", "blend", "Blend: how much of this group's cause and effect plays", 0, 1);
+  }
+  /* An elixir's Lock (off at first): switched on, it fires only where every ingredient lines up. */
+  function psLockLane() {
+    return lane("lock", "lock", "Lock: fires only when every ingredient is in", 1, 1);
   }
   /* A suite's Blend and a Weight per member (off at first). A suite may carry weights: {member: 0..1}. */
   function blendLanes(id) {
@@ -263,6 +268,7 @@
     if (p && p.lanes && paramOf(key) && paramOf(key).level === "suite" && !p.lanes.some((l) => l.id === "blend")) blendLanes(paramOf(key).id).forEach((l) => p.lanes.some((x) => x.id === l.id) || p.lanes.push(l));
     /* Proximity suite patches saved before Blend existed get it now, switched off. */
     if (p && p.lanes && paramOf(key) && paramOf(key).level === "proximity suite" && !p.lanes.some((l) => l.id === "blend")) p.lanes.push(psBlendLane());
+    if (p && p.lanes && paramOf(key) && paramOf(key).level === "proximity suite" && !p.lanes.some((l) => l.id === "lock")) p.lanes.push(psLockLane());
     return p;
   }
   function laneOf(key) {
@@ -496,11 +502,16 @@
       /* Blend: on each panel, each member's effect lands only when its dice roll is under the blend. */
       const bl = find("blend");
       const blended = (id, i) => !bl || dice(p.key, i, "blend:" + id) < share(bl, i);
+      /* Lock: an elixir fires only on panels where every ingredient (each member's cause) is already there,
+         like a key whose ridges all fit. Read before any member lands, so one ingredient can't unlock the rest. */
+      const ingredients = ps.members.map((id) => PROXIMITIES.find((x) => x.id === id)).filter(Boolean);
+      const unlocked = find("lock") ? panels.map((_, i) => ingredients.every((x) => holds(x.x, panels, i))) : null;
+      const opened = (i) => !unlocked || unlocked[i];
       ps.members.forEach((id) => {
         const prox = PROXIMITIES.find((x) => x.id === id);
         if (!prox) return;
         const chance = per("chance:" + id, null);
-        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) && blended(id, i) ? (chance ? chance(i) : 1) : 0) });
+        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) && opened(i) && blended(id, i) ? (chance ? chance(i) : 1) : 0) });
       });
     });
     return { panels, ms };
@@ -718,6 +729,18 @@
       PARAMS.push(p);
       PARAM[p.key] = p;
     },
+    /* The Catalyst window's own elixirs: addElixir({id, label, members: [spark ids]}) makes it automatable. */
+    addElixir(e) {
+      if (!e || !e.id || PARAM["ps:" + e.id]) return;
+      const members = (e.members || []).filter((id) => PROXIMITIES.some((x) => x.id === id));
+      if (!members.length) return;
+      PROXIMITY_SUITES.push({ id: e.id, label: e.label || e.id, members });
+      const p = { key: "ps:" + e.id, level: "proximity suite", id: e.id, label: e.label || e.id, group: "proximity suite" };
+      PARAMS.push(p);
+      PARAM[p.key] = p;
+    },
+    /* Is a spark's cause there on panel i? (the Catalyst window's ingredients) */
+    holds: (x, panels, i) => !!(x && panels && panels[i] && holds(x, panels, i)),
     patch,
     CURVES,
     FACETS,

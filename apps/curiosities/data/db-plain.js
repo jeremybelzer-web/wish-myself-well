@@ -11,7 +11,7 @@
 (function (DB) {
   const row = (id) => {
     const x = DB.find(id);
-    if (!x) throw new Error(`db-plain.js: no curiosity, suite, proximity or proximity suite "${id}" (renamed or removed?)`);
+    if (!x) throw new Error(`db-plain.js: no curiosity, suite, spark or elixir "${id}" (renamed or removed?)`);
     return x;
   };
   const slider = (id, sliderId) => {

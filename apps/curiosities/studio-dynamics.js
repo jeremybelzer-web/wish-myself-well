@@ -872,7 +872,7 @@
         <p class="group-label">Curiosities this sim produces</p>
         <p id="dyn-chips"></p>
         <p class="cap">Click a chip to automate it, or open Automate.</p>
-        <p class="group-label">Proximities, measured as it runs (one beat is one second)</p>
+        <p class="group-label">Sparks, measured as it runs (one beat is one second)</p>
         <ul class="dyn-prox" id="dyn-prox"></ul>
         <div class="bar-actions">
           <button type="button" data-act="board">Send to board</button>
