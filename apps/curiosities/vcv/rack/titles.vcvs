@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 14, CC 33 to 48\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 suite: Comedy punch\n   9 suite: Reaction comedy\n  10 pair: When the picture freezes, a title appears\n  11 pair: When the joke pays off, a mood pops onto a face\n  12 pair: When someone gets angry, steam pops onto their face\n  13 pair: When an outro effect closes the film, an end card follows\n  14 pair: When captions appear word by word, eyes stay glued to the screen\n  15 pair: When the text is in comic-book style, the comedy goes cartoon\n  16 pair: When stickers and emoji pile up, the laughs speed up\nCV-CC 2: MIDI channel 14, CC 49 to 51\n   1 pair: When a chapter card appears, the story stops and restarts\n   2 pairs: Words that point\n   3 pairs: Phone comedy reactions"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 1, CC 1 to 16\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 suite: Comedy punch\n  13 suite: Reaction comedy\n  14 suite: Life on screens\n  15 suite: Meet the crew\n  16 pair: When the picture freezes, a title appears\nCV-CC 2: PORT 2 (your second cable), MIDI channel 1, CC 17 to 32\n   1 pair: When the joke pays off, a mood pops onto a face\n   2 pair: When someone gets angry, steam pops onto their face\n   3 pair: When an outro effect closes the film, an end card follows\n   4 pair: When captions appear word by word, eyes stay glued to the screen\n   5 pair: When the text is in comic-book style, the comedy goes cartoon\n   6 pair: When stickers and emoji pile up, the laughs speed up\n   7 pair: When a chapter card appears, the story stops and restarts\n   8 pair: When someone shouts, the words act it out\n   9 pair: When a text is typed and deleted, the wait for a reply grows\n  10 pair: When the messages pile up, a secret slips out\n  11 pair: When the name cards get cheeky, the laughs come faster\n  12 pair: When the title comes late, it lands on a shock\n  13 pair: When the opening grabs hard, the title slams in\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions\n  16 pairs: The unsent message"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
-     "channel": 13
+     "channel": 0
     }
    },
    "pos": [
@@ -59,25 +59,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
     ],
     "midi": {
-     "channel": 13
+     "channel": 0
     }
    },
    "pos": [

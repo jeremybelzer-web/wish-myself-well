@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 33 to 48\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 suite: Needle drop\n   8 suite: Ironic counterpoint\n   9 suite: Radio in the room\n  10 suite: Score swell\n  11 suite: Sudden silence\n  12 suite: Bare scene\n  13 suite: Suspense drone\n  14 suite: Montage song\n  15 suite: Returning theme\n  16 suite: Heightened sound\nCV-CC 2: MIDI channel 12, CC 49 to 60\n   1 pair: When the music is cut dead, a big line lands\n   2 pair: When the music drops out, a reveal follows\n   3 pair: When a famous song starts, time slows\n   4 pair: When the tempo rises, the cuts speed up\n   5 pair: When the music turns warm, faces soften\n   6 pair: When the music fights the scene, the violence gets bigger\n   7 pair: When there is no music, the frame gets closer\n   8 pair: When music plays in the room, someone moves to it\n   9 pair: When a theme returns, the character it belongs to appears\n  10 pair: When the music builds to its peak, it cuts out\n  11 pairs: Music steers the edit\n  12 pairs: Silence as a weapon"
+    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 33 to 48\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 Music speeds up or slows down\n   8 Music turns sad or bright\n   9 The lead instrument\n  10 Style of music\n  11 Music crosses over\n  12 A character's own tune\n  13 Someone hums or sings\n  14 A song performed in the story\n  15 Repeating notes that build tension\n  16 Music lands on the moment\nCV-CC 2: MIDI channel 13, CC 49 to 64\n   1 Sweet or clashing notes\n   2 Bent or broken music\n   3 Where the music goes\n   4 Whose feeling the music plays\n   5 Music warns us early\n   6 Music from another time\n   7 Title music\n   8 Everyday sounds turn into music\n   9 suite: Needle drop\n  10 suite: Ironic counterpoint\n  11 suite: Radio in the room\n  12 suite: Score swell\n  13 suite: Sudden silence\n  14 suite: Bare scene\n  15 suite: Suspense drone\n  16 suite: Montage song\nCV-CC 3: MIDI channel 13, CC 65 to 80\n   1 suite: Returning theme\n   2 suite: Heightened sound\n   3 suite: The hero's theme returns\n   4 suite: Horror score\n   5 suite: Creepy lullaby\n   6 suite: Old story, new songs\n   7 suite: Musical number\n   8 suite: Race against the clock\n   9 suite: Spare and honest\n  10 suite: Grand opening\n  11 suite: Love theme\n  12 pair: When the music is cut dead, a big line lands\n  13 pair: When the music drops out, a reveal follows\n  14 pair: When a famous song starts, time slows\n  15 pair: When the tempo rises, the cuts speed up\n  16 pair: When the music turns warm, faces soften\nCV-CC 4: MIDI channel 13, CC 81 to 96\n   1 pair: When the music fights the scene, the violence gets bigger\n   2 pair: When there is no music, the frame gets closer\n   3 pair: When music plays in the room, someone moves to it\n   4 pair: When a theme returns, the character it belongs to appears\n   5 pair: When the music builds to its peak, it cuts out\n   6 pair: When the repeating notes grow insistent, the music speeds up\n   7 pair: When the repeating notes crash to an end, the music lands on the moment\n   8 pair: When the music speeds up a lot, the cuts come faster\n   9 pair: When the music slows right down, the shots hold longer\n  10 pair: When the music turns from dark to bright, hope rises\n  11 pair: When the music turns from bright to dark, dread creeps in\n  12 pair: When the character's tune is played heroic, pride swells\n  13 pair: When a tune plays for someone who is missed, grief rises\n  14 pair: When a tune plays just before its owner arrives, the music is warning us\n  15 pair: When the music warns us early, dread builds\n  16 pair: When the music's warning is a false alarm, the release comes\nCV-CC 5: MIDI channel 13, CC 97 to 112\n   1 pair: When the notes clash more, the tension rises\n   2 pair: When the clashing notes settle, the release comes\n   3 pair: When the music warps into a memory, nostalgia comes with it\n   4 pair: When the music warps, the place starts to echo\n   5 pair: When others join the humming, warmth grows\n   6 pair: When a character hums the film's own theme, the theme comes back\n   7 pair: When the crowd goes wild for a performance, pride rises\n   8 pair: When a performance takes over the scene, the music crosses into the soundtrack\n   9 pair: When room music crosses into the soundtrack, the music comes forward\n  10 pair: When the music is saved for the big moments, it lands harder\n  11 pair: When less of the film has music, the silences grow\n  12 pair: When the music plays one person's inner feeling, we feel with them\n  13 pair: When the music moves inside a character, we start to hear through their ears\n  14 pair: When the style of music clashes on purpose, the music fights the scene\n  15 pair: When characters sing music from another time, a performance takes over\n  16 pair: When the title music carries the main theme, the theme becomes easy to recognise\nCV-CC 6: MIDI channel 14, CC 1 to 13\n   1 pair: When the closing music is big, the feeling stays after the film\n   2 pair: When one instrument plays alone, loneliness grows\n   3 pair: When the instrument sounds right in your ear, tenderness grows\n   4 pair: When everyday sounds fall into a beat, the cuts land on it\n   5 pair: When the music lands big on the moment, the feeling peaks\n   6 pair: When the big hit is followed by silence, the music drops out\n   7 pairs: Music steers the edit\n   8 pairs: Silence as a weapon\n   9 pairs: The clock runs out\n  10 pairs: Something is coming\n  11 pairs: From the room to the soundtrack\n  12 pairs: The theme comes home\n  13 pairs: Saving it for the end"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      48
     ],
     "midi": {
-     "channel": 11
+     "channel": 12
     }
    },
    "pos": [
@@ -71,17 +71,145 @@
      58,
      59,
      60,
-     -1,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    56,
+    0
+   ]
+  },
+  {
+   "id": 9,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
      -1,
      -1,
      -1
     ],
     "midi": {
-     "channel": 11
+     "channel": 13
     }
    },
    "pos": [
-    32,
+    64,
     0
    ]
   }
