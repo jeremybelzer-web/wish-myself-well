@@ -30,6 +30,9 @@
   "db-depth-fx.js",
   "db-depth-comedy.js",
   "db-depth-attention.js",
+  "db-depth-feeling.js",
+  "db-depth-minds.js",
+  "db-depth-lines.js",
   "db-styles.js",
   "db-styles-comedy.js",
   "db-plain.js",
@@ -39,5 +42,7 @@
   "db-model-scenes-4.js",
   "db-model-scenes-5.js",
   "db-model-scenes-6.js",
-  "db-model-scenes-7.js"
+  "db-model-scenes-7.js",
+  "db-model-scenes-8.js",
+  "db-model-scenes-9.js"
 ]

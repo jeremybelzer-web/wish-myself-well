@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "LINES & DELIVERY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 65 to 80\n   1 Volume of the lines\n   2 Dynamic range of the lines\n   3 How often the range changes\n   4 Speaking speed\n   5 Silence length\n   6 Breathing and speaking\n   7 Eating and speaking\n   8 Shapes in the scene\n   9 Shape of the voice through the line\n  10 Where the tone sits in the story\n  11 Screen time per person in this scene\n  12 Cut rate in action\n  13 Emotion of the beat\n  14 Cut off mid-sentence\n  15 A line thrown away\n  16 A speech that builds\nCV-CC 2: MIDI channel 3, CC 81 to 96\n   1 Trailing off\n   2 Talking to themselves\n   3 One side of a phone call\n   4 suite: Quiet confession\n   5 suite: Breathing room\n   6 suite: Rapid-fire banter\n   7 suite: Quiet last scene\n   8 suite: Closing argument\n   9 suite: The unsaid\n  10 suite: The bad news call\n  11 suite: Psyching up\n  12 pair: When the emotion changes, the angle height changes\n  13 pair: When the emotion changes, the move temper changes\n  14 pair: When volume rises, move speed rises\n  15 pair: When the talk gets fast, each line gets fewer big poses\n  16 pair: When a character gets nervous, they blink more\nCV-CC 3: MIDI channel 3, CC 97 to 112\n   1 pair: When someone talks with their mouth full, the voice needs cleaning up\n   2 pair: When a character eats before answering, the chew becomes a pause\n   3 pair: When action cuts come faster, more sound hits glue them together\n   4 pair: When the frame is crowded with shapes, the audience feels restless\n   5 pair: When the story reaches its climax, the sound gets loud\n   6 pair: When a line swings from whisper to shout, the shout pushes the mix to its limit\n   7 pair: When the story reaches its ending, the sound fades out\n   8 pair: When a line is whispered, the other sounds fall away\n   9 pair: When a voice breaks, the beat turns sad\n  10 pair: When every line swings to a new level, the character feels unstable\n  11 pair: When the talk gets fast, the cutting speeds up to match\n  12 pair: When people talk over each other, the scene turns to comedy\n  13 pair: When a line is cut just before the key word, the audience holds a question\n  14 pair: When lines keep getting cut off, people talk over each other\n  15 pair: When a big line is thrown away, a silence follows\n  16 pair: When a line is thrown away mid-task, the task takes over\nCV-CC 4: MIDI channel 4, CC 1 to 16\n   1 pair: When the speech builds, the voice gets louder\n   2 pair: When the speech makes the room erupt, the crowd turns\n   3 pair: When the speech builds, the speaker gets to their feet\n   4 pair: When a sentence trails off, the body answers instead\n   5 pair: When they trail off lost in a memory, nostalgia rises\n   6 pair: When they are caught talking to themselves, shame rises\n   7 pair: When the call is a threat, dread builds\n   8 pair: When the call brings bad news, they turn their back\n   9 pair: When we cannot hear the other side, the camera creeps in on the face\n  10 pair: When small talk turns to an oddly specific topic, the tension quietly climbs\n  11 pair: When lines keep getting cut off, the pace gets even quicker\n  12 pair: When the money runs out, the kitchen arguments get louder\n  13 pair: When a groaning pun lands, another gag tops it right away\n  14 pair: When a silly question gets a dead serious answer, the absurdity grows\n  15 pair: When something awful is said in a flat, polite voice, the dark laugh comes\n  16 pair: When the pause after a line runs long, the dry laugh comes in the silence\nCV-CC 5: MIDI channel 4, CC 17 to 24\n   1 pair: When a line has a second meaning, the sharp listener fires one back\n   2 pair: When the talk speeds up, the barbs get sharper\n   3 pairs: Feeling sets the camera height\n   4 pairs: Loudness and frame size\n   5 pairs: The volume curve\n   6 pairs: Talking fast\n   7 pairs: The call\n   8 pairs: The truth comes out sideways"
+    "text": "LINES & DELIVERY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 65 to 80\n   1 Volume of the lines\n   2 Dynamic range of the lines\n   3 How often the range changes\n   4 Speaking speed\n   5 Silence length\n   6 Breathing and speaking\n   7 Eating and speaking\n   8 Shapes in the scene\n   9 Shape of the voice through the line\n  10 Where the tone sits in the story\n  11 Screen time per person in this scene\n  12 Cut rate in action\n  13 Emotion of the beat\n  14 Cut off mid-sentence\n  15 A line thrown away\n  16 A speech that builds\nCV-CC 2: MIDI channel 3, CC 81 to 96\n   1 Trailing off\n   2 Talking to themselves\n   3 One side of a phone call\n   4 Said to one, meant for another\n   5 Answering a question with a question\n   6 Many words against few\n   7 The word they take back\n   8 How they talk marks who they are\n   9 Fighting for the last word\n  10 A quiet word in a loud room\n  11 Changing the subject\n  12 Saying their name\n  13 Switching languages\n  14 Finishing each other's sentences\n  15 The practiced line\n  16 Reading words out loud\nCV-CC 3: MIDI channel 3, CC 97 to 112\n   1 suite: Quiet confession\n   2 suite: Breathing room\n   3 suite: Rapid-fire banter\n   4 suite: Quiet last scene\n   5 suite: Closing argument\n   6 suite: The unsaid\n   7 suite: The bad news call\n   8 suite: Psyching up\n   9 suite: The dinner of digs\n  10 suite: The old married pair\n  11 suite: The quiet suspect\n  12 suite: Home in their voice\n  13 suite: The letter scene\n  14 suite: Secrets at the party\n  15 pair: When the emotion changes, the angle height changes\n  16 pair: When the emotion changes, the move temper changes\nCV-CC 4: MIDI channel 4, CC 1 to 16\n   1 pair: When volume rises, move speed rises\n   2 pair: When the talk gets fast, each line gets fewer big poses\n   3 pair: When a character gets nervous, they blink more\n   4 pair: When someone talks with their mouth full, the voice needs cleaning up\n   5 pair: When a character eats before answering, the chew becomes a pause\n   6 pair: When action cuts come faster, more sound hits glue them together\n   7 pair: When the frame is crowded with shapes, the audience feels restless\n   8 pair: When the story reaches its climax, the sound gets loud\n   9 pair: When a line swings from whisper to shout, the shout pushes the mix to its limit\n  10 pair: When the story reaches its ending, the sound fades out\n  11 pair: When a line is whispered, the other sounds fall away\n  12 pair: When a voice breaks, the beat turns sad\n  13 pair: When every line swings to a new level, the character feels unstable\n  14 pair: When the talk gets fast, the cutting speeds up to match\n  15 pair: When people talk over each other, the scene turns to comedy\n  16 pair: When a line is cut just before the key word, the audience holds a question\nCV-CC 5: MIDI channel 4, CC 17 to 32\n   1 pair: When lines keep getting cut off, people talk over each other\n   2 pair: When a big line is thrown away, a silence follows\n   3 pair: When a line is thrown away mid-task, the task takes over\n   4 pair: When the speech builds, the voice gets louder\n   5 pair: When the speech makes the room erupt, the crowd turns\n   6 pair: When the speech builds, the speaker gets to their feet\n   7 pair: When a sentence trails off, the body answers instead\n   8 pair: When they trail off lost in a memory, nostalgia rises\n   9 pair: When they are caught talking to themselves, shame rises\n  10 pair: When the call is a threat, dread builds\n  11 pair: When the call brings bad news, they turn their back\n  12 pair: When we cannot hear the other side, the camera creeps in on the face\n  13 pair: When a line is aimed through someone else, said and meant pull apart\n  14 pair: When the target answers the same way, the fight for the last word starts\n  15 pair: When questions come back as questions, the answer keeps slipping away\n  16 pair: When one talks and the other barely answers, the gap in rank shows\nCV-CC 6: MIDI channel 4, CC 33 to 48\n   1 pair: When words keep being taken back, the feeling nobody names grows\n   2 pair: When the slip is called out, the secret starts slipping\n   3 pair: When their way of talking stands out, they feel out of place\n   4 pair: When the real voice slips out in anger, they switch languages\n   5 pair: When they switch languages, someone is left standing apart\n   6 pair: When the fight for the last word grows, someone walks out\n   7 pair: When the room is loud and they lean in, tenderness grows\n   8 pair: When the whisper matters most, the room sound falls away\n   9 pair: When the subject keeps changing, our questions pile up\n  10 pair: When they are pinned down, the secret has a close call\n  11 pair: When the full name is used, dread comes in\n  12 pair: When a name is used for the first time, warmth grows\n  13 pair: When they finish each other's lines, warmth grows\n  14 pair: When the line is finished wrong, a misunderstanding starts\n  15 pair: When the real moment drifts from the practice, the line trails off\n  16 pair: When the reader cannot go on, the feeling spills out\nCV-CC 7: MIDI channel 4, CC 49 to 64\n   1 pair: When small talk turns to an oddly specific topic, the tension quietly climbs\n   2 pair: When lines keep getting cut off, the pace gets even quicker\n   3 pair: When the money runs out, the kitchen arguments get louder\n   4 pair: When a groaning pun lands, another gag tops it right away\n   5 pair: When a silly question gets a dead serious answer, the absurdity grows\n   6 pair: When something awful is said in a flat, polite voice, the dark laugh comes\n   7 pair: When the pause after a line runs long, the dry laugh comes in the silence\n   8 pair: When a line has a second meaning, the sharp listener fires one back\n   9 pair: When the talk speeds up, the barbs get sharper\n  10 pairs: Feeling sets the camera height\n  11 pairs: Loudness and frame size\n  12 pairs: The volume curve\n  13 pairs: Talking fast\n  14 pairs: The call\n  15 pairs: The truth comes out sideways\n  16 pairs: Pressure under the words\nCV-CC 8: MIDI channel 4, CC 65 to 66\n   1 pairs: What slips out\n   2 pairs: Close without looking"
    },
    "pos": [
     0,
@@ -163,6 +163,102 @@
      22,
      23,
      24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    56,
+    0
+   ]
+  },
+  {
+   "id": 9,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    64,
+    0
+   ]
+  },
+  {
+   "id": 10,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    72,
+    0
+   ]
+  },
+  {
+   "id": 11,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -177,7 +273,7 @@
     }
    },
    "pos": [
-    56,
+    80,
     0
    ]
   }
