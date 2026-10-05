@@ -68,6 +68,15 @@
   const MATS = () => B().materials || {};
   /* a thing's main color in this panel */
   const colorOf = (o, pl) => (pl && pl.color) || o.color || "#888888";
+  const isPerson = (o) => !!o && o.kind === "person";
+  const LKS = () => window.CurioWear;
+  const lookGet = (o, pl, k) => (LKS() ? LKS().resolve(pl, o)[k] : (pl.lookParts || {})[k]);
+  const lookPut = (pl, k, v) => {
+    pl.lookParts = Object.assign({}, pl.lookParts, { [k]: v });
+  };
+  const lookSel = (k, label, tags) => ({ id: "look." + k, label, sec: "Character", kind: "select", scope: "place", apps: ["roblox", "sims"], only: isPerson, opts: () => (LKS() ? LKS().OPTS[k] : []), get: (o, pl) => lookGet(o, pl, k) || "", set: (o, pl, v) => lookPut(pl, k, v), tags });
+  const lookCol = (k, label, tags) => ({ id: "look." + k, label, sec: "Character", kind: "color", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => lookGet(o, pl, k) || "#888888", set: (o, pl, v) => lookPut(pl, k, v), tags });
+  const lookNum = (k, label, min, max, tags, say) => ({ id: "look." + k, label, sec: "Character", kind: "num", scope: "place", apps: ["roblox", "sims"], only: isPerson, min, max, step: 0.02, unit: "×", get: (o, pl) => Number(lookGet(o, pl, k)) || 1, set: (o, pl, v) => lookPut(pl, k, r3(clamp(v, min, max))), tags, say });
   /* each: id, label, sec (Roblox section), kind (num, select, color, bool, text), get, set, tags (the curiosities it
      belongs to), apps (which windows show it), scope: "place" (per panel, automatable), "object" (the thing
      itself, the same in every panel) */
@@ -103,6 +112,33 @@
         return [["", "Nothing special"]].concat(m ? m.actions.map((a) => [a.id, a.label]) : []);
       }, get: (o, pl) => pl.act || "", set: null, tags: ["objectPath", "envMotion", "comicBeat", "gesture", "emoActions"], say: "The same list as Control+click on it." },
     { id: "fxAmt", label: "How far along", sec: "Action", kind: "num", scope: "place", apps: ["roblox"], only: (o, pl) => !!(pl && pl.fx), min: 0, max: 1, step: 0.05, unit: "", get: (o, pl) => (pl.fxAmt == null ? 1 : pl.fxAmt), set: (o, pl, v) => (pl.fxAmt = r3(clamp(v, 0, 1))), tags: ["objectPath", "envMotion"], say: "0 is not yet, 1 is all the way (burning, crumbled, broken apart)." },
+    /* a person's look (viewer/wear.js): words, then any part changed by hand, panel by panel */
+    { id: "rig", label: "Full 3D character", sec: "Character", kind: "bool", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => (typeof pl.rig === "boolean" ? pl.rig : !!o.rig), set: (o, pl, v) => {
+        pl.rig = !!v;
+        const RA = window.CurioRigActors;
+        if (v && RA && RA.load) Promise.resolve(RA.load()).then(() => V.redraw(), () => {});
+      }, tags: ["characterDetail", "mainFit"], say: "Drawn as a full 3D character with a face and joints, instead of blocks." },
+    { id: "look", label: "Look in words", sec: "Character", kind: "text", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => pl.look || "", set: (o, pl, v) => (String(v).trim() ? (pl.look = String(v).trim().slice(0, 200)) : delete pl.look), tags: ["mainEra", "mainFormality", "backEra", "backSameness"], say: "Describe them: spiky red hair, plaid shirt, overalls, boots. The parts below win over the words." },
+    lookSel("hair", "Hair", ["mainEra", "mainFormality"]),
+    lookCol("hairColor", "Hair color", ["palette", "colorAccent"]),
+    lookSel("hat", "Hat", ["mainEra", "mainUtility", "mainFunction"]),
+    lookCol("hatColor", "Hat color", ["palette", "colorAccent"]),
+    lookSel("top", "Top", ["mainEra", "mainCost", "mainCoverage", "mainFormality"]),
+    lookCol("topColor", "Top color", ["palette", "colorAccent", "mainSetMatch"]),
+    lookSel("bottom", "Bottom", ["mainEra", "mainCost", "mainCoverage", "mainFormality"]),
+    lookCol("bottomColor", "Bottom color", ["palette", "mainSetMatch"]),
+    lookSel("feet", "Shoes", ["mainEra", "mainUtility", "mainWear"]),
+    lookCol("shoesColor", "Shoe color", ["palette"]),
+    lookCol("skin", "Skin", ["skinColorTruth"]),
+    lookNum("build", "Build", 0.6, 1.6, ["mainFit", "scale"], "Thin 0.7, everyday 1, strong 1.3, heavy 1.5."),
+    lookNum("height", "Height", 0.8, 1.2, ["scale", "characterToLens"], "Short 0.88, everyday 1, tall 1.12."),
+    /* stuck to another thing: goes where it goes */
+    { id: "pin", label: "Stuck to", sec: "Behavior", kind: "select", scope: "object", apps: ["roblox", "fortnite"], opts: (o) => [["", "Nothing (free)"]].concat(film().objects.filter((x) => o && x.id !== o.id).map((x) => [x.id, x.name])), get: (o) => (o.pin && o.pin.id) || "", set: (o, pl, v) => {
+        const LK = window.CurioWear;
+        if (!LK) return;
+        if (v) LK.pin(o.id, v);
+        else LK.unpin(o.id);
+      }, tags: ["objectPath", "handProp"], say: "Stick it to another thing (a hat drawn on a person): it moves, turns and grows with it." },
   ];
   const PBY = {};
   P.forEach((p) => (PBY[p.id] = p));
@@ -124,9 +160,13 @@
       if (v && window.CurioActions) window.CurioActions.apply(o.id, v, { only: keyed(o, "act") });
       return refresh();
     }
+    /* a thing stuck to another, moved by hand here: it stays stuck where it is put */
+    const stuck = o.pin && p.sec === "Transform" && LKS();
+    if (stuck) LKS().hold([o.id]);
     if (p.scope === "object") p.set(o, pl, v);
     else if (keyed(o, p.id)) p.set(o, pl, v);
     else f.panels.forEach((q) => q.place[o.id] && p.set(o, q.place[o.id], v));
+    if (stuck) LKS().release();
     V.changed(true);
   }
   function toggleKey(o, p) {
@@ -287,7 +327,7 @@
     return { mine: list.filter(belongs), rest: list.filter((p) => !belongs(p)) };
   }
   function propsHtml(w, o, pl, rows) {
-    const secs = ["Data", "Appearance", "Transform", "Behavior", "Action"];
+    const secs = ["Data", "Character", "Appearance", "Transform", "Behavior", "Action"];
     return secs
       .map((s) => {
         const ps = rows.filter((p) => p.sec === s);
@@ -315,12 +355,15 @@
   }
   const SIMS_BUILD = { Walls: ["wall", "door", "window"], Floors: ["floor"], Roofs: ["roof"], Stairs: ["stairs"] };
   const SWATCH = ["#f2efe8", "#e9d8b8", "#c9a27a", "#8b5e3c", "#4f3a2c", "#a8553f", "#d26a4a", "#e7c235", "#6f9b5a", "#3f6f8f", "#5b5f97", "#2b2d33"];
+  /* Create a Sim: ready-made looks, in words the 3D characters read */
+  const SIM_LOOKS = [["Everyday", "short brown hair, grey t-shirt, jeans, sneakers"], ["Country", "country look, straw hat"], ["Chef", "chef"], ["Punk", "pink mohawk, black jacket, boots"], ["Office", "neat short hair, white shirt, black trousers, shoes"], ["Sporty", "ponytail, red hoodie, shorts, sneakers"], ["Fancy", "long hair, blue dress, sandals"], ["Cowboy", "cowboy, leather boots"], ["Royal", "crown, purple sweater, velvet trousers"], ["Wizard", "wizard, long grey beard, robe"]];
   function simsBody(w) {
     const O = window.CurioObjects;
     const rooms = O ? (O.PLACES.Household || []) : [];
     const cat = w.cat || "Walls";
     let grid = "";
     if (SIMS_BUILD[cat]) grid = SIMS_BUILD[cat].map((k) => `<button type="button" class="cbw-item" data-piece="${k}"><b>${esc((B().pieceNames || {})[k] || k)}</b></button>`).join("") + (cat === "Walls" ? `<button type="button" class="cbw-item" data-tool="wall"><b>Wall tool</b><small>drag on the floor</small></button><button type="button" class="cbw-item" data-tool="room"><b>Room tool</b><small>drag a rectangle</small></button>` : "");
+    else if (cat === "Looks") grid = isPerson(picked()) ? SIM_LOOKS.map(([n, t]) => `<button type="button" class="cbw-item" data-simlook="${esc(t)}"><b>${esc(n)}</b><small>${esc(t)}</small></button>`).join("") : `<p class="cbw-empty">Pick a person to dress them.</p>`;
     else if (O) grid = O.items.filter((it) => (it.places || []).includes(cat) && it.type !== "People").map((it) => `<button type="button" class="cbw-item" data-item="${esc(it.id)}"><b>${esc(it.name)}</b><small>${esc(it.type)}</small></button>`).join("");
     const o = picked();
     const pl = o && L().panel.place[o.id];
@@ -335,7 +378,7 @@
         <button type="button" data-do="turnR" title="Turn the picked thing 45° right">⟳<small>45°</small></button>
       </div>
       <div class="cbw-sims">
-        <nav class="cbw-cats"><h5>Build</h5>${Object.keys(SIMS_BUILD).map((k) => `<button type="button" data-cat="${k}" class="${cat === k ? "on" : ""}">${k}</button>`).join("")}<h5>Buy by room</h5>${rooms.map((k) => `<button type="button" data-cat="${esc(k)}" class="${cat === k ? "on" : ""}">${esc(k)}</button>`).join("")}</nav>
+        <nav class="cbw-cats"><h5>Build</h5>${Object.keys(SIMS_BUILD).map((k) => `<button type="button" data-cat="${k}" class="${cat === k ? "on" : ""}">${k}</button>`).join("")}<h5>Create a Sim</h5><button type="button" data-cat="Looks" class="${cat === "Looks" ? "on" : ""}">Looks</button><h5>Buy by room</h5>${rooms.map((k) => `<button type="button" data-cat="${esc(k)}" class="${cat === k ? "on" : ""}">${esc(k)}</button>`).join("")}</nav>
         <div class="cbw-grid">${grid || `<p class="cbw-empty">Nothing here yet.</p>`}</div>
       </div>
       <div class="cbw-design"><b>Design</b>${o ? `<span class="cbw-sw">${SWATCH.map((c) => `<button type="button" data-swatch="${c}" style="background:${c}" title="${c}" aria-label="Color ${c}"></button>`).join("")}</span>` : `<span class="cbw-sub">Pick a thing to color it.</span>`}<label class="cbw-wallh">Wall height <input type="range" data-tk="wallH" min="0.5" max="6" step="0.1" value="${S.wallH}" /> <small>${S.wallH.toFixed(1)} m · tool</small></label></div>
@@ -518,6 +561,13 @@
         return;
       }
       if (d.swatch && o) return setParam(o, PBY.color, d.swatch, "bw-swatch");
+      if (d.simlook && o) {
+        /* a ready-made look starts fresh: parts changed by hand give way to it */
+        V.edit("bw-simlook");
+        const qs = keyed(o, "look") ? [L().panel] : film().panels;
+        qs.forEach((q) => q.place[o.id] && delete q.place[o.id].lookParts);
+        return setParam(o, PBY.look, d.simlook, "bw-simlook");
+      }
       if (d.pickcur) {
         w.cur = d.pickcur;
         saveState();
@@ -721,7 +771,11 @@
   function slot(box) {
     if (!box) return;
     box.innerHTML = `<div class="cbw-open"><span>Windows</span>${Object.keys(APPS).map((k) => `<button type="button" data-cbw-open="${k}" title="${esc(APPS[k].from)}'s ${esc(APPS[k].name)} window, with a curiosity menu at the top">${esc(APPS[k].name)}<small>${esc(APPS[k].from)}</small></button>`).join("")}</div>`;
-    box.querySelectorAll("[data-cbw-open]").forEach((b) => b.addEventListener("click", () => open(b.dataset.cbwOpen)));
+    /* on press, not on click: leaving a field in an open window saves it and redraws this tab, which would eat the click */
+    box.querySelectorAll("[data-cbw-open]").forEach((b) => {
+      b.addEventListener("pointerdown", (e) => e.button === 0 && (e.preventDefault(), open(b.dataset.cbwOpen)));
+      b.addEventListener("click", (e) => e.detail === 0 && open(b.dataset.cbwOpen));
+    });
   }
 
   const CSS = `

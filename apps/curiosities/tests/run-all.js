@@ -87,6 +87,7 @@ const suites = [
   { name: "viewer in a browser", browser: true, secs: 15, ...node("viewer/tests/browser.js") },
   { name: "viewer draw & build in a browser", browser: true, secs: 25, ...node("viewer/tests/build.js") },
   { name: "viewer build windows in a browser", browser: true, secs: 15, ...node("viewer/tests/build-windows.js") },
+  { name: "viewer looks and stuck drawings in a browser", browser: true, secs: 15, ...node("viewer/tests/wear.js", threeArgs) },
   { name: "app walkthrough in a browser", browser: true, secs: 15, ...node("viewer/tests/walkthrough.js") },
   { name: "front and center lane", browser: true, secs: 10, ...node("viewer/tests/focus-lane.js") },
   { name: "viewer camera and windows", browser: true, secs: 12, ...node("viewer/tests/camera.js") },

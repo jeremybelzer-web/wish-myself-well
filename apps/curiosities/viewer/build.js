@@ -965,7 +965,7 @@
         if (len(r) < 0.2) r = [C.right[0], 0, C.right[2]];
         r = norm(r);
         const u = cross(n, r);
-        return { o: add(h.p, mul(n, 0.012)), r, u, n, floor: n[1] > 0.9 };
+        return { o: add(h.p, mul(n, 0.012)), r, u, n, floor: n[1] > 0.9, on: h.obj };
       }
     }
     if (on === "floor" || on === "touch") {
@@ -1029,6 +1029,7 @@
         const ids0 = e.altKey ? [o0.id] : groupOf(o0);
         if (!ids0.every((id) => selection().includes(id))) selectIds(ids0);
         drag = { kind: "act" };
+        if (window.CurioWear) window.CurioWear.hold(ids0);
         return window.CurioActions.down(e, o0, ids0);
       }
       if (e.ctrlKey || e.metaKey || e.button !== 0) return false;
@@ -1063,6 +1064,7 @@
       if (e.shiftKey) {
         /* Shift-click adds or takes away; Shift-drag lifts it into the air */
         drag = { kind: "shift", ids, pt0: pt, was: cur };
+        if (window.CurioWear) window.CurioWear.hold(ids);
         return true;
       }
       if (!e.altKey && !ids.every((id) => cur.includes(id))) {
@@ -1087,6 +1089,7 @@
       const starts = {};
       all.forEach((id) => (starts[id] = clone(placeOf(id) || {})));
       drag = { kind: "floor", id: o.id, ids: all, clickIds: ids, starts, off: [pl.x - grab[0], pl.z - grab[2]], y0: pl.y, surf, resting: Math.abs(pl.y - restTop) < 0.06 };
+      if (window.CurioWear) window.CurioWear.hold(all);
       V.changed(true);
       return true;
     },
@@ -1106,6 +1109,7 @@
     up(e) {
       const d = drag;
       drag = null;
+      if (window.CurioWear) window.CurioWear.release();
       if (d && d.kind === "act") return window.CurioActions.up(e);
       if (d && d.kind === "stroke") endStroke(d);
       if (d && d.kind === "wall") endWall(d);
@@ -1205,6 +1209,7 @@
     const others = {};
     selection().forEach((x) => x !== id && placeOf(x) && (others[x] = clone(placeOf(x))));
     drag = { kind: "handle", h, id, start: clone(pl), others, pt0: V.canvasPoint(e) };
+    if (window.CurioWear) window.CurioWear.hold([id].concat(Object.keys(others)));
     if (h.kind === "rotate") {
       const p = hitLevel(e, h.c[1]);
       drag.a0 = p ? Math.atan2(p[0] - h.c[0], p[2] - h.c[2]) / DEG : 0;
@@ -1301,6 +1306,9 @@
       place = { x: anchor[0], y: 0, z: anchor[2], turn: 0, size: 1, show: true };
       lv.film.objects.push(d);
       lv.film.panels.forEach((p) => (p.place[d.id] = clone(place)));
+      /* drawn onto a thing (pencil "on things"): the drawing sticks to it and goes where it goes */
+      const on = sh.on && obj(sh.on);
+      if (on && on.make !== "sketch" && window.CurioWear) window.CurioWear.pin(d.id, on.id);
     }
     place = placeOf(d.id);
     pendingDrawing = d.id;
@@ -2203,7 +2211,66 @@
     if (filt.mode !== "characters") return (box.hidden = true);
     const list = charsInScene();
     box.hidden = false;
-    box.innerHTML = `<b>In this scene</b>` + (list.length ? list.map((o) => `<span class="cvb-chip"><button type="button" data-cpick="${esc(o.id)}" title="Pick ${esc(o.name)} and change it in Move it"><i style="background:${esc(o.color)}"></i>${esc(o.name)}</button><button type="button" data-cact="${esc(o.id)}" title="What should ${esc(o.name)} do?">⋯</button><button type="button" data-cout="${esc(o.id)}" title="Take ${esc(o.name)} out of the scene" aria-label="Take ${esc(o.name)} out">✕</button></span>`).join("") : `<span class="cv-say">Nobody yet. Pick someone below.</span>`);
+    if (!box.querySelector(".cvb-make")) {
+      box.innerHTML = `<div class="cvb-make"><label><span>Make someone from words</span><input type="text" data-cwords placeholder="Ida: spiky red hair, overalls, boots" aria-label="Describe a person" /></label><button type="button" data-cmake title="Put a new person in the middle of the picture, dressed the way the words say">Make</button><button type="button" data-clook hidden></button><small class="cvb-read"></small></div><div class="cvb-chips"></div>`;
+      box.querySelector("[data-cwords]").addEventListener("input", readLook);
+      box.querySelector("[data-cwords]").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") e.preventDefault(), makeFromWords(e.target.value);
+      });
+    }
+    const who = L().film.sel && obj(L().film.sel);
+    const lb = box.querySelector("[data-clook]");
+    lb.hidden = !(who && who.kind === "person");
+    if (!lb.hidden) {
+      lb.dataset.clook = who.id;
+      lb.textContent = "Give " + who.name + " this look";
+    }
+    box.querySelector(".cvb-chips").innerHTML = `<b>In this scene</b>` + (list.length ? list.map((o) => `<span class="cvb-chip"><button type="button" data-cpick="${esc(o.id)}" title="Pick ${esc(o.name)} and change it in Move it"><i style="background:${esc(o.color)}"></i>${esc(o.name)}</button><button type="button" data-cact="${esc(o.id)}" title="What should ${esc(o.name)} do?">⋯</button><button type="button" data-cout="${esc(o.id)}" title="Take ${esc(o.name)} out of the scene" aria-label="Take ${esc(o.name)} out">✕</button></span>`).join("") : `<span class="cv-say">Nobody yet. Pick someone below.</span>`);
+  }
+
+  /* ---- a person made from words (the 3D characters' reader): the words are kept as their look in every panel ---- */
+  function readLook() {
+    const box = SW && SW.querySelector(".cvb-read");
+    if (!box) return;
+    const t = SW.querySelector("[data-cwords]").value.trim();
+    const LK = window.CurioWear;
+    if (!t || !LK) return (box.textContent = "");
+    const r = LK.read(lookWords(t));
+    if (r) box.textContent = "Reads as: " + (r.said.length ? r.said.join(", ") : "an everyday look");
+    else {
+      box.textContent = LK.reader() ? "" : "Reading the words…";
+      setTimeout(() => SW && !SW.hidden && readLook(), 400);
+    }
+  }
+  /* "Ida: spiky red hair" or "Ida (spiky red hair)": a name first, then the look */
+  function nameOf(t) {
+    const m = String(t).match(/^\s*([A-Z][a-zA-Z'-]{1,20})\s*[:(,-]/);
+    return m ? m[1] : "";
+  }
+  const lookWords = (t) => String(t).replace(/^\s*[A-Z][a-zA-Z'-]{1,20}\s*[:(,-]\s*/, "").replace(/\)\s*$/, "").trim();
+  function makeFromWords(t) {
+    t = String(t || "").trim();
+    if (!t) return flash("Describe the person first, for example: Ida: spiky red hair, overalls, boots.");
+    const n = L().film.objects.filter((o) => o.kind === "person").length + 1;
+    const name = nameOf(t) || "Person " + n;
+    /* rig: a full 3D character in the whole film (viewer/rig-actors.js; a panel's own place.rig wins) */
+    const def = { id: uid("person"), kind: "person", name, color: "#7d8a96", pants: "#3d4a5e", skin: "#eac0a0", hair: "#4a3020", made: "words", rig: true };
+    const spot = Object.assign(dropSpot(0), { look: lookWords(t) });
+    insert(def, spot);
+    const RA = window.CurioRigActors;
+    if (RA && RA.load) Promise.resolve(RA.load()).then(() => V.redraw(), () => {});
+    fillInScene();
+    flash(name + " is in the picture. Pick them and open Windows to change any part, panel by panel.");
+    return def;
+  }
+  function giveLook(id, t) {
+    const o = obj(id);
+    t = lookWords(String(t || "").trim());
+    if (!o || !t) return flash("Describe the look first.");
+    V.edit("build-look");
+    L().film.panels.forEach((q) => q.place[id] && (q.place[id].look = t));
+    V.changed(true);
+    flash(o.name + " now looks like that in every panel. Undo takes it back.");
   }
 
   /* ---- settings: every place in the library, plus the ready-made sets ---- */
@@ -2320,6 +2387,9 @@
       V.changed(true);
       return window.CurioActions.open(ca.dataset.cact, e.clientX, e.clientY);
     }
+    if (e.target.closest("[data-cmake]")) return makeFromWords(SW.querySelector("[data-cwords]").value);
+    const cl = e.target.closest("[data-clook]");
+    if (cl) return giveLook(cl.dataset.clook, SW.querySelector("[data-cwords]").value);
     const co = e.target.closest("[data-cout]");
     if (co) {
       removeThing(co.dataset.cout);
@@ -2397,6 +2467,13 @@
 .cvb-m-settings .cvb-cols { grid-template-columns: 150px 170px minmax(0, 1fr); }
 .cvb-inscene { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--c-line); }
 .cvb-inscene > b { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); margin-right: 4px; }
+.cvb-make { display: flex; flex-wrap: wrap; gap: 6px; align-items: end; width: 100%; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px dashed var(--c-line); }
+.cvb-make label { display: flex; flex-direction: column; gap: 3px; flex: 1 1 220px; min-width: 0; }
+.cvb-make label span { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); }
+.cvb-make input { width: 100%; }
+.cvb-read { flex-basis: 100%; color: var(--c-dim); min-height: 1em; }
+.cvb-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; }
+.cvb-chips > b { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); margin-right: 4px; }
 .cvb-chip { display: inline-flex; border: 1px solid var(--c-line); border-radius: 6px; overflow: hidden; }
 .cv-root .cvb-chip button { border: 0; border-radius: 0; padding: 3px 7px; }
 .cvb-chip i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }

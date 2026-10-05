@@ -71,6 +71,15 @@ const ok = (cond, msg) => {
   await page.waitForTimeout(100);
   const box = await canvas.boundingBox();
   const at = (fx, fy) => [box.x + box.width * fx, box.y + box.height * fy];
+  /* a point on the picture as it is now (the borders can move it), nudged off anything lying over it */
+  const floorAt = async (fx, fy) => {
+    const b = await canvas.boundingBox();
+    for (const [dx, dy] of [[0, 0], [0.05, 0], [0, -0.05], [0.1, 0], [0.05, -0.05], [0.1, -0.08], [0.15, -0.1]]) {
+      const p = [b.x + b.width * (fx + dx), b.y + b.height * (fy + dy)];
+      if (await page.evaluate(([x, y]) => document.elementFromPoint(x, y) === CurioViewer.live().canvas, p)) return p;
+    }
+    return [b.x + b.width * fx, b.y + b.height * fy];
+  };
 
   ok(await page.isVisible('.cv-tabs [data-tab="build"]'), "the Details side has a Draw & build tab");
   ok(await page.isVisible('[data-find="objects"]') && await page.isVisible('[data-find="settings"]') && await page.isVisible('[data-find="characters"]'), "Object, Setting and Character search sit at the top of the In the scene list");
@@ -340,7 +349,7 @@ const ok = (cond, msg) => {
   /* walls and a room */
   await page.keyboard.press("w");
   Object.assign(box, await canvas.boundingBox());
-  [x, y] = at(0.2, 0.8);
+  [x, y] = await floorAt(0.2, 0.8);
   /* when this fails, the message says which tool was on and what was under the pointer */
   const wallWhy = await page.evaluate(([x, y]) => {
     const el = document.elementFromPoint(x, y);
@@ -353,7 +362,7 @@ const ok = (cond, msg) => {
   d = await sel();
   ok(d && d.make === "walls" && d.segs.length === 1 && Math.hypot(d.segs[0][2], d.segs[0][3]) > 0.4, "Wall: dragging on the floor builds a wall" + (d && d.make === "walls" ? "" : ` (${wallWhy}; picked ${d ? d.make || d.kind : "nothing"})`));
   await page.keyboard.press("r");
-  [x, y] = at(0.6, 0.78);
+  [x, y] = await floorAt(0.6, 0.78);
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x + 160, y + 60, { steps: 5 });
