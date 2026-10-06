@@ -394,9 +394,10 @@
     b.type = "button";
     b.className = "cd-show";
     b.dataset.cdShow = "1";
-    b.textContent = "▶ Show me";
+    b.textContent = "▶";
+    b.setAttribute("aria-label", "Show me");
     b.title = title;
-    b.style.cssText = "font:600 11px/1 system-ui,sans-serif;padding:4px 7px;margin:0 6px;border-radius:6px;border:1px solid #ffd23f;background:transparent;color:inherit;cursor:pointer;white-space:nowrap;flex:none";
+    b.style.cssText = "font:600 11px/1 system-ui,sans-serif;padding:3px 6px;margin:0 2px;border-radius:6px;border:1px solid #ffd23f;background:transparent;color:inherit;cursor:pointer;white-space:nowrap;flex:none";
     // the title bar drags the window: a press here is a click, not the start of a drag
     b.addEventListener("pointerdown", (e) => e.stopPropagation());
     b.addEventListener("mousedown", (e) => e.stopPropagation());
