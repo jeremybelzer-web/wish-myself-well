@@ -368,7 +368,7 @@
       heard++;
     });
     if (lastPanel >= 0 && i !== lastPanel) {
-      blip(2600, now, 0.03, "square", back);
+      blip(2600, now, 0.03, "square");
       heard++;
     }
     lastPanel = i;
