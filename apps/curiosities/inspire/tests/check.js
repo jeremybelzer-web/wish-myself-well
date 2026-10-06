@@ -81,3 +81,46 @@ assert.ok(works.every((s) => s.author && s.movements.length && s.year < 1930), "
 assert.ok(works.every((w) => w.archive.length && w.archive.every((id) => /^mv-[a-z-]+$/.test(id))), "movements link to the archive");
 assert.ok(wh.results([{ movement: "mv-pacing" }]).length >= 2, "an archive movement id filters too");
 console.log(`inspire: ${scenes.length} film and game scenes, ${works.length} written works, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);
+// Watch and tag: links to ids, times, and tags to beats.
+const W = require("../watch.js");
+assert.strictEqual(W.parseId("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("https://youtu.be/dQw4w9WgXcQ?t=5"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("https://www.youtube.com/shorts/dQw4w9WgXcQ"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("dQw4w9WgXcQ"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("jaws beach scene"), null);
+assert.strictEqual(W.linkStart("https://youtu.be/x?t=1m30s"), 90);
+assert.strictEqual(W.parseTime("1:05"), 65);
+assert.strictEqual(W.parseTime("65"), 65);
+assert.strictEqual(W.parseTime("1m5s"), 65);
+assert.strictEqual(W.fmt(65), "1:05");
+const tagged = W.toClip({ work: "T", feelings: "Joy, dread", video: "dQw4w9WgXcQ" }, [
+  { at: 12, key: "shotSize", value: "close" },
+  { at: 0, key: "shotSize", value: "wide" },
+  { at: 0, key: "emotion", value: "joy" },
+]);
+assert.deepStrictEqual(tagged.beats.map((b) => b.at), [0, 12]);
+assert.deepStrictEqual(tagged.feelings, ["joy", "dread"]);
+const tscene = hub.logClip(tagged);
+assert.strictEqual(tscene.video.id, "dQw4w9WgXcQ");
+assert.strictEqual(tscene.beats[1].values.emotion, "joy", "each beat keeps the values before it");
+// Clip stretch and backups are kept; the link check moves a live link to the front and marks lost clips.
+const withBackups = W.toClip({ work: "B", video: "AAAAAAAAAAA", ids: ["BBBBBBBBBBB", "AAAAAAAAAAA"], clipStart: 30, clipEnd: 72.4 }, [{ at: 31, key: "shotSize", value: "wide" }]);
+assert.deepStrictEqual(withBackups.video, { site: "youtube", id: "AAAAAAAAAAA", ids: ["AAAAAAAAAAA", "BBBBBBBBBBB"], start: 30, end: 72 });
+const bscene = hub.logClip(withBackups);
+assert.deepStrictEqual(bscene.video.ids, ["AAAAAAAAAAA", "BBBBBBBBBBB"]);
+const lost = hub.logClip(W.toClip({ work: "L", video: "CCCCCCCCCCC" }, []));
+const fresh = hub.logClip(W.toClip({ work: "F", video: "DDDDDDDDDDD" }, []));
+fresh.video.checked = 1000;
+const alive = { jNQXAC9IVRw: true, AAAAAAAAAAA: false, BBBBBBBBBBB: true, CCCCCCCCCCC: false };
+(async () => {
+  const n = await W.check([bscene, lost, fresh], { probe: async (id) => alive[id], now: 2000 });
+  assert.strictEqual(n, 2, "only clips not checked in 30 days are checked");
+  assert.strictEqual(bscene.video.id, "BBBBBBBBBBB", "a live backup moves to the front");
+  assert.deepStrictEqual(bscene.video.gone, ["AAAAAAAAAAA"]);
+  assert.ok(lost.video.lost && !bscene.video.lost);
+  assert.strictEqual(await W.check([hub.logClip(W.toClip({ work: "O", video: "EEEEEEEEEEE" }, []))], { probe: async () => null }), 0, "offline marks nothing");
+  assert.strictEqual(await W.check([hub.logClip(W.toClip({ work: "X", video: "EEEEEEEEEEE" }, []))], { probe: async () => false }), 0, "a page that can't reach YouTube marks nothing");
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
