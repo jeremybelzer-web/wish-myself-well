@@ -289,3 +289,7 @@ from the scenes in the curiosity database (`CuriosityDB.data.scenes`), worked ou
 AI; as the scene library grows, the ideas grow with it. Change applies the ticked options as one undo step;
 Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
 `window.CurioSceneFocus`. Test: `node viewer/tests/scene-focus.js`.
+
+### The big Viewer (`viewer/big.js`, `window.CurioBigView`)
+
+Jeremy, 2026-10-06: the screen felt crammed. Now the picture gets the room: In the scene and Details leave the sides for a slim rail on the left (In the scene, Move it, Camera & lens, Words and every tab another part adds). A rail button opens that panel as one big window with tabs over the right half, so the picture stays in view; ✕ or Esc closes it. Front and center runs from the rail to the right edge, the Storyboard across the bottom, and a second window is as big as the first. "Side panels" at the bottom of the rail puts the three columns back (`curio-viewer-big-v1`, per device). `CurioBigView.show("things" | tab id | "")` opens a panel (the App Walkthrough uses it). Browser tests start with the side panels unless that key is "1". Test: `viewer/tests/big.js`.

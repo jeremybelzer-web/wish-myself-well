@@ -92,6 +92,7 @@ const suites = [
   { name: "momentum in a browser", browser: true, secs: 30, ...node("momentum/tests/browser.js", threeArgs) },
   { name: "video in a browser", browser: true, secs: 25, ...node("video/tests/browser.js") },
   { name: "viewer in a browser", browser: true, secs: 15, ...node("viewer/tests/browser.js") },
+  { name: "big viewer in a browser", browser: true, secs: 10, ...node("viewer/tests/big.js") },
   { name: "viewer draw & build in a browser", browser: true, secs: 25, ...node("viewer/tests/build.js") },
   { name: "viewer build windows in a browser", browser: true, secs: 15, ...node("viewer/tests/build-windows.js") },
   { name: "viewer looks and stuck drawings in a browser", browser: true, secs: 15, ...node("viewer/tests/wear.js", threeArgs) },
