@@ -27,6 +27,7 @@
     const cs = getComputedStyle(el);
     return cs.visibility !== "hidden" && cs.display !== "none";
   };
+  const viewerUp = () => !!(root.CurioViewer && root.CurioViewer.isOpen && root.CurioViewer.isOpen());
   const textOf = (el) => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
 
   /* ---------- the 3D curiosity map ---------- */
@@ -180,11 +181,17 @@
   async function screenOpen() {
     const S = root.CurioScreen;
     if (!S) return false;
+    // the Viewer sits over the Screen: step through to the Screen, where the windows and lanes are
+    if (viewerUp()) {
+      await D.say("The windows and lanes are in the Screen, one step behind the Viewer.", 2200);
+      root.CurioViewer.close();
+    }
     if (!S.isOpen()) S.open();
-    return !!(await D.waitFor(() => S.isOpen() && $(".sc-lanes"), 8000));
+    return !!(await D.waitFor(() => S.isOpen() && $$(".sc-lanes").find(shown), 8000));
   }
   async function windowTour(D, opts) {
     let win = opts.win && opts.win.isConnected ? opts.win : $$(".sc-win").find(shown);
+    if (viewerUp()) win = null;
     if (!win) {
       if (!(await screenOpen())) return D.say("Open the Screen first: the windows live there.", 2500);
       await D.say("Every curiosity has its own window. Here is one: whose eyes the shot sees through.", 2400);
@@ -290,7 +297,7 @@
     }
   }
   async function lanesTour(D, opts) {
-    if (!$(".sc-lanes") && !(await screenOpen())) return D.say("Open the Screen first: the lanes live there.", 2500);
+    if ((viewerUp() || !$$(".sc-lanes").find(shown)) && !(await screenOpen())) return D.say("Open the Screen first: the lanes live there.", 2500);
     const el = $(".sc-lanes");
     const bg = (i) => $$(`rect.sl-bg[data-lane="${i}"]`, el).find(shown);
     const count = (i) => $$(`[data-node][data-lane="${i}"]:not(.sl-cpt)`, el).length;
@@ -308,6 +315,19 @@
     const segs = () => $$("[data-seg]", el).filter((s) => s.getBoundingClientRect().width > 4) /* a flat line is 0 high */.map((s) => ({ s, p: segMid(s), w: s.getBoundingClientRect().width })).filter((x) => inLane(x.p));
     // the longest line has room between its nodes for a curve (two nodes on neighbouring moments have none)
     const longest = () => segs().sort((a, b) => b.w - a.w)[0];
+    // in the Big viewer layout the timeline is a short strip: bring the lane up into it before showing it
+    const seen = (r) => {
+      const b = r.getBoundingClientRect();
+      const x = b.left + Math.min(40, b.width / 2);
+      return [b.top + Math.min(b.height / 2, 12), b.bottom - Math.min(b.height / 2, 6)].every((y) => {
+        const h = doc.elementFromPoint(x, y);
+        return !!h && el.contains(h);
+      });
+    };
+    if (!seen(bg(lane))) {
+      bg(lane).scrollIntoView({ block: "start", inline: "nearest" });
+      await D.wait(400);
+    }
     await D.point(bg(lane), "This is a lane: one curiosity over the whole film, left to right. The dots are nodes, and the lines between them are how it moves from one moment to the next.", null);
     const lr = bg(lane).getBoundingClientRect();
     if (lr.height < 90) {

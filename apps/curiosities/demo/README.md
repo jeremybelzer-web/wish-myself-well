@@ -21,4 +21,4 @@ Files: `player.js` (`window.CurioDemo`: the pointer, caption and steps; `CurioDe
 registers a new demonstration), `tours.js` (the three above and the Show me buttons).
 
 Clips: `node demo/tools/record.js --out <dir> [--three three.min.js] [--win <curiosity id>,...]` records each one
-as .webm (and .mp4 with ffmpeg). Test: `node demo/tests/browser.js [--three three.min.js]` (in run-all `--browser`).
+as .webm (and .mp4 with ffmpeg), starting in the Viewer as a person sees the app (no automation flag, so the big layouts show). From the Viewer, the window and lanes demonstrations step into the Screen first. Test: `node demo/tests/browser.js [--three three.min.js]` (in run-all `--browser`).

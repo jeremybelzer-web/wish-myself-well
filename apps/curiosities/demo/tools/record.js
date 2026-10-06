@@ -43,7 +43,8 @@ const NAMES = { map: "The 3D curiosity map", window: "A curiosity window", lanes
   fs.mkdirSync(OUT, { recursive: true });
   const server = await serve();
   const base = `http://127.0.0.1:${server.address().port}/`;
-  const browser = await chromium.launch();
+  // recorded as a person sees it: without the automation flag, the app opens in the Viewer and its big layouts
+  const browser = await chromium.launch({ args: ["--disable-blink-features=AutomationControlled"] });
   const jobs = ONLY.map((id) => ({ id, name: NAMES[id] || id, opts: {} })).concat(WINS.map((w) => ({ id: "window", name: "Window - " + w, opts: { id: w } })));
   let n = 0;
   let bad = 0;
@@ -54,18 +55,18 @@ const NAMES = { map: "The 3D curiosity map", window: "A curiosity window", lanes
     if (THREE) await ctx.route(/three(\.min)?\.js$/, (route) => route.fulfill({ body: fs.readFileSync(THREE), contentType: "text/javascript" }));
     const page = await ctx.newPage();
     page.on("pageerror", (e) => console.log("     page error: " + e));
-    // the walkthrough starts once per device on its own and hover help shows bubbles: neither should cover it
+    // the walkthrough, hover help bubbles and the Bring into focus question would cover it
     await page.addInitScript(() => {
       try {
         localStorage.setItem("curio-walkthrough-seen-v1", "1");
         localStorage.setItem("curio-hoverhelp-v1", "off");
+        localStorage.setItem("curiosities-scene-focus-v1", JSON.stringify({ ask: false }));
       } catch (e) {}
     });
-    await page.goto(base + "index.html?screen=1");
-    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen() && window.CurioDemo, null, { timeout: 30000 });
+    await page.goto(base + "index.html");
+    await page.waitForFunction(() => window.CurioScreen && window.CurioDemo, null, { timeout: 30000 });
     await page.evaluate(() => document.querySelectorAll(".cw-bubble, .cw-light, .cw-dot").forEach((e) => e.remove()));
     await page.waitForTimeout(1200);
-    if (job.opts.id) await page.evaluate((id) => window.CurioScreen.openWin(id), job.opts.id);
     const t0 = Date.now();
     const r = await page.evaluate(([id, opts]) => window.CurioDemo.run(id, opts), [job.id, job.opts]);
     await page.waitForTimeout(800);
