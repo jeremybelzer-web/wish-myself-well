@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 9, CC 65 to 80\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 Handmade sounds\n  12 Background sound of the place\n  13 Hearing through their ears\n  14 Echo of the place\n  15 suite: Hazy memory\n  16 suite: Dubbed foreign film\nCV-CC 2: PORT 2 (your second cable), MIDI channel 9, CC 81 to 96\n   1 suite: Clean interview sound\n   2 suite: Inside their head\n   3 suite: Handmade sound world\n   4 suite: Shell-shocked\n   5 pair: When the joke pays off, a sound hit lands\n   6 pair: When the clip slows down, the music rises\n   7 pair: When the clip rewinds, a sound hit plays\n   8 pair: When a cutaway covers the talking, the music sits under\n   9 pair: When a scene ends on a button joke, a sting hits\n  10 pair: When the joke pays off, a music sting lands\n  11 pair: When the multicam switches on the speaker, dialogue leads the mix\n  12 pair: When a running montage rides above the story, the music leads\n  13 pair: When the voice-over is caught out by the picture, the scene turns funny\n  14 pair: When a voice echoes, the moment feels like a dream or a memory\n  15 pair: When a voice is translated, the mouths stop matching the words\n  16 pair: When the ears ring, the background falls away\nCV-CC 3: PORT 2 (your second cable), MIDI channel 9, CC 97 to 106\n   1 pair: When dread builds, the background sound goes quiet\n   2 pair: When the handmade sounds are exaggerated, the sound turns cartoony\n   3 pair: When the footsteps are singled out, we listen beyond the frame\n   4 pair: When the place echoes more, loneliness grows\n   5 pair: When the echo sounds like a cathedral, awe rises\n   6 pair: When there is no music, the sound of the place fills in\n   7 pair: When the hero tells the story in voice-over, the truth gets murkier\n   8 pair: When the scare hits, the sound slams to its loudest\n   9 pair: When every tiny action gets a whoosh or a thud, the cuts snap harder\n  10 pairs: The world goes quiet"
+    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 10, CC 81 to 96\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 Handmade sounds\n  12 Background sound of the place\n  13 Hearing through their ears\n  14 Echo of the place\n  15 suite: Hazy memory\n  16 suite: Dubbed foreign film\nCV-CC 2: PORT 2 (your second cable), MIDI channel 10, CC 97 to 112\n   1 suite: Clean interview sound\n   2 suite: Inside their head\n   3 suite: Handmade sound world\n   4 suite: Shell-shocked\n   5 pair: When the joke pays off, a sound hit lands\n   6 pair: When the clip slows down, the music rises\n   7 pair: When the clip rewinds, a sound hit plays\n   8 pair: When a cutaway covers the talking, the music sits under\n   9 pair: When a scene ends on a button joke, a sting hits\n  10 pair: When the joke pays off, a music sting lands\n  11 pair: When the multicam switches on the speaker, dialogue leads the mix\n  12 pair: When a running montage rides above the story, the music leads\n  13 pair: When the voice-over is caught out by the picture, the scene turns funny\n  14 pair: When a voice echoes, the moment feels like a dream or a memory\n  15 pair: When a voice is translated, the mouths stop matching the words\n  16 pair: When the ears ring, the background falls away\nCV-CC 3: PORT 2 (your second cable), MIDI channel 11, CC 1 to 10\n   1 pair: When dread builds, the background sound goes quiet\n   2 pair: When the handmade sounds are exaggerated, the sound turns cartoony\n   3 pair: When the footsteps are singled out, we listen beyond the frame\n   4 pair: When the place echoes more, loneliness grows\n   5 pair: When the echo sounds like a cathedral, awe rises\n   6 pair: When there is no music, the sound of the place fills in\n   7 pair: When the hero tells the story in voice-over, the truth gets murkier\n   8 pair: When the scare hits, the sound slams to its loudest\n   9 pair: When every tiny action gets a whoosh or a thud, the cuts snap harder\n  10 pairs: The world goes quiet"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 8
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -77,16 +45,16 @@
      96
     ],
     "midi": {
-     "channel": 8
+     "channel": 9
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -101,6 +69,38 @@
      104,
      105,
      106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
      -1,
      -1,
      -1,
@@ -109,7 +109,7 @@
      -1
     ],
     "midi": {
-     "channel": 8
+     "channel": 10
     }
    },
    "pos": [

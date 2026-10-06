@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 81 to 96\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 Match cut\n   7 Holding before the cut\n   8 A line that jumps the cut\n   9 Cutting away before the hit\n  10 Hidden cut\n  11 Sudden black screen\n  12 Keeping the eye in place across the cut\n  13 suite: Classic and gentle\n  14 suite: Opening titles\n  15 suite: Time jump match cut\n  16 suite: Let it sink in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 97 to 112\n   1 suite: Thriller cutting\n   2 suite: A line carried across the cut\n   3 suite: One shot with hidden cuts\n   4 pair: When cutting gets fast, transitions become plain cuts\n   5 pair: When the feeling turns dreamlike, shots dissolve\n   6 pair: When the pace speeds up then stops, the scene fades out\n   7 pair: When the pace races then stops, an outro effect closes it\n   8 pair: When the end loops into the start, the cut matches movement\n   9 pair: When clips bounce in, the video turns playful\n  10 pair: When transitions get explosive, something new arrives every second or two\n  11 pair: When the hold runs long, the feeling deepens\n  12 pair: When the hold goes dead silent, the silence stretches\n  13 pair: When the hold stays on a face, a cut to black follows\n  14 pair: When a line jumps the cut, the cross-cutting picks up\n  15 pair: When the answer across the cut is a gut punch, the irony bites\n  16 pair: When the film cuts away before the hit, the dread grows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 8, CC 1 to 10\n   1 pair: When the hit we missed was terrible, a slow reveal follows\n   2 pair: When the film cuts away to black, the black screen holds\n   3 pair: When the cuts are hidden, the tension keeps building\n   4 pair: When the screen cuts to black, time skips ahead\n   5 pair: When the black hits at the shock, everything goes silent\n   6 pair: When the eye path is smoother, the cutting can speed up\n   7 pair: When a scene ends quietly, the camera rests on an empty room\n   8 pair: When the camera whips from place to place, the scenes fly by faster\n   9 pairs: The hyper edit\n  10 pairs: The hit we never see"
+    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 97 to 112\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 Match cut\n   7 Holding before the cut\n   8 A line that jumps the cut\n   9 Cutting away before the hit\n  10 Hidden cut\n  11 Sudden black screen\n  12 Keeping the eye in place across the cut\n  13 suite: Classic and gentle\n  14 suite: Opening titles\n  15 suite: Time jump match cut\n  16 suite: Let it sink in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 9, CC 1 to 16\n   1 suite: Thriller cutting\n   2 suite: A line carried across the cut\n   3 suite: One shot with hidden cuts\n   4 pair: When cutting gets fast, transitions become plain cuts\n   5 pair: When the feeling turns dreamlike, shots dissolve\n   6 pair: When the pace speeds up then stops, the scene fades out\n   7 pair: When the pace races then stops, an outro effect closes it\n   8 pair: When the end loops into the start, the cut matches movement\n   9 pair: When clips bounce in, the video turns playful\n  10 pair: When transitions get explosive, something new arrives every second or two\n  11 pair: When the hold runs long, the feeling deepens\n  12 pair: When the hold goes dead silent, the silence stretches\n  13 pair: When the hold stays on a face, a cut to black follows\n  14 pair: When a line jumps the cut, the cross-cutting picks up\n  15 pair: When the answer across the cut is a gut punch, the irony bites\n  16 pair: When the film cuts away before the hit, the dread grows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 9, CC 17 to 26\n   1 pair: When the hit we missed was terrible, a slow reveal follows\n   2 pair: When the film cuts away to black, the black screen holds\n   3 pair: When the cuts are hidden, the tension keeps building\n   4 pair: When the screen cuts to black, time skips ahead\n   5 pair: When the black hits at the shock, everything goes silent\n   6 pair: When the eye path is smoother, the cutting can speed up\n   7 pair: When a scene ends quietly, the camera rests on an empty room\n   8 pair: When the camera whips from place to place, the scenes fly by faster\n   9 pairs: The hyper edit\n  10 pairs: The hit we never see"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     95,
-     96
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -77,16 +45,16 @@
      112
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -101,6 +69,38 @@
      8,
      9,
      10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
      -1,
      -1,
      -1,
@@ -109,7 +109,7 @@
      -1
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
     }
    },
    "pos": [
