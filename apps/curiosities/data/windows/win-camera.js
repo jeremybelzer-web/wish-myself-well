@@ -226,7 +226,7 @@
         { face: "dial", slider: "lead" },
       ],
       groups: [
-        { label: "The trigger", sliders: ["setting", "onReaction", "midWord"] },
+        { label: "The spark", sliders: ["setting", "onReaction", "midWord"] },
         { label: "Timing", sliders: ["lead", "tighten", "noticeable"] },
       ],
       presets: [
@@ -680,7 +680,7 @@
     sliders: [
       ["cueOwner", "Whose cue", ["the speaker", "the listener", "anyone"], "Which person's line or action starts the move.", { unordered: true }],
       ["anticipation", "Early or late", ["ahead of the cue", "on the cue", "after the cue"], "Whether the camera starts before, on, or after the cue."],
-      ["cuesUsed", "Share of cues that move it", [0, 100, "%"], "How many of the cues actually trigger a move."],
+      ["cuesUsed", "Share of cues that move it", [0, 100, "%"], "How many of the cues actually spark a move."],
     ],
     window: {
       faces: [

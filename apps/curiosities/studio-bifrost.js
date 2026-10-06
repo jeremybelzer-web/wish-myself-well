@@ -651,7 +651,7 @@
         <div class="bif-read" id="bif-read"></div>
         <p id="bif-chips"></p>
         <p class="cap">Click a chip to automate it, or open Automate.</p>
-        <h3>Proximities</h3>
+        <h3>Sparks</h3>
         <ul class="bif-prox" id="bif-prox"></ul>
         <div class="bar-actions"><button type="button" data-act="shelf">Keep on Shelf</button> <button type="button" data-act="board">Send to board</button> <span class="cap" id="bif-boardcap"></span></div>
         <div class="bif-tablewrap"><table class="trace"><thead><tr><th>Beat</th><th>element</th><th>growth</th><th>fireLight</th><th>colorTemp</th><th>contrast</th><th>atmosphere</th><th>splash</th><th>impacts</th></tr></thead><tbody id="bif-trace"></tbody></table></div>

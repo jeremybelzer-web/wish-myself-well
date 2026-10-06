@@ -145,7 +145,7 @@ the lane always shows which. **Leading** is who holds attention, read by the app
 (`CurioAttention.read`, the one behind the Screen's Attention band); it holds until something else takes it.
 **With it** is the strongest other curiosity changing in that panel (the one that pushes the story hardest).
 **Suite** shows the suite the leading one or the one with it belongs to, when most of its lenses are on.
-A **⚡** marks a proximity: the one in front was set off by something else a moment before (a rule from
+A **⚡** marks a spark: the one in front was set off by something else a moment before (a rule from
 `PROXIMITIES`, such as "an object enters" setting off a cut to an insert), and the line above the rows says by
 what. Click a block to jump there.
 

@@ -74,7 +74,7 @@ const ok = (cond, msg) => {
   await page.evaluate(() => CurioViewer.select(4));
   await page.waitForTimeout(200);
   const line5 = await page.textContent(".cv-under .cf-now");
-  ok(/Shot size/.test(line5) && /set off by something else: an object enters \(panel 4\)/.test(line5), "the line says what is in front and what set it off: " + line5);
+  ok(/Shot size/.test(line5) && /set off by a spark: an object enters \(panel 4\)/.test(line5), "the line says what is in front and what set it off: " + line5);
   if (SHOTS) await page.locator(".cv-player").screenshot({ path: path.join(SHOTS, "focus-lane.png") });
 
   ok(await page.isVisible(".cv-under .cf-pie") && await page.isVisible(".cv-under .cf-graph"), "the attention pie and graph are both shown");

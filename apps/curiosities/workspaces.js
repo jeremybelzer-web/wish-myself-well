@@ -1031,11 +1031,11 @@
     const proxList = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
     const members = (d.members || []).map((m) => proxList.find((p) => p.id === m)).filter(Boolean);
     el.innerHTML = `<div class="ws-psdb"><p><strong>${esc(d.label)}</strong></p>${d.plain ? `<p class="cap">${esc(d.plain)}</p>` : ""}
-      <p class="cap">These proximities act together. Switch on each one you want; each has its own delay and how often.</p>
+      <p class="cap">These sparks act together. Switch on each one you want; each has its own delay and how often.</p>
       <div class="ws-mods"></div></div>`;
     const box = el.querySelector(".ws-mods");
     members.forEach((p) => addModule(box, "p:" + p.id));
-    if (!members.length) box.innerHTML = `<p class="cap">None of its proximities are loaded.</p>`;
+    if (!members.length) box.innerHTML = `<p class="cap">None of its sparks are loaded.</p>`;
     return true;
   }
 
@@ -1096,7 +1096,7 @@
     const r = related(ids);
     const el = document.getElementById("ws-related");
     if (!r.suites.length && !r.prox.length && !r.ps.length) {
-      el.innerHTML = ws.scope === "story" ? `<p class="cap">No suite or proximity involves these yet. Once films are traced for them, they will show here.</p>` : "";
+      el.innerHTML = ws.scope === "story" ? `<p class="cap">No suite or spark involves these yet. Once films are traced for them, they will show here.</p>` : "";
       return;
     }
     const opened = view.opened[ws.id] || (view.opened[ws.id] = []);
@@ -1114,11 +1114,11 @@
       return chip("s:" + s.id, s.label, (hintOf("suite", s.id) || s.note || "") + (m ? ` In my film: ${CS.pct(m.mean)} on average, best ${CS.pct(m.peak)}.` : ""), extra);
     };
     const block = (title, items) => (items.length ? `<p class="ws-g">${esc(title)}</p><div class="ws-chips">${items.join("")}</div>` : "");
-    el.innerHTML = `<h4>Suites and proximities that involve these</h4>
+    el.innerHTML = `<h4>Suites and sparks that involve these</h4>
       <p class="cap">Tap one to open its automation here.</p>
       ${block("Suites, by how much my film shows of each", r.suites.map(suiteChip))}
-      ${block("Proximities", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`, hintOf("proximity", p.id) || p.note || "")))}
-      ${block("Proximity suites", r.ps.map((p) => chip("ps:" + p.id, p.label, hintOf("proximitySuite", p.id))))}
+      ${block("Sparks", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`, hintOf("proximity", p.id) || p.note || "")))}
+      ${block("Elixirs", r.ps.map((p) => chip("ps:" + p.id, p.label, hintOf("proximitySuite", p.id))))}
       <div class="ws-mods" id="ws-related-mods"></div>`;
     const box = document.getElementById("ws-related-mods");
     opened.forEach((key) => {

@@ -495,7 +495,7 @@
       d.proximities.forEach((p) => want.has(p.id) && [p.when, p.then].forEach((e) => isMine(baseOf(e.curiosity)) && want.add(baseOf(e.curiosity))));
     }
     const pick = (list) => (want ? list.filter((x) => want.has(x.id)) : list);
-    return JSON.stringify({ format: FORMAT, v: 1, note: "Curiosities, suites and proximities made in Curiomatic. Bring them in with Import… in the Screen's library.", curiosities: pick(d.curiosities), suites: pick(d.suites), proximities: pick(d.proximities) }, null, 2);
+    return JSON.stringify({ format: FORMAT, v: 1, note: "Curiosities, suites and sparks made in Curiomatic. Bring them in with Import… in the Screen's library.", curiosities: pick(d.curiosities), suites: pick(d.suites), proximities: pick(d.proximities) }, null, 2);
   }
   /* What a file adds to `d`: the same item again is skipped; an id already used for something else gets a new
      one (and the file's suites and proximities follow it); a member or an end naming a curiosity this app
@@ -513,7 +513,7 @@
     /* Ids not starting with "my-" get one that does, so a file can never land on a database row. */
     const fix = (list) => (Array.isArray(list) ? list.filter(isObj).map((x) => Object.assign({}, x, { id: isMine(x.id) ? x.id : PREFIX + slug(x.id || x.label, "item") })) : []);
     const inc = clean({ curiosities: fix(raw.curiosities), suites: fix(raw.suites), proximities: fix(raw.proximities) });
-    if (!inc.curiosities.length && !inc.suites.length && !inc.proximities.length) return { error: "That file has no curiosities, suites or proximities in it." };
+    if (!inc.curiosities.length && !inc.suites.length && !inc.proximities.length) return { error: "That file has no curiosities, suites or sparks in it." };
     const out = { items: { curiosities: [], suites: [], proximities: [] }, added: 0, skipped: 0, renamed: 0, dropped: 0 };
     const have = {};
     ["curiosities", "suites", "proximities"].forEach((k) => d[k].forEach((x) => (have[x.id] = JSON.stringify(x))));

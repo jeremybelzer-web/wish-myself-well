@@ -527,7 +527,7 @@
           )
           .join("")
       : `<p class="en-note">Nothing fired: no leader changed, or no links are on.</p>`;
-    return `<p class="en-note">A link is a curiosity proximity: when the leader changes, the follower changes with it by a rule. Many links make a proximity suite, and a change runs through them as a chain reaction. Links are plain data: list them, switch them off, change them, undo them.</p>
+    return `<p class="en-note">A link is a catalyst: when the leader changes, the follower changes with it by a rule. Many links make an elixir, and a change runs through them as a chain reaction. Links are plain data: list them, switch them off, change them, undo them.</p>
       <div class="en-panel"><h3 style="margin:0">Add a link</h3>
       <div class="en-form" data-form="link">
         <label>Leader ${endSelect(st, "from", d.from)}</label>
@@ -553,7 +553,7 @@
     const suite = l.suite && st.suites.find((x) => x.id === l.suite);
     if (suite) return "the suite " + suite.label;
     if (l.seed.startsWith("letter")) return "the letter";
-    return "the app's proximities";
+    return "the app's sparks";
   }
   /* The app's proximities and proximity suites (the curiosity database), added a suite at a time: there are
      more than a film holds, and a suite brings the lanes it needs. */
@@ -576,15 +576,15 @@
       .filter((g) => g && g.id && (g.links || []).length)
       .map((g) => `<tr><td>${esc(g.label || g.id)}${g.plain ? `<div class="en-note">${esc(String(g.plain).slice(0, 220))}</div>` : ""}</td><td>${(g.links || []).length}</td><td>${have.has(src + ":" + g.id) ? `<span class="en-note">in your film</span>` : `<button class="en-small" data-act="pack-group" data-group="${esc(g.id)}">Add</button>`}</td></tr>`)
       .join("");
-    return `<div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 4px">The app's proximities</h3>
-      <p class="en-note">${p ? p.links.length + " proximities from the curiosity database, in " + groups.length + " suites." : "The curiosity database is not loaded on this page."} A film holds ${E.LIMIT.links} links, so add a suite at a time: its links come in together, switch on and off together, and any lane they need is added to the right track.</p>
-      ${yours}${p ? `<p><button data-act="pack-fit">Add every proximity that fits your tracks now</button></p>` : ""}
-      ${rows ? `<div class="en-scroll" style="max-height:320px"><table class="en-list"><thead><tr><th>Proximity suite</th><th>Links</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}</div>`;
+    return `<div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 4px">The app's sparks</h3>
+      <p class="en-note">${p ? p.links.length + " sparks from the curiosity database, in " + groups.length + " suites." : "The curiosity database is not loaded on this page."} A film holds ${E.LIMIT.links} links, so add a suite at a time: its links come in together, switch on and off together, and any lane they need is added to the right track.</p>
+      ${yours}${p ? `<p><button data-act="pack-fit">Add every spark that fits your tracks now</button></p>` : ""}
+      ${rows ? `<div class="en-scroll" style="max-height:320px"><table class="en-list"><thead><tr><th>Elixir</th><th>Links</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}</div>`;
   }
   function importPack(only, addLanes) {
     const p = getPack();
     if (!p) return { ok: false, error: "The curiosity database is not loaded on this page." };
-    const out = E.send({ type: "importLinks", label: "Add the app's proximities", pack: p, only, addLanes });
+    const out = E.send({ type: "importLinks", label: "Add the app's sparks", pack: p, only, addLanes });
     if (out.ok) say((out.added || 0) + " links added" + (out.updated ? ", " + out.updated + " brought up to date" : "") + (out.lanesAdded ? ", " + out.lanesAdded + " lanes added for them" : "") + (out.waiting ? ". " + out.waiting + " wait for curiosities your tracks do not have" : "") + ".");
     return out;
   }

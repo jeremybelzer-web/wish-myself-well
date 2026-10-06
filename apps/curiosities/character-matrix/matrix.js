@@ -714,7 +714,7 @@
     el.innerHTML = `<h2>Automate</h2>
       <p class="cm-small">Each axis, the health level and the role is a curiosity. Run one and it moves the selected character between A and B, on an LFO, a knob, or a MIDI control. A MIDI note learned here starts and stops it. These are the same patches as the Automate tab, under "Character matrix". ${esc(A.midi.status === "off" ? "" : A.midi.status)}</p>
       <div class="cm-btns"><button type="button" data-act="midi">Connect MIDI</button><button type="button" data-act="write">Write into scene</button><button type="button" data-act="stop-all">Stop all</button></div>
-      <div class="cm-scroll"><table class="cm-table"><thead><tr><th></th><th>Curiosity</th><th>A</th><th>B</th><th>Driven by</th><th>Rate or position</th><th>Trigger</th><th>Out</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="cm-scroll"><table class="cm-table"><thead><tr><th></th><th>Curiosity</th><th>A</th><th>B</th><th>Driven by</th><th>Rate or position</th><th>Spark</th><th>Out</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   function renderHead() {

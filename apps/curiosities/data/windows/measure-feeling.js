@@ -134,7 +134,7 @@
     sliders: [
       ["count", "Actions this scene", [0, 10, "", 1], "How many feeling-driven actions they make in the scene.", { from: 1, to: 1 }],
       ["reach", "How far the action reaches", [0, 10, "m"], "How many meters across the room the action carries, from their own lap to the far wall.", { from: 0.5, to: 0.5 }],
-      ["afterTrigger", "Seconds after the trigger", [0, 10, "s"], "How long after the thing that sets them off they act.", { from: 1, to: 1 }],
+      ["afterTrigger", "Seconds after the spark", [0, 10, "s"], "How long after the thing that sets them off they act.", { from: 1, to: 1 }],
     ],
     window: { groups: [{ label: "Measured", sliders: ["count", "reach", "afterTrigger"] }] },
   });

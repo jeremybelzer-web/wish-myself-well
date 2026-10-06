@@ -31,7 +31,7 @@
   /* ---------- who and what is near ---------- */
 
   c("whoIsNear", "Who is near them", "herd",
-    "Who is close to this character in this scene, and where they are. A relationship curiosity starts here: \"when an authority figure is near, trust drops\" is a proximity from this one.",
+    "Who is close to this character in this scene, and where they are. A relationship curiosity starts here: \"when an authority figure is near, trust drops\" is a spark from this one.",
     [
       ["who", "Who is near", PEOPLE, "The kind of person, or group, close to them right now.", U],
       ["where", "Where they are", PLACES, "The kind of place they are in, which changes how they feel too.", U],
