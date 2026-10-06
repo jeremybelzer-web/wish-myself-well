@@ -1,7 +1,7 @@
 /* Front and center, the lane under the Viewer's picture: node apps/curiosities/viewer/tests/focus-lane.js [--shots dir]
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
 
-   The lane is under the picture with its three rows (Leading, With it, Suite). In the sample, the attention
+   The lane is under the picture with its rows (Scene, Leading, With it, Suite). In the sample, the attention
    model puts something in front in every panel, one or two at a time; the phone coming into the scene sets off
    the cut to an insert of it (a proximity, marked ⚡ with what set it off); the line above names what is in
    front at the playhead and follows Play; clicking a block jumps there; an edit (hiding the phone) changes the
@@ -61,7 +61,7 @@ const ok = (cond, msg) => {
   });
   ok(box.below && box.aboveTransport, "it sits right under the picture, above Play");
   const rows = await page.$$eval(".cv-under .cf-rows > span", (s) => s.map((x) => x.textContent));
-  ok(rows.join() === "Leading,With it,Suite", "its rows: " + rows.join(", "));
+  ok(rows.join() === "Scene,Leading,With it,Suite", "its rows: " + rows.join(", "));
   const r = await page.evaluate(() => CurioFocusLane.read());
   ok(r.length === 13 && r.every((p) => p.lead), "every panel has a curiosity in front (" + r.map((p) => p.lead).join(" / ") + ")");
   ok(r.every((p) => [p.lead, p.second].filter(Boolean).length <= 2), "one or two at a time");

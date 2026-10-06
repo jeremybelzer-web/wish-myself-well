@@ -150,6 +150,24 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
 .cf-pick { margin: 0; font-size: 12px; font-weight: 600; color: #fff; line-height: 1.35; }
 .cf-pick:empty { display: none; }
 @media (max-width: 900px) { .cf-charts { grid-template-columns: 64px minmax(0, 1fr); } .cf-list { grid-column: 1 / -1; height: auto; max-height: 90px; } }
+.cf-zoom { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; font-size: 11px; color: #b5b5bd; }
+.cf-zseg { display: inline-flex; gap: 2px; }
+.cv-root .cf-zoom button { padding: 2px 8px; font-size: 11px; border-radius: 5px; background: #222226; color: #d6d6db; border: 1px solid #34343b; cursor: pointer; }
+.cv-root .cf-zoom button[aria-pressed="true"] { background: #fde68a; color: #2b2418; border-color: #fde68a; font-weight: 600; }
+.cf-zlab { display: inline-flex; align-items: center; gap: 3px; }
+.cv-root .cf-zlab button { min-width: 28px; min-height: 28px; padding: 2px 0; text-align: center; }
+.cf-zr { width: 120px; accent-color: #fde68a; }
+.cf-zwhat { flex: 1 1 160px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-under[data-zoom="picked"] .cf-zwhat { color: #fff; font-weight: 600; }
+.cv-root .cf-zoom .cf-zunpick { background: #fff; color: #111; border-color: #fff; }
+.cv-root .cf-zoom .cf-zunpick[hidden] { display: none; }
+.cf-ln-track { overflow: hidden; }
+.cf-ln-sep.cf-sc-sep { width: 2px; margin-left: -1px; opacity: 0.85; z-index: 1; }
+.cf-sc-track { height: 16px !important; }
+.cv-root .cf-scb { all: unset; box-sizing: border-box; position: absolute; top: 0; bottom: 0; padding: 0 5px; font: 600 10px/16px system-ui, sans-serif; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; border-right: 2px solid #141416; }
+.cf-row.cf-scene .cf-scb { line-height: 13px; font-size: 9.5px; }
+.cv-root .cf-scb:hover, .cv-root .cf-scb:focus-visible { filter: brightness(1.15); outline: 1px solid #fff; outline-offset: -1px; }
+.cf-pie.cf-across { box-shadow: 0 0 0 2px #fff; }
 .cf-rows { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); row-gap: 2px; align-items: center; }
 .cf-rows > span { font-size: 10px; color: #8b8b94; letter-spacing: 0.04em; }
 .cf-row { position: relative; height: 18px; background: #1d1d21; border-radius: 3px; overflow: hidden; }
@@ -695,7 +713,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const where = READ_FROM_PICTURE[id];
     const edit = !where && !sc.loose;
     const col = color || M().mark(n.family).color;
-    const X = (sec) => ((sec / total) * 1000).toFixed(1);
+    const X = (sec) => (fx(sec) * 1000).toFixed(1);
     const nodes = [];
     const dots = r.panels
       .map((p, i) => {
@@ -732,7 +750,12 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const svg = `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/>${hits.join("")}</svg>`;
     return { n, sc, where, edit, svg, dots };
   }
-  const sepsOf = (r) => r.panels.map((p) => `<i class="cf-ln-sep" style="left:${pct(p.at, r.total)}"></i>`).join("");
+  const sepsOf = (r) =>
+    r.panels.map((p) => `<i class="cf-ln-sep" style="left:${pct(p.at, r.total)}"></i>`).join("") +
+    scenesOf()
+      .filter((sc) => sc.n > 0)
+      .map((sc) => `<i class="cf-ln-sep cf-sc-sep" style="left:${pct(sc.from)};background:${sc.color}"></i>`)
+      .join("");
   const laneName = (id, n) => (TENSION.test(String(id)) && n.label !== "Tension" ? "Tension: " + n.label : n.label || id);
   /* the Viewer focus graph is one view of the automation lanes: the top curiosities on one track, nodes and lines */
   let picked = null; /* the lane picked from the pie or the list: drawn on top, the others dimmed */
@@ -764,6 +787,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
   function lanesHtml(r) {
     const total = r.total;
     const seps = sepsOf(r);
+    const L = scenesOf();
     const rows = laneIds(r).map((id) => {
       const { n, sc, where, edit, svg, dots } = laneParts(r, id);
       const tip = edit ? "Drag a dot up or down to change that panel" : where ? `Read from the picture: change it in ${where}` : "Set in the panels themselves";
@@ -779,13 +803,16 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       r.panels.forEach((p, i) => {
         const m = S().match(su, r.K[i]);
         const y = m ? m.share : 0;
-        const x0 = (p.at / total) * 1000;
-        const x1 = ((p.at + p.sec) / total) * 1000;
+        const x0 = fx(p.at) * 1000;
+        const x1 = fx(p.at + p.sec) * 1000;
         path += `${path ? "L" : "M"}${x0.toFixed(1)},${((1 - y) * 100).toFixed(1)} L${x1.toFixed(1)},${((1 - y) * 100).toFixed(1)} `;
       });
       rows.push(`<div class="cf-ln cf-ln-suite" data-ln-suite="${esc(sid)}"><span class="cf-ln-name" title="${esc("Suite: " + su.label + ". How much of it is on in each panel; it follows its curiosities.")}"><b>Suite: ${esc(su.label)}</b><small>how much of it is on</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div><i class="cf-ln-head"></i></div><span></span></div>`);
     });
-    return rows.join("") || `<p class="cf-lanes-hint">Nothing is set yet.</p>`;
+    if (!rows.length) return `<p class="cf-lanes-hint">Nothing is set yet.</p>`;
+    /* the scenes on top, in the storyboard's colors, so the lanes read scene by scene */
+    rows.unshift(`<div class="cf-ln cf-ln-scenes"><span class="cf-ln-name" title="Each scene in its storyboard color. Click one to show just that scene."><b>Scenes</b><small>${L.length} scene${L.length === 1 ? "" : "s"}</small></span><div class="cf-ln-track cf-sc-track">${sceneBlocks()}</div><span></span></div>`);
+    return rows.join("");
   }
   /* drag a dot: the panel's own value moves a step along the curiosity's scale */
   function laneDrag(e, dot) {
@@ -1328,6 +1355,152 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     });
   }
 
+  /* ---------- zoom: this scene, the whole film, or anything between (Jeremy 2026-10-06) ----------
+     "We should be able to zoom that out so we can see the entire film ... or zoom it in to see the current scene.
+     But it should also be adjustable at the top." This scene follows the scene the playhead is in; Whole film
+     shows everything; the slider (or − and +) sets how many seconds the lanes show, and the window turns the
+     page when the playhead runs off it. Panels picked in the storyboard (Shift+click, viewer/scenes.js) fill
+     the lanes and make the pie the attention across them. Kept per device in curio-focus-zoom-v1. */
+  const ZOOM_KEY = "curio-focus-zoom-v1";
+  const MIN_SPAN = 2;
+  let zoom = (() => {
+    try {
+      const z = JSON.parse(localStorage.getItem(ZOOM_KEY) || "null");
+      if (z && (z.mode === "scene" || z.mode === "film" || z.mode === "zoom")) return { mode: z.mode, span: +z.span || 0 };
+    } catch (e) {}
+    return { mode: "scene", span: 0 };
+  })();
+  let view = { from: 0, span: 1, mode: "", sig: "" };
+  const Sc = () => window.CurioScenes;
+  function scenesOf() {
+    if (Sc()) return Sc().list();
+    const r = cache;
+    return r ? [{ n: 0, name: "My film", color: "#22d3ee", first: 0, last: r.panels.length - 1, from: 0, to: r.total }] : [];
+  }
+  function pickedOf(r) {
+    const pk = Sc() && Sc().picked();
+    return pk && pk.last < r.panels.length ? pk : null;
+  }
+  /* the pie across picked panels: everyone's share averaged over those panels, a few moments each */
+  function sharesAcross(r, pk) {
+    const sum = {};
+    const info = {};
+    let n = 0;
+    pk.panels.forEach((i) => {
+      const p = r.panels[i];
+      if (!p) return;
+      [0.15, 0.5, 0.85].forEach((u) => {
+        sharesAt(r, p.at + p.sec * u).forEach((q) => {
+          sum[q.id] = (sum[q.id] || 0) + q.share;
+          info[q.id] = q;
+        });
+        n++;
+      });
+    });
+    return Object.keys(sum)
+      .map((id) => ({ id, label: info[id].label, family: info[id].family, share: sum[id] / Math.max(1, n) }))
+      .sort((a, b) => b.share - a.share);
+  }
+  function saveZoom() {
+    try {
+      localStorage.setItem(ZOOM_KEY, JSON.stringify(zoom));
+    } catch (e) {}
+  }
+  /* the window the lanes show now; true when it moved (the rows are laid out again) */
+  function updateView(r, t) {
+    const total = Math.max(0.001, r.total);
+    const pk = pickedOf(r);
+    let from = 0;
+    let span = total;
+    let mode = zoom.mode;
+    if (pk) {
+      mode = "picked";
+      from = pk.from;
+      span = Math.max(0.25, pk.to - pk.from);
+    } else if (zoom.mode === "scene") {
+      const sc = Sc() ? Sc().at(t) : null;
+      if (sc) {
+        from = sc.from;
+        span = Math.max(0.25, sc.to - sc.from);
+      }
+    } else if (zoom.mode === "zoom") {
+      span = Math.max(Math.min(MIN_SPAN, total), Math.min(total, zoom.span || total));
+      from = view.mode === "zoom" && Math.abs(view.span - span) < 1e-6 ? view.from : t - span / 2;
+      /* turn the page when the playhead runs off the window */
+      if (t < from - 1e-6 || t > from + span + 1e-6) from = t - span * 0.1;
+      from = Math.max(0, Math.min(total - span, from));
+    }
+    const sig = [mode, from.toFixed(4), span.toFixed(4), r.key.length, pk ? pk.panels.join(",") : ""].join("|");
+    if (sig === view.sig) return false;
+    view = { from, span, mode, sig };
+    return true;
+  }
+  const clock = (x) => {
+    x = Math.max(0, x);
+    const m = Math.floor(x / 60);
+    const s2 = x - m * 60;
+    return `${m}:${s2 < 10 ? "0" : ""}${(Math.round(s2 * 10) / 10).toString()}`;
+  };
+  /* slider 0 (whole film) to 100 (MIN_SPAN seconds), on a log scale so each step feels the same */
+  const spanToSlider = (span, total) => (total <= MIN_SPAN ? 0 : Math.round((100 * Math.log(total / Math.max(MIN_SPAN, Math.min(total, span)))) / Math.log(total / MIN_SPAN)));
+  const sliderToSpan = (v, total) => (total <= MIN_SPAN ? total : total * Math.pow(MIN_SPAN / total, Math.max(0, Math.min(100, v)) / 100));
+  function zoomBar(r) {
+    return `<div class="cf-zoom" role="toolbar" aria-label="How much of the film the lanes show">
+        <span class="cf-zseg"><button type="button" data-cf-zoom="scene" title="Show the scene the playhead is in; it follows the playhead into the next scene">This scene</button><button type="button" data-cf-zoom="film" title="Show every scene of the film at once">Whole film</button></span>
+        <label class="cf-zlab" title="Zoom in or out: from the whole film to a couple of seconds"><button type="button" data-cf-zoom="out" title="Zoom out" aria-label="Zoom out">−</button><input type="range" class="cf-zr" min="0" max="100" step="1" value="${spanToSlider(view.span, r.total)}" aria-label="Zoom"><button type="button" data-cf-zoom="in" title="Zoom in" aria-label="Zoom in">+</button></label>
+        <span class="cf-zwhat" aria-live="polite"></span>
+        <button type="button" class="cf-zunpick" data-cf-zoom="unpick" title="Back to one panel" hidden>✕ Unpick</button>
+      </div>`;
+  }
+  /* the words and buttons of the zoom bar follow the window */
+  function zoomState(r) {
+    const z = box && box.querySelector(".cf-zoom");
+    if (!z) return;
+    const pk = pickedOf(r);
+    z.querySelectorAll("[data-cf-zoom=scene],[data-cf-zoom=film]").forEach((b) => b.setAttribute("aria-pressed", String(!pk && zoom.mode === b.dataset.cfZoom)));
+    const rng = z.querySelector(".cf-zr");
+    if (rng && document.activeElement !== rng) rng.value = spanToSlider(view.span, r.total);
+    const un = z.querySelector(".cf-zunpick");
+    if (un) un.hidden = !pk;
+    const L = scenesOf();
+    const inView = L.filter((sc) => sc.to > view.from + 1e-6 && sc.from < view.from + view.span - 1e-6);
+    let what = `${clock(view.from)} to ${clock(view.from + view.span)}`;
+    if (pk) what = `Picked panels ${pk.first + 1} to ${pk.last + 1} · ${what} · the pie is the attention across them`;
+    else if (inView.length === 1) what += ` · ${Sc() ? Sc().label(inView[0]) : inView[0].name} (of ${L.length})`;
+    else if (inView.length > 1) what += ` · scenes ${inView[0].n + 1} to ${inView[inView.length - 1].n + 1} of ${L.length}`;
+    const w = z.querySelector(".cf-zwhat");
+    if (w && w.textContent !== what) w.textContent = what;
+    box.dataset.zoom = pk ? "picked" : view.mode;
+  }
+  function sceneBlocks() {
+    return scenesOf()
+      .map((sc) => `<button type="button" class="cf-scb" data-cf-at="${sc.from}" data-cf-scene="${sc.n}" style="left:${pct(sc.from)};width:${pw(sc.to - sc.from)};background:${sc.color}" title="${esc(`Scene ${sc.n + 1}: ${sc.name}. Click to show just this scene.`)}" aria-label="${esc(`Scene ${sc.n + 1}: ${sc.name}`)}">${esc(sc.name)}</button>`)
+      .join("");
+  }
+  /* the window moved: lay out the moments, the graph and the lanes again, keeping the zoom bar (and a slider
+     being dragged) and where the lanes are scrolled */
+  function relayout(r) {
+    if (!box) return;
+    const rows = box.querySelector(".cf-rows");
+    if (rows) rows.innerHTML = momentsHtml(r);
+    const g = box.querySelector(".cf-graph");
+    if (g) g.innerHTML = graphHtml(r);
+    const ln = box.querySelector(".cf-lanes");
+    if (ln) {
+      const top = ln.scrollTop;
+      ln.innerHTML = lanesHtml(r);
+      ln.scrollTop = top;
+    }
+    lastNow = "";
+  }
+  function setZoom(mode, span) {
+    zoom = { mode, span: span || zoom.span || 0 };
+    saveZoom();
+    if (Sc() && Sc().picked()) Sc().clear();
+    view.sig = "";
+    V().redraw();
+  }
+
   /* ---------- the tabs ---------- */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
@@ -1352,10 +1525,40 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
   /* ---------- drawing ---------- */
   let box = null;
   let lastNow = "";
-  const pct = (x, total) => ((x / Math.max(0.001, total)) * 100).toFixed(3) + "%";
+  /* every lane, row and graph is drawn through the zoom window (view): pct for a place, pw for a width */
+  const fx = (x) => (x - view.from) / Math.max(0.001, view.span);
+  const pct = (x) => (fx(x) * 100).toFixed(3) + "%";
+  const pw = (d) => ((d / Math.max(0.001, view.span)) * 100).toFixed(3) + "%";
   function block(from, to, total, label, family, title, row) {
     const mk = M().mark(family);
-    return `<button type="button" data-cf-at="${from}" style="left:${pct(from, total)};width:${pct(to - from, total)};background:${mk.color};color:${mk.ink}" title="${esc(title)}" aria-label="${esc(row + ": " + label + ", " + mk.label)}">${esc(label)}</button>`;
+    return `<button type="button" data-cf-at="${from}" style="left:${pct(from, total)};width:${pw(to - from)};background:${mk.color};color:${mk.ink}" title="${esc(title)}" aria-label="${esc(row + ": " + label + ", " + mk.label)}">${esc(label)}</button>`;
+  }
+  function momentsHtml(r) {
+    const total = r.total;
+    const lead = r.segs.map((s) => block(s.from, s.to, total, s.label, s.family, `${s.label} (${M().mark(s.family).label}) holds attention for ${s.dur} s. Click to go there.`, "Leading")).join("");
+    const second = r.panels
+      .filter((p) => p.second)
+      .map((p) => block(p.at, p.at + p.sec, total, p.second.label, p.second.family, `${p.second.label} (${M().mark(p.second.family).label}) also changes in panel ${p.i + 1}.`, "With it"))
+      .join("");
+    /* suites: neighbouring panels with the same suite are one block */
+    const runs = [];
+    r.panels.forEach((p) => {
+      const last = runs[runs.length - 1];
+      if (p.suite && last && last.id === p.suite.id && last.to === p.at) last.to = p.at + p.sec;
+      else if (p.suite) runs.push({ id: p.suite.id, label: p.suite.label, from: p.at, to: p.at + p.sec, share: p.suite.share });
+    });
+    const suite = runs
+      .map((s) => `<button type="button" data-cf-at="${s.from}" style="left:${pct(s.from, total)};width:${pw(s.to - s.from)};background:#6d28d9;color:#fff" title="${esc(`Suite: ${s.label}, ${Math.round(s.share * 100)}% of its lenses are on. Click to go there.`)}">${esc(s.label)}</button>`)
+      .join("");
+    const bolts = r.panels
+      .filter((p) => p.trigger)
+      .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by a spark: ${p.trigger.when}`)}">⚡</i>`)
+      .join("");
+    return `<span>Scene</span><div class="cf-row cf-thin cf-scene">${sceneBlocks()}</div>
+          <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
+          <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
+          <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
+          <i class="cf-head"></i>`;
   }
   function build() {
     const v = V();
@@ -1371,28 +1574,9 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     }
     box = el;
     style();
-    const total = r.total;
-    const lead = r.segs.map((s) => block(s.from, s.to, total, s.label, s.family, `${s.label} (${M().mark(s.family).label}) holds attention for ${s.dur} s. Click to go there.`, "Leading")).join("");
-    const second = r.panels
-      .filter((p) => p.second)
-      .map((p) => block(p.at, p.at + p.sec, total, p.second.label, p.second.family, `${p.second.label} (${M().mark(p.second.family).label}) also changes in panel ${p.i + 1}.`, "With it"))
-      .join("");
-    /* suites: neighbouring panels with the same suite are one block */
-    const runs = [];
-    r.panels.forEach((p) => {
-      const last = runs[runs.length - 1];
-      if (p.suite && last && last.id === p.suite.id && last.to === p.at) last.to = p.at + p.sec;
-      else if (p.suite) runs.push({ id: p.suite.id, label: p.suite.label, from: p.at, to: p.at + p.sec, share: p.suite.share });
-    });
-    const suite = runs
-      .map((s) => `<button type="button" data-cf-at="${s.from}" style="left:${pct(s.from, total)};width:${pct(s.to - s.from, total)};background:#6d28d9;color:#fff" title="${esc(`Suite: ${s.label}, ${Math.round(s.share * 100)}% of its lenses are on. Click to go there.`)}">${esc(s.label)}</button>`)
-      .join("");
-    const bolts = r.panels
-      .filter((p) => p.trigger)
-      .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by a spark: ${p.trigger.when}`)}">⚡</i>`)
-      .join("");
     const tab = box.dataset.tab || savedTab();
     el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><nav class="cf-tabs" role="tablist"><button type="button" role="tab" data-cf-tab="focus" title="The things holding the audience's attention now, the pie, and the graph through the scene">Viewer focus</button><button type="button" role="tab" data-cf-tab="moments" title="Who leads, moment by moment, as colored blocks. Pick one to read it in full.">Moments</button><button type="button" role="tab" data-cf-tab="lanes" title="A lane for every curiosity and suite in your film, panel by panel. Drag a dot up or down to change it.">Automation lanes</button></nav><strong class="cf-force" aria-live="polite" title="The force driving the scene and the plot forward right now"></strong></div>
+      ${zoomBar(r)}
       <div class="cf-pane cf-pane-focus">
         <p class="cf-focus" aria-live="polite" title="What holds the audience's attention in this panel: 2 things, or 3 in a busy scene"></p>
         <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie), through the scene (the graph), and every one on now (the list).">
@@ -1402,12 +1586,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
         </div>
       </div>
       <div class="cf-pane cf-pane-moments">
-        <div class="cf-rows">
-          <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
-          <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
-          <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
-          <i class="cf-head"></i>
-        </div>
+        <div class="cf-rows">${momentsHtml(r)}</div>
         <div class="cf-mag" title="The block you point at or pick, in full; otherwise what is in front now"><p class="cf-pick" aria-live="polite"></p><span class="cf-now" aria-live="polite"></span></div>
       </div>
       <div class="cf-pane cf-pane-lanes">
@@ -1433,10 +1612,15 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const rows = box.querySelector(".cf-rows");
     if (head && rows) {
       const lane = box.querySelector(".cf-lead");
-      const left = lane.offsetLeft + (lane.offsetWidth * Math.max(0, Math.min(total, t))) / Math.max(0.001, total);
-      head.style.left = left + "px";
+      const u = fx(Math.max(0, Math.min(total, t)));
+      head.style.left = lane.offsetLeft + lane.offsetWidth * u + "px";
+      head.style.display = u < -1e-6 || u > 1 + 1e-6 ? "none" : "";
     }
-    box.querySelectorAll(".cf-ln-head").forEach((h) => (h.style.left = ((Math.max(0, Math.min(total, t)) / Math.max(0.001, total)) * 100).toFixed(3) + "%"));
+    const tu = fx(Math.max(0, Math.min(total, t)));
+    box.querySelectorAll(".cf-ln-head").forEach((h) => {
+      h.style.left = (tu * 100).toFixed(3) + "%";
+      h.style.display = tu < -1e-6 || tu > 1 + 1e-6 ? "none" : "";
+    });
     const p = r.panels[i];
     if (!p) return;
     const seg = r.segs.find((s) => t >= s.from - 1e-6 && t < s.to) || null;
@@ -1472,18 +1656,21 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (!d.offsetParent) return;
       const q = valueAt(r, d.dataset.play, t);
       if (!q) return void (d.style.display = "none");
-      d.style.display = "";
-      d.style.left = ((Math.max(0, Math.min(r.total, t)) / Math.max(0.001, r.total)) * 100).toFixed(3) + "%";
+      const u = fx(Math.max(0, Math.min(r.total, t)));
+      d.style.display = u < -1e-6 || u > 1 + 1e-6 ? "none" : "";
+      d.style.left = (u * 100).toFixed(3) + "%";
       d.style.top = ((1 - q.y) * 100).toFixed(2) + "%";
       d.title = "Now: " + (typeof q.value === "number" ? +q.value.toFixed(2) : q.value);
     });
-    const sh = sharesAt(r, t);
+    const pk = pickedOf(r);
+    const sh = pk ? sharesAcross(r, pk) : sharesAt(r, t);
     const cols = colorsFor([...new Set([...r.top, ...sh.map((q) => q.id)])]);
     const pie = box.querySelector(".cf-pie");
+    if (pie) pie.classList.toggle("cf-across", !!pk);
     if (pie && pie.offsetParent) drawPie(pie, sh, cols);
     const list = box.querySelector(".cf-list");
     if (list) {
-      const sig = sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
+      const sig = (pk ? pk.first + "-" + pk.last + ":" : "") + sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
       if (list.dataset.sig !== sig) {
         list.dataset.sig = sig;
         list.innerHTML = sh.map((q) => `<li data-g="${esc(q.id)}" class="${q.id === picked ? "on" : ""}" title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention. Click to pick its lane in the graph."><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
@@ -1500,11 +1687,14 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     v.onDraw((t, i, total) => {
       const el = v.under && v.under();
       if (!el) return;
+      const r = read();
+      const moved = r ? updateView(r, t) : false;
       if (el !== box || !el.firstChild || el.hidden) {
         build();
         if (box) box.dataset.key = (read() || {}).key || "";
-      }
+      } else if (moved && r && r.key === box.dataset.key) relayout(r);
       now(t, i, total);
+      if (r) zoomState(r);
       charts(t);
       cover();
     });
@@ -1514,6 +1704,19 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
         showName(b);
         V().seek(+b.dataset.cfAt);
       }
+      const z = e.target.closest && e.target.closest(".cv-under [data-cf-zoom]");
+      if (z) {
+        const r = read();
+        const k = z.dataset.cfZoom;
+        if (k === "unpick") return Sc() && Sc().clear();
+        if (k === "scene" || k === "film") return setZoom(k);
+        if (r && (k === "in" || k === "out")) {
+          const v0 = spanToSlider(view.span, r.total);
+          return setZoom("zoom", sliderToSpan(v0 + (k === "in" ? 15 : -15), r.total));
+        }
+      }
+      const sb = e.target.closest && e.target.closest(".cv-under [data-cf-scene]");
+      if (sb && !pickedOf(read() || { panels: [] })) setZoom("scene");
       const c = e.target.closest && e.target.closest(".cv-under [data-cf-tab]");
       if (c && box) {
         setTab(c.dataset.cfTab);
@@ -1582,6 +1785,11 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (g) gripDrag(e, g);
     });
     window.addEventListener("resize", () => applyOut());
+    document.addEventListener("input", (e) => {
+      const rng = e.target.closest && e.target.closest(".cv-under .cf-zr");
+      const r = rng && read();
+      if (r) setZoom(+rng.value <= 0 ? "film" : "zoom", sliderToSpan(+rng.value, r.total));
+    });
     document.addEventListener("dblclick", (e) => {
       const g = e.target.closest && e.target.closest(".cv-under [data-cf-grip]");
       if (!g) return;

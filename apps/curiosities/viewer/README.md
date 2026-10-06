@@ -293,3 +293,13 @@ Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-s
 ### The big Viewer (`viewer/big.js`, `window.CurioBigView`)
 
 Jeremy, 2026-10-06: the screen felt crammed. Now the picture gets the room: In the scene and Details leave the sides for a slim rail on the left (In the scene, Move it, Camera & lens, Words and every tab another part adds). A rail button opens that panel as one big window with tabs over the right half, so the picture stays in view; ✕ or Esc closes it. Front and center runs from the rail to the right edge, the Storyboard across the bottom, and a second window is as big as the first. "Side panels" at the bottom of the rail puts the three columns back (`curio-viewer-big-v1`, per device). `CurioBigView.show("things" | tab id | "")` opens a panel (the App Walkthrough uses it). Browser tests start with the side panels unless that key is "1". Test: `viewer/tests/big.js`.
+
+## Scenes, picking storyboards and zoom (viewer/scenes.js, Jeremy 2026-10-06)
+
+A panel with `panel.scene` (a name) starts a new scene; the panels after it belong to it. The storyboard's top row
+has ✂ New scene here, Join the scene before and Rename scene (one undo step each). Each scene's storyboards get
+their own color, and the scene's name on its first panel. Shift+click a storyboard picks every panel up to it,
+Ctrl+click (⌘+click) adds or takes out one; Front and center then shows just those panels and its pie is the
+attention across them. At the top of Front and center: This scene (follows the playhead), Whole film, and a zoom
+slider with − and + (kept per device in `curio-focus-zoom-v1`). Moving from one panel to the next makes no sound
+any more. API `window.CurioScenes`. Test: `node viewer/tests/scenes.js`.
