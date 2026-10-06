@@ -41,6 +41,8 @@ server.listen(0, "127.0.0.1", async () => {
   const main = await box(".cv-root .cv-main");
   const player = await box(".cv-root .cv-player");
   ok(player.w > main.w - 120, `the picture's column takes the whole width but the rail (${Math.round(player.w)} of ${Math.round(main.w)})`);
+  const lane = await box(".cv-under");
+  ok(lane && lane.r <= main.r + 1 && lane.r > main.r - 30 && lane.l < player.l + 20, `Front and center runs from the rail to the right edge, inside the screen (${lane && Math.round(lane.l)} to ${lane && Math.round(lane.r)} of ${Math.round(main.r)})`);
   ok(!(await page.isVisible(".cv-things")) && !(await page.isVisible(".cv-details")), "In the scene and Details are off the screen");
   const labels = await page.$$eval(".cvb-rail button", (bs) => bs.map((b) => b.textContent.trim()));
   const has = (x) => labels.some((l) => l.endsWith(x));

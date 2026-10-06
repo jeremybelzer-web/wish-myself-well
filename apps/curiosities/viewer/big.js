@@ -8,7 +8,8 @@
    So, while it is on (the default): the left and right panels leave the screen. A slim rail on the left lists them
    (In the scene, Move it, Camera & lens, Words and any tab another part adds); a button opens that panel as one big
    window with tabs on the right half of the screen, so the picture stays in view while you change it. ✕ or Esc
-   closes it. The picture, Front and center (already running to the right edge) and the Storyboard get the room.
+   closes it. The picture, Front and center (with its tabs, already running to the right edge) and the Storyboard get the
+   room; the storyboard cards are a little smaller (Jeremy 05:43Z).
    "Side panels" in the rail's last button puts the old three-column Viewer back (kept per device). Browser tests
    (navigator.webdriver) start with the side panels unless curio-viewer-big-v1 is "1".
 
@@ -36,6 +37,8 @@
 .cv-root .cvb-rail button.on { color: var(--c-accent, #22d3ee); box-shadow: inset 0 0 0 1px var(--c-accent, #22d3ee); }
 .cv-root .cvb-rail .cvb-old { margin-top: auto; font-size: 10.5px; opacity: 0.75; }
 .cv-root.cv-big .cv-main > .cv-player { grid-column: 2; }
+.cv-root.cv-big .cv-card { flex-basis: 140px; font-size: 11px; }
+.cv-root.cv-big .cv-cards { gap: 8px; }
 .cvb-win { display: none; }
 .cv-root.cv-big .cvb-win:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr); position: absolute; z-index: 20; top: 52px; right: 10px; bottom: 10px; width: min(760px, 52vw); background: var(--c-panel, #1c1c1f); border: 1px solid var(--c-accent, #22d3ee); border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden; }
 .cvb-win-h { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--c-line, #2e2e33); }
@@ -118,7 +121,11 @@
   }
   function redraw() {
     const v = window.CurioViewer;
-    if (v && v.redraw) requestAnimationFrame(() => v.redraw());
+    requestAnimationFrame(() => {
+      /* Front and center measures the room beside the picture on a resize, so it stretches to the new edges. */
+      window.dispatchEvent(new Event("resize"));
+      if (v && v.redraw) v.redraw();
+    });
   }
   function show(id) {
     const root = rootEl();
