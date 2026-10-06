@@ -23378,6 +23378,64 @@
    "then": "the way they cope with shame changes"
   },
   {
+   "id": "p:through-to-freedom",
+   "proximity": "through-to-freedom",
+   "label": "When they feel a hard feeling all the way through, freedom is on the other side",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "healingArc",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "free on the other side",
+   "when": "they feel a hard feeling all the way through",
+   "then": "freedom is on the other side"
+  },
+  {
+   "id": "p:through-to-peace",
+   "proximity": "through-to-peace",
+   "label": "When they feel a hard feeling all the way through, the storm inside settles",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they feel a hard feeling all the way through",
+   "then": "the storm inside settles"
+  },
+  {
+   "id": "p:through-to-awareness",
+   "proximity": "through-to-awareness",
+   "label": "When they feel a hard feeling all the way through, awareness deepens",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they feel a hard feeling all the way through",
+   "then": "awareness deepens"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -29017,12 +29075,40 @@
    ]
   },
   {
+   "id": "ps:the-other-side",
+   "label": "The other side",
+   "plain": "The facts of healing, always on: feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others. Run from it and the cost climbs.",
+   "proximities": [
+    "through-to-peace",
+    "through-to-awareness",
+    "through-to-freedom",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healed-becomes-healer",
+    "run-bad-choice"
+   ],
+   "links": [
+    "p:through-to-peace",
+    "p:through-to-awareness",
+    "p:through-to-freedom",
+    "p:facing-welcome",
+    "p:welcome-awake",
+    "p:awake-give",
+    "p:healed-becomes-healer",
+    "p:run-bad-choice"
+   ]
+  },
+  {
    "id": "ps:the-healing-road",
    "label": "The healing road",
    "plain": "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
    "proximities": [
     "healer-near-stay",
     "picture-both-calmer",
+    "through-to-peace",
+    "through-to-freedom",
+    "through-to-awareness",
     "facing-welcome",
     "welcome-awake",
     "awake-give",
@@ -29032,6 +29118,9 @@
    "links": [
     "p:healer-near-stay",
     "p:picture-both-calmer",
+    "p:through-to-peace",
+    "p:through-to-freedom",
+    "p:through-to-awareness",
     "p:facing-welcome",
     "p:welcome-awake",
     "p:awake-give",

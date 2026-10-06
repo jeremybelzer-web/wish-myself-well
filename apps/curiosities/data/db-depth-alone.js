@@ -260,35 +260,49 @@
     "When the inner hurdle shrinks, how well they're doing rises within 3 beats.",
     { curiosity: "innerHurdle", change: "drops" }, { curiosity: "thriving", change: "rises" }, 3);
 
-  /* ---------- healing proximities ---------- */
+  /* ---------- healing proximities ----------
+     Jeremy, 2026-10-05: "that can be hardwired into the app. That those are facts." The healing truths are facts
+     (F): they always hold, at 100%, and CuriosityDB.facts() lists them. Freedom waits on the other side of a hard
+     feeling; running from it costs; welcoming it deepens awareness; awareness grows the capacity to give. */
+  const F = (extra) => Object.assign({ fact: true, tags: ["fact"] }, extra || {});
 
   P("healer-near-stay", "When a healer is near, they stay with the feeling", "arc",
     "When a healer comes into the scene, staying with the feeling instead of running rises within 2 beats.",
     { curiosity: "healerType", slider: "skill", change: "rises" }, { curiosity: "facingFeelings", change: "rises" }, 2);
   P("run-bad-choice", "When they run from a feeling, the cost climbs", "arc",
     "When they run from a feeling, what the running costs rises within 2 beats.",
-    { curiosity: "facingFeelings", is: "runs at once" }, { curiosity: "facingFeelings", slider: "cost", change: "rises" }, 2, { also: ["plot"] });
+    { curiosity: "facingFeelings", is: "runs at once" }, { curiosity: "facingFeelings", slider: "cost", change: "rises" }, 2, F({ also: ["plot"] }));
   P("picture-both-calmer", "When they picture both outcomes, the fear loosens", "arc",
     "When they picture both the best and the worst, the chaos inside drops within 2 beats.",
     { curiosity: "picturingOutcomes", is: "both" }, { curiosity: "innerWeather", change: "drops" }, 2);
   P("facing-welcome", "When they stay with the feeling, they start to welcome it", "arc",
     "When they stay with a feeling longer, how they greet hard feelings warms within 3 beats.",
-    { curiosity: "facingFeelings", change: "rises" }, { curiosity: "welcomingFeelings", change: "rises" }, 3);
+    { curiosity: "facingFeelings", change: "rises" }, { curiosity: "welcomingFeelings", change: "rises" }, 3, F());
   P("welcome-awake", "When they welcome hard feelings, awareness deepens", "arc",
     "When they welcome hard feelings more, their awareness deepens within 3 beats.",
-    { curiosity: "welcomingFeelings", change: "rises" }, { curiosity: "awakening", change: "rises" }, 3);
+    { curiosity: "welcomingFeelings", change: "rises" }, { curiosity: "awakening", change: "rises" }, 3, F());
   P("awake-give", "When awareness deepens, they give more", "arc",
     "When their awareness deepens, their capacity to give to others rises within 2 beats.",
-    { curiosity: "awakening", change: "rises" }, { curiosity: "awakening", slider: "give", change: "rises" }, 2);
+    { curiosity: "awakening", change: "rises" }, { curiosity: "awakening", slider: "give", change: "rises" }, 2, F());
   P("healing-kind-voice", "When the healing moves forward, the inner voice softens", "arc",
     "When the healing arc moves forward, the way they talk to themselves turns kinder within 3 beats.",
     { curiosity: "healingArc", change: "rises" }, { curiosity: "selfTalk", change: "drops" }, 3, { also: ["mindset"] });
   P("healed-becomes-healer", "When they're free, they become the healer", "arc",
     "When they reach the end of the healing arc, they start helping others within 4 beats.",
-    { curiosity: "healingArc", is: "free on the other side" }, { curiosity: "healingArc", slider: "shared", change: "rises" }, 4);
+    { curiosity: "healingArc", is: "free on the other side" }, { curiosity: "healingArc", slider: "shared", change: "rises" }, 4, F());
   P("facing-shame-cope", "When they face the feeling, the way they cope with shame changes", "arc",
     "When they stay with a feeling, coping with shame moves toward facing it within 3 beats.",
-    { curiosity: "facingFeelings", is: "stays and feels it all" }, { curiosity: "copingStyle", is: "face it" }, 3);
+    { curiosity: "facingFeelings", is: "stays and feels it all" }, { curiosity: "copingStyle", is: "face it" }, 3, F());
+
+  P("through-to-freedom", "When they feel a hard feeling all the way through, freedom is on the other side", "arc",
+    "A fact of the app: when they stay with a hard feeling until they're through it, the healing arc reaches free on the other side within 3 beats.",
+    { curiosity: "facingFeelings", slider: "through", change: "rises" }, { curiosity: "healingArc", is: "free on the other side" }, 3, F());
+  P("through-to-peace", "When they feel a hard feeling all the way through, the storm inside settles", "arc",
+    "A fact of the app: when they feel a hard feeling through, the chaos inside drops within 2 beats.",
+    { curiosity: "facingFeelings", slider: "through", change: "rises" }, { curiosity: "innerWeather", change: "drops" }, 2, F({ also: ["mindset"] }));
+  P("through-to-awareness", "When they feel a hard feeling all the way through, awareness deepens", "arc",
+    "A fact of the app: each hard feeling felt all the way through deepens their awareness within 3 beats.",
+    { curiosity: "facingFeelings", slider: "through", change: "rises" }, { curiosity: "awakening", change: "rises" }, 3, F());
 
   /* ---------- proximity suites ---------- */
 
@@ -298,7 +312,10 @@
   PS("finding-calm", "Finding calm", "mindset",
     "They laugh at the slip, the soothing works, the storm settles, the inner hurdle shrinks, and life climbs.",
     ["laugh-settles", "soothe-calms", "hurdle-cleared-thrive"]);
+  PS("the-other-side", "The other side", "arc",
+    "The facts of healing, always on: feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others. Run from it and the cost climbs.",
+    ["through-to-peace", "through-to-awareness", "through-to-freedom", "facing-welcome", "welcome-awake", "awake-give", "healed-becomes-healer", "run-bad-choice"]);
   PS("the-healing-road", "The healing road", "arc",
     "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
-    ["healer-near-stay", "picture-both-calmer", "facing-welcome", "welcome-awake", "awake-give", "healing-kind-voice", "healed-becomes-healer"]);
+    ["healer-near-stay", "picture-both-calmer", "through-to-peace", "through-to-freedom", "through-to-awareness", "facing-welcome", "welcome-awake", "awake-give", "healing-kind-voice", "healed-becomes-healer"]);
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));
