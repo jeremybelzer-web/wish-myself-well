@@ -37,6 +37,7 @@
   "db-depth-telling.js",
   "db-depth-belonging.js",
   "db-depth-relations.js",
+  "db-depth-alone.js",
   "db-styles.js",
   "db-styles-comedy.js",
   "db-plain.js",

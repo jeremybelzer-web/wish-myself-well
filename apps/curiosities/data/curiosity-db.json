@@ -112886,6 +112886,2032 @@
     "cue": "plot",
     "tryThis": "Let her finish the course just as the AI tool arrives that does half her job, and watch her decide what to do."
    }
+  },
+  {
+   "id": "innerWeather",
+   "level": "curiosity",
+   "label": "Peace or chaos inside",
+   "plain": "What it is like inside this character when nobody is watching: calm and settled, or a storm of racing thoughts. It colors everything else they do alone.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "chaos",
+   "sliders": [
+    {
+     "id": "chaos",
+     "label": "Peace or chaos",
+     "plain": "0 deep peace inside; 100 a storm of racing thoughts and feelings.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "usual",
+     "label": "Their usual weather",
+     "plain": "Where they usually sit when nothing special is happening.",
+     "scale": [
+      "peaceful",
+      "mostly calm",
+      "changeable",
+      "restless",
+      "chaotic"
+     ],
+     "from": "peaceful",
+     "to": "chaotic",
+     "curve": "linear"
+    },
+    {
+     "id": "mood",
+     "label": "The main feeling inside",
+     "plain": "The feeling that fills them right now.",
+     "scale": [
+      "calm",
+      "worry",
+      "sadness",
+      "anger",
+      "shame",
+      "excitement",
+      "numbness"
+     ],
+     "from": "calm",
+     "to": "numbness",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "thoughts",
+     "label": "How fast the thoughts run",
+     "plain": "How fast their mind is going.",
+     "scale": [
+      "still",
+      "slow",
+      "busy",
+      "racing"
+     ],
+     "from": "still",
+     "to": "racing",
+     "curve": "linear"
+    },
+    {
+     "id": "body",
+     "label": "Where it sits in the body",
+     "plain": "Where they feel it physically.",
+     "scale": [
+      "nowhere",
+      "chest",
+      "stomach",
+      "throat",
+      "jaw and shoulders",
+      "everywhere"
+     ],
+     "from": "nowhere",
+     "to": "everywhere",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shows",
+     "label": "Does it show outside",
+     "plain": "Whether anyone looking could tell.",
+     "scale": [
+      "hidden completely",
+      "a little",
+      "plainly"
+     ],
+     "from": "hidden completely",
+     "to": "plainly",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A character at peace inside meets the same problem very differently from one in chaos.",
+    "theme": "Shows that the hardest weather is the kind inside.",
+    "pull": "We wonder whether the storm will pass before the big moment.",
+    "cue": "thought",
+    "tryThis": "Let her sit perfectly still on the edge of the bed while the sound of the room gets louder and louder in her head."
+   }
+  },
+  {
+   "id": "selfTalk",
+   "level": "curiosity",
+   "label": "How they talk to themselves",
+   "plain": "The voice inside when they're alone: kind and encouraging, plain and practical, or harsh and cruel. Some coach themselves through; some beat themselves up.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "tone",
+   "sliders": [
+    {
+     "id": "tone",
+     "label": "Kind or cruel",
+     "plain": "How the inner voice speaks to them.",
+     "scale": [
+      "kind",
+      "encouraging",
+      "plain",
+      "critical",
+      "harsh",
+      "cruel"
+     ],
+     "from": "kind",
+     "to": "cruel",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "How much they talk to themselves",
+     "plain": "0 a quiet mind; 5 the voice never stops.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "sounds",
+     "label": "Whose voice it sounds like",
+     "plain": "Who the inner voice reminds them of.",
+     "scale": [
+      "their own",
+      "a parent",
+      "a teacher",
+      "a coach",
+      "an ex",
+      "a friend",
+      "a higher power"
+     ],
+     "from": "their own",
+     "to": "a higher power",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "says",
+     "label": "What it mostly says",
+     "plain": "The line it repeats most.",
+     "scale": [
+      "you can do this",
+      "it's fine",
+      "you'll mess this up",
+      "you always fail",
+      "who do you think you are",
+      "breathe"
+     ],
+     "from": "you can do this",
+     "to": "breathe",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "believe",
+     "label": "Do they believe it",
+     "plain": "How much the voice decides what they do.",
+     "scale": [
+      "not at all",
+      "half",
+      "completely"
+     ],
+     "from": "not at all",
+     "to": "completely",
+     "curve": "linear"
+    },
+    {
+     "id": "argue",
+     "label": "Do they argue back",
+     "plain": "Whether another part of them answers the voice.",
+     "scale": [
+      "never",
+      "sometimes",
+      "always"
+     ],
+     "from": "never",
+     "to": "always",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "What the inner voice says before the big moment decides how they walk into it.",
+    "theme": "Shows the war, or the friendship, inside a person.",
+    "pull": "We want them to stop listening to the cruel voice.",
+    "cue": "thought",
+    "tryThis": "Before the interview, let him whisper \"you'll blow this\" into the bathroom mirror, then straighten his tie anyway."
+   }
+  },
+  {
+   "id": "selfSoothe",
+   "level": "curiosity",
+   "label": "How they soothe themselves",
+   "plain": "What the character does to calm themselves down when they're alone and upset: breathing, music, a walk, a bath, prayer, a joke, or something that only numbs it.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "how",
+   "sliders": [
+    {
+     "id": "how",
+     "label": "How they calm down",
+     "plain": "Their way of soothing themselves.",
+     "scale": [
+      "breathing",
+      "music",
+      "a walk",
+      "a bath or shower",
+      "prayer or meditation",
+      "writing it down",
+      "talking to a pet",
+      "a joke",
+      "food",
+      "a screen",
+      "a drink"
+     ],
+     "from": "breathing",
+     "to": "a drink",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "works",
+     "label": "How well it works",
+     "plain": "0 nothing helps; 100 they settle completely.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "healthy",
+     "label": "Heals or just numbs",
+     "plain": "Whether it helps them through the feeling or only hides it.",
+     "scale": [
+      "numbs it",
+      "a bit of both",
+      "truly soothes"
+     ],
+     "from": "numbs it",
+     "to": "truly soothes",
+     "curve": "linear"
+    },
+    {
+     "id": "fast",
+     "label": "How fast they settle",
+     "plain": "How long it takes them to come back to calm.",
+     "scale": [
+      "never",
+      "slowly",
+      "after a while",
+      "quickly"
+     ],
+     "from": "never",
+     "to": "quickly",
+     "curve": "linear"
+    },
+    {
+     "id": "ritual",
+     "label": "A ritual of their own",
+     "plain": "Whether they do it the same way every time.",
+     "scale": [
+      "none",
+      "a habit",
+      "a fixed ritual"
+     ],
+     "from": "none",
+     "to": "a fixed ritual",
+     "curve": "linear"
+    },
+    {
+     "id": "learned",
+     "label": "Where they learned it",
+     "plain": "Who showed them how.",
+     "scale": [
+      "nobody taught them",
+      "a parent",
+      "a friend",
+      "a healer",
+      "on their own"
+     ],
+     "from": "nobody taught them",
+     "to": "on their own",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "How a character calms down alone tells us how they'll hold up when it really counts.",
+    "theme": "Shows that people have to learn to be their own comfort.",
+    "pull": "We watch to see if they can find their way back to calm.",
+    "cue": "movement",
+    "tryThis": "When the call ends badly, let him put the kettle on, fold the tea towel twice, and breathe out slowly at the window."
+   }
+  },
+  {
+   "id": "laughOrBeat",
+   "level": "curiosity",
+   "label": "Laugh it off or beat themselves up",
+   "plain": "When they make a mistake alone, do they laugh at themselves and move on, or turn on themselves? The same slip can be a comedy beat or a wound.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "answer",
+   "sliders": [
+    {
+     "id": "answer",
+     "label": "Laugh or beat themselves up",
+     "plain": "What they do right after their own mistake.",
+     "scale": [
+      "laugh it off",
+      "shrug",
+      "sigh",
+      "scold themselves",
+      "beat themselves up"
+     ],
+     "from": "laugh it off",
+     "to": "beat themselves up",
+     "curve": "linear"
+    },
+    {
+     "id": "harsh",
+     "label": "How hard on themselves",
+     "plain": "0 gentle; 5 merciless.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "long",
+     "label": "How long it lasts",
+     "plain": "How long they carry the mistake.",
+     "scale": [
+      "a second",
+      "a while",
+      "all day",
+      "for years"
+     ],
+     "from": "a second",
+     "to": "for years",
+     "curve": "linear"
+    },
+    {
+     "id": "out",
+     "label": "Does it come out loud",
+     "plain": "Whether we hear it.",
+     "scale": [
+      "silent",
+      "a mutter",
+      "out loud"
+     ],
+     "from": "silent",
+     "to": "out loud",
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Which mistakes hurt most",
+     "plain": "The kind of mistake that gets to them.",
+     "scale": [
+      "small slips",
+      "social mistakes",
+      "work mistakes",
+      "letting someone down",
+      "their body or looks"
+     ],
+     "from": "small slips",
+     "to": "their body or looks",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "growing",
+     "label": "Is it changing",
+     "plain": "Whether they are learning to go easier on themselves.",
+     "scale": [
+      "getting harsher",
+      "the same",
+      "getting gentler",
+      "laughing more"
+     ],
+     "from": "getting harsher",
+     "to": "laughing more",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A character who can laugh at their own slip can try again; one who beats themselves up may quit.",
+    "theme": "Shows how gentleness with yourself makes room for courage.",
+    "pull": "We hope they'll laugh this time.",
+    "cue": "visual",
+    "tryThis": "Let her drop the eggs, stare at them, then crack up laughing alone in the kitchen."
+   }
+  },
+  {
+   "id": "aloneComfort",
+   "level": "curiosity",
+   "label": "Comfortable being alone",
+   "plain": "How the character feels when the room is empty: at ease in their own company, restless, lonely, or scared of what they'll feel. Some fill every silence; some love it.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "comfort",
+   "sliders": [
+    {
+     "id": "comfort",
+     "label": "At ease alone",
+     "plain": "0 can't bear being alone; 100 loves their own company.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "does",
+     "label": "What they do alone",
+     "plain": "How they spend time by themselves.",
+     "scale": [
+      "nothing, just sits",
+      "keeps busy",
+      "fills the silence with noise",
+      "makes something",
+      "calls someone",
+      "reaches for relief"
+     ],
+     "from": "nothing, just sits",
+     "to": "reaches for relief",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "silence",
+     "label": "With silence",
+     "plain": "What they do with quiet.",
+     "scale": [
+      "fills it at once",
+      "puts up with it",
+      "enjoys it"
+     ],
+     "from": "fills it at once",
+     "to": "enjoys it",
+     "curve": "linear"
+    },
+    {
+     "id": "mirror",
+     "label": "Facing themselves",
+     "plain": "Whether they can look at who they are.",
+     "scale": [
+      "avoids the mirror",
+      "glances",
+      "looks themselves in the eye"
+     ],
+     "from": "avoids the mirror",
+     "to": "looks themselves in the eye",
+     "curve": "linear"
+    },
+    {
+     "id": "how-often",
+     "label": "How often they're alone",
+     "plain": "How much of their life they spend alone.",
+     "scale": [
+      "almost never",
+      "sometimes",
+      "often",
+      "almost always"
+     ],
+     "from": "almost never",
+     "to": "almost always",
+     "curve": "linear"
+    },
+    {
+     "id": "chose",
+     "label": "Chosen or not",
+     "plain": "Whether being alone is something they picked.",
+     "scale": [
+      "forced on them",
+      "half chosen",
+      "chosen"
+     ],
+     "from": "forced on them",
+     "to": "chosen",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Who a character is alone is the truth the other scenes hide.",
+    "theme": "Shows the relationship everyone has but nobody sees: the one with themselves.",
+    "pull": "We see who they are when the door closes.",
+    "cue": "visual",
+    "tryThis": "Hold on him alone in the apartment for a full minute after the guests leave, before he turns the TV on."
+   }
+  },
+  {
+   "id": "innerHurdle",
+   "level": "curiosity",
+   "label": "The hurdle inside them",
+   "plain": "Every goal has two hurdles: the situation, and what's inside the character. This is the inside one: how much their own chaos, fear or habits get in the way of what they're trying to do.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "size",
+   "sliders": [
+    {
+     "id": "size",
+     "label": "How big the inner hurdle is",
+     "plain": "0 nothing inside stops them; 5 they are their own biggest obstacle.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "outer",
+     "label": "How big the outer hurdle is",
+     "plain": "How hard the situation itself is.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What gets in the way",
+     "plain": "The thing inside that trips them.",
+     "scale": [
+      "fear",
+      "doubt",
+      "shame",
+      "anger",
+      "old habits",
+      "racing thoughts",
+      "giving up too soon"
+     ],
+     "from": "fear",
+     "to": "giving up too soon",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "aware",
+     "label": "Do they see it",
+     "plain": "Whether they know they're in their own way.",
+     "scale": [
+      "blind to it",
+      "half see it",
+      "know it well"
+     ],
+     "from": "blind to it",
+     "to": "know it well",
+     "curve": "linear"
+    },
+    {
+     "id": "over",
+     "label": "Getting over it",
+     "plain": "How far they are toward clearing it.",
+     "scale": [
+      "not trying",
+      "trying",
+      "halfway",
+      "over it"
+     ],
+     "from": "not trying",
+     "to": "over it",
+     "curve": "linear"
+    },
+    {
+     "id": "decides",
+     "label": "Which hurdle decides it",
+     "plain": "Whether success depends more on the world or on what's inside them.",
+     "scale": [
+      "the situation",
+      "both",
+      "them"
+     ],
+     "from": "the situation",
+     "to": "them",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The goal is won or lost on the inner hurdle as much as the outer one.",
+    "theme": "Shows that people have to get out of their own way.",
+    "pull": "We wonder whether they'll beat the one hurdle nobody else can see.",
+    "cue": "plot",
+    "tryThis": "Give her everything she needs to win the race, and let her stop ten meters from the line because of the voice in her head."
+   }
+  },
+  {
+   "id": "healerType",
+   "level": "curiosity",
+   "label": "The healer",
+   "plain": "A character who helps others face the feelings they run from: a psychologist, a hippie, an enlightened businessman, a guru, a grandmother. How they help, how skilled they are, and how healed they are themselves.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "kind",
+   "sliders": [
+    {
+     "id": "kind",
+     "label": "What kind of healer",
+     "plain": "Who the healer is in the world.",
+     "scale": [
+      "a psychologist",
+      "a therapist",
+      "a hippie",
+      "an enlightened businessman",
+      "a guru or teacher",
+      "a coach",
+      "a grandparent",
+      "a friend",
+      "a stranger"
+     ],
+     "from": "a psychologist",
+     "to": "a stranger",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "skill",
+     "label": "How skilled they are",
+     "plain": "0 means well but fumbles; 100 a master at it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "way",
+     "label": "How they help",
+     "plain": "Their way of helping.",
+     "scale": [
+      "listening",
+      "asking questions",
+      "making them laugh",
+      "picturing outcomes",
+      "sitting with the feeling",
+      "tough love",
+      "teaching"
+     ],
+     "from": "listening",
+     "to": "teaching",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "healed",
+     "label": "How healed they are themselves",
+     "plain": "Whether the healer has their own work to do.",
+     "scale": [
+      "still wounded",
+      "partly healed",
+      "mostly healed",
+      "at peace"
+     ],
+     "from": "still wounded",
+     "to": "at peace",
+     "curve": "linear"
+    },
+    {
+     "id": "looks",
+     "label": "Do they look the part",
+     "plain": "Whether people would guess they're a healer (the businessman in a suit often isn't).",
+     "scale": [
+      "not at all",
+      "a little",
+      "completely"
+     ],
+     "from": "not at all",
+     "to": "completely",
+     "curve": "linear"
+    },
+    {
+     "id": "paid",
+     "label": "Paid or free",
+     "plain": "Whether helping is their job or their nature.",
+     "scale": [
+      "free",
+      "a favor",
+      "paid"
+     ],
+     "from": "free",
+     "to": "paid",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "When the healer walks in, the story turns from running to facing.",
+    "theme": "Shows that healing often comes through another person.",
+    "pull": "We want the lost one to let the healer in.",
+    "cue": "thought",
+    "tryThis": "Let the man in the expensive suit sit down next to the crying stranger on the bench and simply ask, \"What does it feel like right now?\""
+   }
+  },
+  {
+   "id": "facingFeelings",
+   "level": "curiosity",
+   "label": "Facing feelings instead of running",
+   "plain": "When a hard feeling comes, does the character run from it (and make a terrible choice while running) or stay with it and feel it through?",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "stay",
+   "sliders": [
+    {
+     "id": "stay",
+     "label": "Run or stay",
+     "plain": "What they do when the feeling arrives.",
+     "scale": [
+      "runs at once",
+      "runs",
+      "wavers",
+      "stays",
+      "stays and feels it all"
+     ],
+     "from": "runs at once",
+     "to": "stays and feels it all",
+     "curve": "linear"
+    },
+    {
+     "id": "feeling",
+     "label": "Which feeling",
+     "plain": "The feeling they usually run from.",
+     "scale": [
+      "fear",
+      "grief",
+      "shame",
+      "anger",
+      "loneliness",
+      "jealousy",
+      "heartbreak"
+     ],
+     "from": "fear",
+     "to": "heartbreak",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "running",
+     "label": "What running looks like",
+     "plain": "What they do instead of feeling it.",
+     "scale": [
+      "a drink",
+      "pills",
+      "a fight",
+      "leaving",
+      "working",
+      "a screen",
+      "a bad decision"
+     ],
+     "from": "a drink",
+     "to": "a bad decision",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "cost",
+     "label": "What running costs",
+     "plain": "How much damage the running does.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "helped",
+     "label": "Help to stay",
+     "plain": "Whether someone is helping them stay.",
+     "scale": [
+      "alone",
+      "a healer is near",
+      "a friend is near"
+     ],
+     "from": "alone",
+     "to": "a friend is near",
+     "curve": "linear"
+    },
+    {
+     "id": "through",
+     "label": "Through the feeling",
+     "plain": "How far they've felt it through: 0 not started; 100 out the other side.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Running from a feeling is how characters make the choices that wreck them.",
+    "theme": "Shows that the way out is through.",
+    "pull": "We beg them not to run this time.",
+    "cue": "thought",
+    "tryThis": "His hand is on the car keys; the healer says \"stay for one more minute,\" and he puts them back on the table."
+   }
+  },
+  {
+   "id": "picturingOutcomes",
+   "level": "curiosity",
+   "label": "Picturing the best and the worst",
+   "plain": "The character pictures what could happen, the bright version and the terrible one, and feels both. A healer may walk them through it so the fear loses its grip.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "way",
+   "sliders": [
+    {
+     "id": "way",
+     "label": "Which way they picture",
+     "plain": "Which outcomes fill their mind.",
+     "scale": [
+      "only the worst",
+      "mostly the worst",
+      "both",
+      "mostly the best",
+      "only the best"
+     ],
+     "from": "only the worst",
+     "to": "only the best",
+     "curve": "linear"
+    },
+    {
+     "id": "vivid",
+     "label": "How vivid",
+     "plain": "0 a vague thought; 5 they see it like a film.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "guided",
+     "label": "Guided or alone",
+     "plain": "Whether someone walks them through it.",
+     "scale": [
+      "alone",
+      "a healer guides it",
+      "a friend talks it through"
+     ],
+     "from": "alone",
+     "to": "a friend talks it through",
+     "curve": "linear"
+    },
+    {
+     "id": "feel",
+     "label": "Do they let themselves feel it",
+     "plain": "Whether they feel the pictures or just think them.",
+     "scale": [
+      "push it away",
+      "a little",
+      "feel it fully"
+     ],
+     "from": "push it away",
+     "to": "feel it fully",
+     "curve": "linear"
+    },
+    {
+     "id": "after",
+     "label": "What it leaves",
+     "plain": "How they come out of it.",
+     "scale": [
+      "more afraid",
+      "the same",
+      "calmer",
+      "ready"
+     ],
+     "from": "more afraid",
+     "to": "ready",
+     "curve": "linear"
+    },
+    {
+     "id": "shown",
+     "label": "How we show it",
+     "plain": "How the film lets us into the pictures.",
+     "scale": [
+      "only in their face",
+      "we hear it",
+      "we see it as a vision"
+     ],
+     "from": "only in their face",
+     "to": "we see it as a vision",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Seeing the worst and surviving it in the mind frees a character to act.",
+    "theme": "Shows imagination as a way to heal, not just to worry.",
+    "pull": "We see both futures and wonder which will come.",
+    "cue": "visual",
+    "tryThis": "Cut from her eyes closing to the worst version of the wedding, then the best, then back to her face, softer."
+   }
+  },
+  {
+   "id": "welcomingFeelings",
+   "level": "curiosity",
+   "label": "Welcoming hard feelings",
+   "plain": "How the character greets a painful feeling when it comes: dread, then putting up with it, then curiosity, and at the deepest, excitement and even love, because they know what freedom is on the other side.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "welcome",
+   "sliders": [
+    {
+     "id": "welcome",
+     "label": "How they greet hard feelings",
+     "plain": "Their first reaction when a hard feeling arrives.",
+     "scale": [
+      "dread",
+      "put up with them",
+      "curious",
+      "glad",
+      "excited, even loving it"
+     ],
+     "from": "dread",
+     "to": "excited, even loving it",
+     "curve": "linear"
+    },
+    {
+     "id": "trust",
+     "label": "Trust there's freedom on the other side",
+     "plain": "0 sure it will swallow them; 100 sure there's freedom past it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "practice",
+     "label": "How practiced",
+     "plain": "How many times they've done this.",
+     "scale": [
+      "first time",
+      "a few times",
+      "often",
+      "a way of life"
+     ],
+     "from": "first time",
+     "to": "a way of life",
+     "curve": "linear"
+    },
+    {
+     "id": "breath",
+     "label": "What their body does",
+     "plain": "How the body meets the feeling.",
+     "scale": [
+      "tightens",
+      "holds the breath",
+      "breathes",
+      "opens"
+     ],
+     "from": "tightens",
+     "to": "opens",
+     "curve": "linear"
+    },
+    {
+     "id": "words",
+     "label": "What they say to it",
+     "plain": "What they say to the feeling, aloud or inside.",
+     "scale": [
+      "go away",
+      "not now",
+      "okay, come in",
+      "welcome, I've been waiting"
+     ],
+     "from": "go away",
+     "to": "welcome, I've been waiting",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "after",
+     "label": "What waits on the other side",
+     "plain": "What they find once they're through.",
+     "scale": [
+      "relief",
+      "lightness",
+      "freedom",
+      "love for others"
+     ],
+     "from": "relief",
+     "to": "love for others",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A character who learns to welcome the pain stops being ruled by it.",
+    "theme": "Shows that the feelings we run from are the doors to freedom.",
+    "pull": "We watch the dread on their face turn into something like a smile.",
+    "cue": "thought",
+    "tryThis": "When the panic rises on the subway, let him close his eyes, smile, and whisper \"there you are.\""
+   }
+  },
+  {
+   "id": "awakening",
+   "level": "curiosity",
+   "label": "Depth of awareness",
+   "plain": "How awake the character is to themselves and to life: lost in their stories, beginning to notice, aware, awake, or at the deepest levels of liberation, where what's left is the capacity to give.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "depth",
+   "sliders": [
+    {
+     "id": "depth",
+     "label": "How deep their awareness is",
+     "plain": "How deeply they see themselves and life.",
+     "scale": [
+      "lost in it",
+      "noticing",
+      "aware",
+      "awake",
+      "liberated"
+     ],
+     "from": "lost in it",
+     "to": "liberated",
+     "curve": "linear"
+    },
+    {
+     "id": "give",
+     "label": "Capacity to give to others",
+     "plain": "0 nothing left to give; 100 they give freely and without needing anything back.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "meaning",
+     "label": "Sense of what life means",
+     "plain": "Whether they've found what life is for, for them.",
+     "scale": [
+      "none",
+      "searching",
+      "glimpses",
+      "clear"
+     ],
+     "from": "none",
+     "to": "clear",
+     "curve": "linear"
+    },
+    {
+     "id": "steady",
+     "label": "How steady it is",
+     "plain": "Whether the awareness stays or slips away under pressure.",
+     "scale": [
+      "comes and goes",
+      "mostly there",
+      "steady"
+     ],
+     "from": "comes and goes",
+     "to": "steady",
+     "curve": "linear"
+    },
+    {
+     "id": "moment",
+     "label": "A moment of seeing",
+     "plain": "Whether something opens up in this scene.",
+     "scale": [
+      "none",
+      "a flicker",
+      "a breakthrough"
+     ],
+     "from": "none",
+     "to": "a breakthrough",
+     "curve": "linear"
+    },
+    {
+     "id": "shows",
+     "label": "How it shows",
+     "plain": "How we can tell they've grown.",
+     "scale": [
+      "stillness",
+      "laughter",
+      "tears",
+      "kindness",
+      "a new choice"
+     ],
+     "from": "stillness",
+     "to": "a new choice",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Each step deeper changes what the character wants, and what they can give.",
+    "theme": "Shows the true meaning of life as something you wake into.",
+    "pull": "We hope they'll see what we can see.",
+    "cue": "visual",
+    "tryThis": "After the breakthrough, let her give her coat to the woman at the bus stop without a word, and keep walking lighter."
+   }
+  },
+  {
+   "id": "healingArc",
+   "level": "curiosity",
+   "label": "The healing arc",
+   "plain": "Where the character is on the road from running to freedom: running, meeting a healer, resisting, facing it, feeling it through, coming out free, and finally helping others the same way.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "stage",
+   "sliders": [
+    {
+     "id": "stage",
+     "label": "Where they are",
+     "plain": "The stage of the healing arc in this scene.",
+     "scale": [
+      "running",
+      "meets a healer",
+      "resisting",
+      "facing it",
+      "feeling it through",
+      "free on the other side",
+      "helping others"
+     ],
+     "from": "running",
+     "to": "helping others",
+     "curve": "linear"
+    },
+    {
+     "id": "pace",
+     "label": "How fast it moves",
+     "plain": "How quickly they move through the stages.",
+     "scale": [
+      "stuck",
+      "slowly",
+      "steadily",
+      "fast"
+     ],
+     "from": "stuck",
+     "to": "fast",
+     "curve": "linear"
+    },
+    {
+     "id": "setback",
+     "label": "A step back",
+     "plain": "Whether they slide back toward running here.",
+     "scale": [
+      "none",
+      "a slip",
+      "a fall"
+     ],
+     "from": "none",
+     "to": "a fall",
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who helps most",
+     "plain": "What or who moves them along.",
+     "scale": [
+      "a healer",
+      "a friend",
+      "a stranger",
+      "a loss",
+      "themselves"
+     ],
+     "from": "a healer",
+     "to": "themselves",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "inner",
+     "label": "How their inside changes",
+     "plain": "0 still in chaos; 100 at peace.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "shared",
+     "label": "Do they pass it on",
+     "plain": "Whether their healing reaches anyone else.",
+     "scale": [
+      "not yet",
+      "a little",
+      "they help others now"
+     ],
+     "from": "not yet",
+     "to": "they help others now",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "The healing arc gives a story its shape: running, facing, freedom, giving.",
+    "theme": "Shows that healing turns the healed into healers.",
+    "pull": "We wait for the moment they stop running.",
+    "cue": "plot",
+    "tryThis": "End the film with the one who stole the pills sitting quietly beside a scared kid, saying the same words the healer once said to her."
+   }
   }
  ],
  "suites": [
@@ -179552,6 +181578,910 @@
     {
      "id": "weight:worldShift",
      "label": "Weight of worldShift",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-inner-storm",
+   "level": "suite",
+   "label": "The inner storm",
+   "plain": "Chaos inside, a cruel voice, beating themselves up over every slip, can't bear being alone, and their own biggest obstacle.",
+   "workspace": "mindset",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "innerWeather",
+     "value": 85
+    },
+    {
+     "weight": 100,
+     "curiosity": "selfTalk",
+     "value": "harsh"
+    },
+    {
+     "weight": 100,
+     "curiosity": "laughOrBeat",
+     "value": "beat themselves up"
+    },
+    {
+     "weight": 100,
+     "curiosity": "aloneComfort",
+     "value": 15
+    },
+    {
+     "weight": 100,
+     "curiosity": "innerHurdle",
+     "value": 5
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:innerWeather",
+     "label": "Weight of innerWeather",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:selfTalk",
+     "label": "Weight of selfTalk",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:laughOrBeat",
+     "label": "Weight of laughOrBeat",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:aloneComfort",
+     "label": "Weight of aloneComfort",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:innerHurdle",
+     "label": "Weight of innerHurdle",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "at-home-in-themselves",
+   "level": "suite",
+   "label": "At home in themselves",
+   "plain": "Peaceful inside, a kind voice, laughs off their mistakes, loves their own company, and soothes themselves in a way that truly helps.",
+   "workspace": "mindset",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "innerWeather",
+     "value": 10
+    },
+    {
+     "weight": 100,
+     "curiosity": "selfTalk",
+     "value": "kind"
+    },
+    {
+     "weight": 100,
+     "curiosity": "laughOrBeat",
+     "value": "laugh it off"
+    },
+    {
+     "weight": 100,
+     "curiosity": "aloneComfort",
+     "value": 90
+    },
+    {
+     "weight": 100,
+     "curiosity": "selfSoothe",
+     "slider": "healthy",
+     "value": "truly soothes"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:innerWeather",
+     "label": "Weight of innerWeather",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:selfTalk",
+     "label": "Weight of selfTalk",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:laughOrBeat",
+     "label": "Weight of laughOrBeat",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:aloneComfort",
+     "label": "Weight of aloneComfort",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:selfSoothe.healthy",
+     "label": "Weight of selfSoothe healthy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-numbing-loner",
+   "level": "suite",
+   "label": "The numbing loner",
+   "plain": "Alone and uneasy, filling silence with noise, soothing with a drink or a screen that only numbs, and running from feelings.",
+   "workspace": "mindset",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "aloneComfort",
+     "slider": "silence",
+     "value": "fills it at once"
+    },
+    {
+     "weight": 100,
+     "curiosity": "selfSoothe",
+     "value": "a drink"
+    },
+    {
+     "weight": 100,
+     "curiosity": "selfSoothe",
+     "slider": "healthy",
+     "value": "numbs it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "facingFeelings",
+     "value": "runs"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:aloneComfort.silence",
+     "label": "Weight of aloneComfort silence",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:selfSoothe",
+     "label": "Weight of selfSoothe",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:selfSoothe.healthy",
+     "label": "Weight of selfSoothe healthy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:facingFeelings",
+     "label": "Weight of facingFeelings",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-psychologist",
+   "level": "suite",
+   "label": "The psychologist",
+   "plain": "A trained healer who listens and asks questions, partly healed themselves, and paid for it.",
+   "workspace": "arc",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "value": "a psychologist"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "way",
+     "value": "asking questions"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "healed",
+     "value": "partly healed"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "paid",
+     "value": "paid"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType",
+     "label": "Weight of healerType",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.way",
+     "label": "Weight of healerType way",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.healed",
+     "label": "Weight of healerType healed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.paid",
+     "label": "Weight of healerType paid",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-hippie-healer",
+   "level": "suite",
+   "label": "The hippie healer",
+   "plain": "A free spirit who sits with the feeling, makes them laugh, looks the part, and never asks for anything.",
+   "workspace": "arc",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "value": "a hippie"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "way",
+     "value": "sitting with the feeling"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "looks",
+     "value": "completely"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "paid",
+     "value": "free"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType",
+     "label": "Weight of healerType",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.way",
+     "label": "Weight of healerType way",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.looks",
+     "label": "Weight of healerType looks",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.paid",
+     "label": "Weight of healerType paid",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-enlightened-businessman",
+   "level": "suite",
+   "label": "The enlightened businessman",
+   "plain": "A man in a suit nobody would take for a healer, at peace inside, who walks people through the best and the worst outcomes.",
+   "workspace": "arc",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "value": "an enlightened businessman"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "way",
+     "value": "picturing outcomes"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "healed",
+     "value": "at peace"
+    },
+    {
+     "weight": 100,
+     "curiosity": "healerType",
+     "slider": "looks",
+     "value": "not at all"
+    },
+    {
+     "weight": 100,
+     "curiosity": "awakening",
+     "value": "awake"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType",
+     "label": "Weight of healerType",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.way",
+     "label": "Weight of healerType way",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.healed",
+     "label": "Weight of healerType healed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:healerType.looks",
+     "label": "Weight of healerType looks",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:awakening",
+     "label": "Weight of awakening",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "loving-the-storm",
+   "level": "suite",
+   "label": "Loving the storm",
+   "plain": "Staying with the feeling, welcoming it with excitement, trusting the freedom on the other side, and giving freely to others.",
+   "workspace": "arc",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "facingFeelings",
+     "value": "stays and feels it all"
+    },
+    {
+     "weight": 100,
+     "curiosity": "welcomingFeelings",
+     "value": "excited, even loving it"
+    },
+    {
+     "weight": 100,
+     "curiosity": "welcomingFeelings",
+     "slider": "trust",
+     "value": 90
+    },
+    {
+     "weight": 100,
+     "curiosity": "awakening",
+     "slider": "give",
+     "value": 90
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:facingFeelings",
+     "label": "Weight of facingFeelings",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:welcomingFeelings",
+     "label": "Weight of welcomingFeelings",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:welcomingFeelings.trust",
+     "label": "Weight of welcomingFeelings trust",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:awakening.give",
+     "label": "Weight of awakening give",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -284236,6 +287166,1510 @@
    "tags": []
   },
   {
+   "id": "chaos-cruel-voice",
+   "level": "proximity",
+   "label": "When the chaos inside rises, the inner voice turns cruel",
+   "plain": "When the chaos inside rises, the way they talk to themselves turns harsher within a beat.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "innerWeather",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "selfTalk",
+    "change": "rises"
+   },
+   "whenText": "the chaos inside rises",
+   "thenText": "the inner voice turns cruel",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cruel-voice-beat-up",
+   "level": "proximity",
+   "label": "When the inner voice is cruel, they beat themselves up",
+   "plain": "When the inner voice turns harsh, how hard they are on themselves after a slip rises within 2 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "selfTalk",
+    "is": "harsh"
+   },
+   "then": {
+    "curiosity": "laughOrBeat",
+    "slider": "harsh",
+    "change": "rises"
+   },
+   "whenText": "the inner voice is cruel",
+   "thenText": "they beat themselves up",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "laugh-settles",
+   "level": "proximity",
+   "label": "When they laugh at themselves, the storm settles",
+   "plain": "When they laugh off their own mistake, the chaos inside drops within 2 beats.",
+   "workspace": "mindset",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "laughOrBeat",
+    "is": "laugh it off"
+   },
+   "then": {
+    "curiosity": "innerWeather",
+    "change": "drops"
+   },
+   "whenText": "they laugh at themselves",
+   "thenText": "the storm settles",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "soothe-calms",
+   "level": "proximity",
+   "label": "When the soothing works, they come back to calm",
+   "plain": "When the way they soothe themselves works better, the chaos inside drops within 2 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "selfSoothe",
+    "slider": "works",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "innerWeather",
+    "change": "drops"
+   },
+   "whenText": "the soothing works",
+   "thenText": "they come back to calm",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "alone-numb",
+   "level": "proximity",
+   "label": "When they can't bear being alone, they reach for relief",
+   "plain": "When comfort being alone drops, the urge for relief rises within 2 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "aloneComfort",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "reliefSeeking",
+    "change": "rises"
+   },
+   "whenText": "they can't bear being alone",
+   "thenText": "they reach for relief",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "chaos-hurdle",
+   "level": "proximity",
+   "label": "When the chaos inside rises, the inner hurdle grows",
+   "plain": "When the chaos inside rises, the hurdle inside them grows within 2 beats.",
+   "workspace": "mindset",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "innerWeather",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "innerHurdle",
+    "change": "rises"
+   },
+   "whenText": "the chaos inside rises",
+   "thenText": "the inner hurdle grows",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hurdle-cleared-thrive",
+   "level": "proximity",
+   "label": "When the inner hurdle is cleared, life starts climbing",
+   "plain": "When the inner hurdle shrinks, how well they're doing rises within 3 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "innerHurdle",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "thriving",
+    "change": "rises"
+   },
+   "whenText": "the inner hurdle is cleared",
+   "thenText": "life starts climbing",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "healer-near-stay",
+   "level": "proximity",
+   "label": "When a healer is near, they stay with the feeling",
+   "plain": "When a healer comes into the scene, staying with the feeling instead of running rises within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "healerType",
+    "slider": "skill",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "facingFeelings",
+    "change": "rises"
+   },
+   "whenText": "a healer is near",
+   "thenText": "they stay with the feeling",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "run-bad-choice",
+   "level": "proximity",
+   "label": "When they run from a feeling, the cost climbs",
+   "plain": "When they run from a feeling, what the running costs rises within 2 beats.",
+   "workspace": "arc",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "facingFeelings",
+    "is": "runs at once"
+   },
+   "then": {
+    "curiosity": "facingFeelings",
+    "slider": "cost",
+    "change": "rises"
+   },
+   "whenText": "they run from a feeling",
+   "thenText": "the cost climbs",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "picture-both-calmer",
+   "level": "proximity",
+   "label": "When they picture both outcomes, the fear loosens",
+   "plain": "When they picture both the best and the worst, the chaos inside drops within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "picturingOutcomes",
+    "is": "both"
+   },
+   "then": {
+    "curiosity": "innerWeather",
+    "change": "drops"
+   },
+   "whenText": "they picture both outcomes",
+   "thenText": "the fear loosens",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "facing-welcome",
+   "level": "proximity",
+   "label": "When they stay with the feeling, they start to welcome it",
+   "plain": "When they stay with a feeling longer, how they greet hard feelings warms within 3 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "facingFeelings",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "welcomingFeelings",
+    "change": "rises"
+   },
+   "whenText": "they stay with the feeling",
+   "thenText": "they start to welcome it",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "welcome-awake",
+   "level": "proximity",
+   "label": "When they welcome hard feelings, awareness deepens",
+   "plain": "When they welcome hard feelings more, their awareness deepens within 3 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "welcomingFeelings",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "awakening",
+    "change": "rises"
+   },
+   "whenText": "they welcome hard feelings",
+   "thenText": "awareness deepens",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "awake-give",
+   "level": "proximity",
+   "label": "When awareness deepens, they give more",
+   "plain": "When their awareness deepens, their capacity to give to others rises within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "awakening",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "awakening",
+    "slider": "give",
+    "change": "rises"
+   },
+   "whenText": "awareness deepens",
+   "thenText": "they give more",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "healing-kind-voice",
+   "level": "proximity",
+   "label": "When the healing moves forward, the inner voice softens",
+   "plain": "When the healing arc moves forward, the way they talk to themselves turns kinder within 3 beats.",
+   "workspace": "arc",
+   "also": [
+    "mindset"
+   ],
+   "when": {
+    "curiosity": "healingArc",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "selfTalk",
+    "change": "drops"
+   },
+   "whenText": "the healing moves forward",
+   "thenText": "the inner voice softens",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "healed-becomes-healer",
+   "level": "proximity",
+   "label": "When they're free, they become the healer",
+   "plain": "When they reach the end of the healing arc, they start helping others within 4 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "healingArc",
+    "is": "free on the other side"
+   },
+   "then": {
+    "curiosity": "healingArc",
+    "slider": "shared",
+    "change": "rises"
+   },
+   "whenText": "they're free",
+   "thenText": "they become the healer",
+   "within": 4,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 4,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "facing-shame-cope",
+   "level": "proximity",
+   "label": "When they face the feeling, the way they cope with shame changes",
+   "plain": "When they stay with a feeling, coping with shame moves toward facing it within 3 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "facingFeelings",
+    "is": "stays and feels it all"
+   },
+   "then": {
+    "curiosity": "copingStyle",
+    "is": "face it"
+   },
+   "whenText": "they face the feeling",
+   "thenText": "the way they cope with shame changes",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -323756,6 +328190,538 @@
     {
      "id": "chance:craft-rank",
      "label": "How often craft-rank",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-spiral-alone",
+   "level": "proximitySuite",
+   "label": "The spiral alone",
+   "plain": "Alone and uneasy, the chaos rises, the voice turns cruel, they beat themselves up, reach for relief, and the inner hurdle grows.",
+   "workspace": "mindset",
+   "also": [],
+   "members": [
+    "alone-numb",
+    "chaos-cruel-voice",
+    "cruel-voice-beat-up",
+    "chaos-hurdle"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:alone-numb",
+     "label": "Delay of alone-numb",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:alone-numb",
+     "label": "How often alone-numb",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:chaos-cruel-voice",
+     "label": "Delay of chaos-cruel-voice",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:chaos-cruel-voice",
+     "label": "How often chaos-cruel-voice",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cruel-voice-beat-up",
+     "label": "Delay of cruel-voice-beat-up",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cruel-voice-beat-up",
+     "label": "How often cruel-voice-beat-up",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:chaos-hurdle",
+     "label": "Delay of chaos-hurdle",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:chaos-hurdle",
+     "label": "How often chaos-hurdle",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "finding-calm",
+   "level": "proximitySuite",
+   "label": "Finding calm",
+   "plain": "They laugh at the slip, the soothing works, the storm settles, the inner hurdle shrinks, and life climbs.",
+   "workspace": "mindset",
+   "also": [],
+   "members": [
+    "laugh-settles",
+    "soothe-calms",
+    "hurdle-cleared-thrive"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:laugh-settles",
+     "label": "Delay of laugh-settles",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:laugh-settles",
+     "label": "How often laugh-settles",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:soothe-calms",
+     "label": "Delay of soothe-calms",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:soothe-calms",
+     "label": "How often soothe-calms",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:hurdle-cleared-thrive",
+     "label": "Delay of hurdle-cleared-thrive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:hurdle-cleared-thrive",
+     "label": "How often hurdle-cleared-thrive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-healing-road",
+   "level": "proximitySuite",
+   "label": "The healing road",
+   "plain": "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
+   "workspace": "arc",
+   "also": [],
+   "members": [
+    "healer-near-stay",
+    "picture-both-calmer",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healing-kind-voice",
+    "healed-becomes-healer"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:healer-near-stay",
+     "label": "Delay of healer-near-stay",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:healer-near-stay",
+     "label": "How often healer-near-stay",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:picture-both-calmer",
+     "label": "Delay of picture-both-calmer",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:picture-both-calmer",
+     "label": "How often picture-both-calmer",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:facing-welcome",
+     "label": "Delay of facing-welcome",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:facing-welcome",
+     "label": "How often facing-welcome",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:welcome-awake",
+     "label": "Delay of welcome-awake",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:welcome-awake",
+     "label": "How often welcome-awake",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:awake-give",
+     "label": "Delay of awake-give",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:awake-give",
+     "label": "How often awake-give",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:healing-kind-voice",
+     "label": "Delay of healing-kind-voice",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:healing-kind-voice",
+     "label": "How often healing-kind-voice",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:healed-becomes-healer",
+     "label": "Delay of healed-becomes-healer",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:healed-becomes-healer",
+     "label": "How often healed-becomes-healer",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,
