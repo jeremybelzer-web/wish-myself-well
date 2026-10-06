@@ -36,6 +36,12 @@
       if (was && !was.view) was.view = S().view();
       S().view("screen");
     }
+    /* In the big viewer layout the library and Details live in a tabbed window: shut it between steps. */
+    if (S() && S().panel) S().panel("");
+  };
+  const goPanel = (id) => () => {
+    goScreen();
+    if (S() && S().panel) S().panel(id);
   };
   const goApp = () => {
     if (V() && V().isOpen()) V().close();
@@ -65,9 +71,9 @@
     { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="close"]', title: "More pages", text: "The Viewer is your main view: the picture of your film with the comic strip under it. More pages takes you to the older pages of the app: My film boards, Storyboard, the Workspaces and the Library. The Viewer button at the top of those pages brings you back here." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-bar", title: "The Screen", text: "The full editor, laid out like CapCut. Screen shows the library, the player, the details and the timeline. Arrange shows every curiosity as a track, left to right." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-look", title: "Looking through", text: "A curiosity is one thing about a scene you can look at and change: how close the camera is, a feeling, a joke's timing. A suite is a group of them. A spark is when one leads to another soon after. Pick which kind you are looking through here." },
-    { part: "The Screen", go: goScreen, sel: ".sc-page .sc-lib", title: "The curiosity library", text: "Every curiosity, sorted by filmmaking category like CapCut's media tabs. Press + on a card to put it into your film at the playhead." },
+    { part: "The Screen", go: goPanel("lib"), sel: ".sc-page .sc-lib", title: "The curiosity library", text: "Every curiosity, sorted by filmmaking category like CapCut's media tabs. Press + on a card to put it into your film at the playhead." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-player", title: "The player", text: "Inspiration films and your film side by side. The strip under them is the whole film, one picture per moment. Play, step and loop are under it." },
-    { part: "The Screen", go: goScreen, sel: ".sc-page .sc-inspector", title: "Details", text: "Everything about the curiosity you picked: what it is, how it pushes the story forward and moves the audience's attention, and what to try." },
+    { part: "The Screen", go: goPanel("insp"), sel: ".sc-page .sc-inspector", title: "Details", text: "Everything about the curiosity you picked: what it is, how it pushes the story forward and moves the audience's attention, and what to try." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-timeline", title: "The timeline", text: "Your film from left to right. Each curiosity gets a lane with dots and lines, like automation in Ableton: click a line to add a dot, drag a dot to change it, double-click a dot to delete it. Join two dots across lanes to make a spark." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .ccw-btn", title: "◎ Categories", text: "A window for each big group of suites, like Emotion or Herd mentality. A pie chart shows which suites play at this moment. Turn a suite's knob to push the whole group of curiosities toward it, or move one curiosity with its slider. A graph shows how they change across your film." },
     { part: "The Screen", go: goScreen, sel: ".sc-page [data-cat-open]", title: "⚗ Catalyst", text: "What sets curiosities off. A Spark is one thing that sets many off, like a crash cymbal or a word. An Elixir only works once every ingredient lines up, like a key in a lock or a flask filling up. Make your own in either tab." },

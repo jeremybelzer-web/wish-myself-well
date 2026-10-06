@@ -28,7 +28,8 @@
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
    window.CurioScreen = { open(), close(), isOpen(), view(v?), mountViewer(el, opts), state(), setRow(i), row(),
-     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off() }
+     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off(),
+     panel(id) (Big viewer layout: opens "lib", "insp" or "dock" in the tabbed window, "" shuts it; false in other layouts) }
    view() says which layout shows ("screen" or "arrange"); view("screen") switches to it (and leaves the
    full-screen Player), so the App Walkthrough can show the library, Player, Details and timeline, then put
    back the view you had.
@@ -43,6 +44,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const MAIN_SHOWN = 5;
 
+  /* Browser tests drive the Screen through the older four-panel layout, so they start there; people start in the big viewer. */
+  const AUTOMATED = typeof navigator !== "undefined" && !!navigator.webdriver;
   const DEFAULTS = {
     open: true,
     view: "screen",
@@ -63,7 +66,7 @@
     openCats: {},
     groups: {},
     search: "",
-    layout: "center",
+    layout: AUTOMATED ? "center" : "big",
     playerZoom: 1,
     libTab: "",
     ghost: false,
@@ -79,6 +82,7 @@
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
      the Player full height on the right. */
   const LAYOUTS = [
+    ["big", "Big viewer", "The viewer fills the top, one long lane strip under it, the storyboards across the bottom; everything else opens in a big window with tabs"],
     ["center", "Player in the middle", "Library, Player and Details across the top, the timeline under them (CapCut's default)"],
     ["media", "Library full height", "The library runs down the whole left side; Player and Details on the right, the timeline under them"],
     ["details", "Details full height", "Details runs down the whole right side; library and Player on the left, the timeline under them"],
@@ -209,7 +213,12 @@
   function load() {
     try {
       const p = JSON.parse(localStorage.getItem(KEY));
-      if (p && typeof p === "object") return Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), p);
+      if (p && typeof p === "object") {
+        /* The big viewer became the default on 2026-10-06: a layout saved before then switches over once. */
+        if (!p.bigOnce && !AUTOMATED) p.layout = "big";
+        p.bigOnce = true;
+        return Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), p);
+      }
     } catch (e) {}
     return JSON.parse(JSON.stringify(DEFAULTS));
   }
@@ -427,6 +436,7 @@
     page.addEventListener("keydown", winGripKey);
     trWire();
     txtWire();
+    page.addEventListener("click", bigClick);
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
@@ -462,6 +472,7 @@
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       if (e.key === "Escape" && keysOpen) return showKeys(false);
+      if (e.key === "Escape" && bigTab && isBig()) return bigShow("");
       if (e.key === "Escape" && page.dataset.fullplayer) return fullPlayer(false);
       /* Leave the browser's own copy alone when text is selected. */
       if (mod(e) && e.key.toLowerCase() === "c" && String(window.getSelection && window.getSelection()).length) return;
@@ -493,6 +504,7 @@
     drawInspector();
     drawTimeline(fromEngine);
     placePanels();
+    bigApply();
     sizesApply();
     tell();
   }
@@ -510,7 +522,7 @@
     if (!host || (PLACE[place] || PLACE.player) !== PLACE.player) return host;
     /* "under": a full-width strip under the Player, for a slim bar whose panel floats (the 3D actors). */
     const cls = place === "under" ? "sc-under" : "sc-docks";
-    let col = host.querySelector(":scope > ." + cls);
+    let col = host.querySelector(":scope > ." + cls) || (cls === "sc-docks" && page.querySelector(".sc-bigwin .sc-docks"));
     if (!col) {
       col = document.createElement("div");
       col.className = cls;
@@ -543,6 +555,84 @@
         }
       }
     });
+  }
+  /* ---------- the big viewer layout ----------
+     Jeremy, 2026-10-06 05:38Z: too many small windows on one screen felt crammed. The viewer fills the top (a second
+     viewer gets the same size, side by side), one long and short strip of curiosity lanes runs under it from the tab
+     rail on the left to the right edge, and the storyboards (the whole film strip) run across the whole bottom.
+     The library, Details and the docked side panels (Momentum) move into one big window with tabs, opened from
+     the rail. The elements are moved, not copied, so everything that draws or listens to them keeps working. */
+  let bigTab = "";
+  const isBig = () => !!page && prefs.view === "screen" && page.dataset.layout === "big";
+  function bigTabs() {
+    const docks = page.querySelector(".sc-bigwin .sc-docks, .sc-player > .sc-docks");
+    const names = docks ? [...docks.children].map((d) => d.getAttribute("aria-label") || "").filter(Boolean) : [];
+    const list = [
+      ["lib", "Library", "📚", "Every curiosity, suite, template and your favorites"],
+      ["insp", "Details", "🎚", "The settings at the playhead, for the curiosity you picked"],
+    ];
+    if (names.length) list.push(["dock", names.length === 1 ? names[0] : "Side panels", "📈", names.join(", ")]);
+    return list;
+  }
+  function bigApply() {
+    const main = page.querySelector(".sc-main");
+    const player = page.querySelector(".sc-player");
+    const lib = page.querySelector(".sc-lib");
+    const insp = page.querySelector(".sc-inspector");
+    const ov = page.querySelector(".sc-overview");
+    const docks = page.querySelector(".sc-bigwin .sc-docks, .sc-player > .sc-docks");
+    let win = page.querySelector(":scope > .sc-bigwin");
+    let rail = main.querySelector(":scope > .sc-rail");
+    if (!isBig()) {
+      if (win) {
+        main.insertBefore(lib, player);
+        main.insertBefore(insp, player.nextSibling);
+        if (docks) player.appendChild(docks);
+        win.remove();
+      }
+      if (rail) rail.remove();
+      if (ov.parentNode !== player) player.insertBefore(ov, player.querySelector(":scope > .sc-transport"));
+      bigTab = "";
+      return;
+    }
+    if (!win) {
+      win = document.createElement("div");
+      win.className = "sc-bigwin";
+      win.setAttribute("role", "dialog");
+      win.setAttribute("aria-label", "Library, Details and side panels");
+      win.innerHTML = `<header class="sc-bigwin-h"><nav class="sc-bigwin-tabs" role="tablist"></nav><button type="button" class="sc-bigwin-x" data-bigtab="" title="Close (Esc)" aria-label="Close">✕</button></header><div class="sc-bigwin-b"></div>`;
+      page.appendChild(win);
+    }
+    const body = win.querySelector(".sc-bigwin-b");
+    if (lib.parentNode !== body) body.appendChild(lib);
+    if (insp.parentNode !== body) body.appendChild(insp);
+    if (docks && docks.parentNode !== body) body.appendChild(docks);
+    if (!rail) {
+      rail = document.createElement("nav");
+      rail.className = "sc-rail";
+      rail.setAttribute("aria-label", "Open a panel");
+      main.insertBefore(rail, main.firstChild);
+    }
+    if (ov.parentNode !== main) main.appendChild(ov);
+    const tabs = bigTabs();
+    if (bigTab && !tabs.some((t) => t[0] === bigTab)) bigTab = "";
+    rail.innerHTML = tabs.map(([id, label, ico, tip]) => `<button type="button" data-bigtab="${id}" class="${bigTab === id ? "on" : ""}" title="${esc(tip)}" aria-pressed="${bigTab === id}"><span aria-hidden="true">${ico}</span>${esc(label)}</button>`).join("");
+    win.querySelector(".sc-bigwin-tabs").innerHTML = tabs.map(([id, label]) => `<button type="button" role="tab" data-bigtab="${id}" class="${bigTab === id ? "on" : ""}" aria-selected="${bigTab === id}">${esc(label)}</button>`).join("");
+    win.hidden = !bigTab;
+    win.dataset.tab = bigTab;
+  }
+  function bigShow(id) {
+    bigTab = id || "";
+    bigApply();
+    /* The library measures its category tabs, which it can only do once the window shows. */
+    if (bigTab === "lib") drawLibrary();
+  }
+  function bigClick(e) {
+    const b = e.target.closest && e.target.closest("[data-bigtab]");
+    if (!b || !isBig()) return;
+    e.stopPropagation();
+    const id = b.dataset.bigtab;
+    bigShow(b.closest(".sc-rail") && id === bigTab ? "" : id);
   }
   function addPanel(spec) {
     if (!spec || !spec.id || typeof spec.mount !== "function") return false;
@@ -4263,6 +4353,10 @@ document.addEventListener("click", function (e) {
       .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
       .join("")}</div><button type="button" data-act="ghost" class="sc-ghost-b${prefs.ghost ? " on" : ""}" aria-pressed="${!!prefs.ghost}" title="Ghosts: see the moments before and after faintly over your film (Maya's ghosting, an animator's onion skin)">Ghosts</button>`;
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
+    /* The big viewer sizes each frame from the picture's shape, so the frame never runs past the top half. */
+    const vb = page.querySelector(".sc-viewers .sc-frame svg");
+    const vbox = vb && vb.viewBox && vb.viewBox.baseVal;
+    if (vbox && vbox.width && vbox.height) page.querySelector(".sc-viewers").style.setProperty("--sc-ar", (vbox.width / vbox.height).toFixed(4));
     page.querySelector(".sc-overview").innerHTML = overviewHtml();
     showTimelineWindow();
     /* A redraw while ⋯ More or Captions ▾ is open keeps the focus on the same control inside it. */
@@ -6441,7 +6535,7 @@ document.addEventListener("click", function (e) {
     }
     return prefs.view;
   }
-  window.CurioScreen = { open, close, solo, soloPart: () => (page && !page.hidden && page.dataset.solo) || "", isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, solo, soloPart: () => (page && !page.hidden && page.dataset.solo) || "", isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, panel: (id) => (isBig() ? (bigShow(id), true) : false), addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
@@ -6968,7 +7062,7 @@ html[data-sc-splitting="y"], html[data-sc-splitting="y"] * { cursor: row-resize 
     const s = sizesNow();
     const player = page.querySelector(".sc-player");
     const fit = (k, v) => Math.max(SPLIT.PANES[k].min, Math.min(paneMax(k), v));
-    const t = SPLIT.templates(s, page.dataset.layout, prefs.view, wide() ? fit : null, !!(player && !player.hidden));
+    const t = isBig() ? { cols: null, rows: null } : SPLIT.templates(s, page.dataset.layout, prefs.view, wide() ? fit : null, !!(player && !player.hidden));
     const set = (attr, prop, v) => {
       if (v) {
         main.setAttribute(attr, "");
@@ -7040,7 +7134,7 @@ html[data-sc-splitting="y"], html[data-sc-splitting="y"] * { cursor: row-resize 
       dock: playerShown && !!player.querySelector(":scope > .sc-docks > .sc-dock:not(.folded)") && page.dataset.layout !== "right",
       ov: playerShown && !!paneEl("ov") && (!!page.querySelector(".sc-ov-strip") || !prefs.overview),
     };
-    const list = wide() && !page.dataset.fullplayer ? SPLIT.borders(page.dataset.layout, prefs.view, has) : [];
+    const list = wide() && !page.dataset.fullplayer && !isBig() ? SPLIT.borders(page.dataset.layout, prefs.view, has) : [];
     const want = new Set(list.map((b) => b.id));
     Object.keys(splits).forEach((id) => {
       if (want.has(id) && splits[id].edge === list.find((b) => b.id === id).edge) return;

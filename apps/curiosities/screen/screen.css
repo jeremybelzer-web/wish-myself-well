@@ -1135,3 +1135,43 @@ html[data-sc-splitting="xy"], html[data-sc-splitting="xy"] * { cursor: nwse-resi
 .sc-page[data-solo="momentum"] .sc-player, .sc-page[data-solo="momentum"] .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) !important; }
 .sc-page[data-solo="momentum"] .sc-player > .sc-docks { grid-column: 1 !important; grid-row: 1 / -1; max-height: none; border: 0; visibility: visible !important; }
 .sc-page[data-solo="momentum"] .sc-docks > .sc-dock { flex: 1 1 auto; }
+
+/* The big viewer layout (Jeremy 2026-10-06 05:38Z): the viewer fills the top, a long short lane strip under it runs
+   from the tab rail to the right edge, the storyboards run across the whole bottom; the library, Details and side
+   panels open in one big window with tabs. */
+.sc-page[data-layout="big"][data-view="screen"] .sc-main { grid-template-columns: 92px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) clamp(150px, 25vh, 280px) auto; grid-template-areas: "rail player" "rail tl" "ov ov"; }
+.sc-rail { grid-area: rail; display: flex; flex-direction: column; gap: 6px; padding: 6px 0; min-height: 0; overflow-y: auto; }
+.sc-rail button { display: grid; justify-items: center; gap: 4px; padding: 12px 4px; border-radius: 8px; background: var(--cc-panel); border: 1px solid var(--cc-line); color: var(--cc-text); font-size: 12px; line-height: 1.2; cursor: pointer; }
+.sc-rail button span { font-size: 22px; }
+.sc-rail button.on, .sc-rail button:hover { border-color: var(--cc-accent); color: var(--cc-accent); }
+.sc-page[data-layout="big"][data-view="screen"] .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) !important; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-player.sc-has-dock > * { grid-column: 1 / -1; grid-row: auto; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-player { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-viewers { container-type: size; align-items: center; padding: 6px; gap: 10px; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-viewer { flex: 1 1 0; max-width: none; width: auto; }
+.sc-page[data-layout="big"][data-view="screen"][data-arrange="stack"] .sc-viewer { flex: 1 1 0; width: 100%; min-height: 0; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-viewer .sc-frame { width: min(100%, calc((100cqh - 64px) * var(--sc-ar, 1.7778))); margin: 0 auto; }
+.sc-page[data-layout="big"][data-view="screen"][data-arrange="stack"] .sc-viewer .sc-frame { width: min(100%, calc((50cqh - 64px) * var(--sc-ar, 1.7778))); }
+.sc-page[data-layout="big"][data-view="screen"] .sc-main > .sc-overview { grid-area: ov; border: 1px solid var(--cc-line); border-radius: 8px; padding: 4px 8px 6px; }
+.sc-page[data-layout="big"][data-view="screen"] .sc-main > .sc-overview .sc-ov-strip { height: var(--sc-ov-h, clamp(56px, 9.5vh, 100px)); }
+.sc-page[data-layout="big"][data-view="screen"] .sc-timeline { padding-top: 4px; padding-bottom: 4px; }
+.sc-bigwin { position: absolute; inset: 44px max(16px, 3vw) 16px; z-index: 6; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--cc-panel); border: 1px solid var(--cc-accent); border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.sc-bigwin[hidden] { display: none; }
+.sc-bigwin-h { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--cc-line); }
+.sc-bigwin-tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.sc-bigwin-tabs button { padding: 8px 18px; font-size: 14px; border-radius: 6px; background: transparent; border: 1px solid transparent; color: var(--cc-dim); cursor: pointer; }
+.sc-bigwin-tabs button.on { background: var(--cc-raised); border-color: var(--cc-line); color: var(--cc-text); font-weight: 600; }
+.sc-bigwin-x { font-size: 16px; padding: 6px 12px; }
+.sc-bigwin-b { min-height: 0; display: grid; overflow: hidden; }
+.sc-bigwin-b > * { display: none !important; }
+.sc-bigwin[data-tab="lib"] .sc-bigwin-b > .sc-lib { display: grid !important; }
+.sc-bigwin[data-tab="insp"] .sc-bigwin-b > .sc-inspector { display: block !important; overflow: auto; font-size: 14px; }
+.sc-bigwin[data-tab="dock"] .sc-bigwin-b > .sc-docks { display: flex !important; flex-direction: column; overflow: auto; border: 0; }
+.sc-bigwin-b > .sc-lib, .sc-bigwin-b > .sc-inspector, .sc-bigwin-b > .sc-docks { grid-area: auto; border-radius: 0; border: 0; min-height: 0; }
+@media (max-width: 720px) {
+  .sc-page[data-layout="big"][data-view="screen"] .sc-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(220px, 45vh) minmax(200px, auto) auto; grid-template-areas: "rail" "player" "tl" "ov"; }
+  .sc-rail { flex-direction: row; padding: 0; }
+  .sc-rail button { flex: 1; grid-auto-flow: column; padding: 8px 4px; }
+  .sc-rail button span { font-size: 16px; }
+  .sc-bigwin { inset: 8px; }
+}

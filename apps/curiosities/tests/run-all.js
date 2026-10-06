@@ -82,6 +82,7 @@ const suites = [
   /* secs: roughly how long a suite takes on a laptop, used only to deal suites out to --shard parts
      (a suite without it counts as 60). The long every-control runs are split in two by page. */
   { name: "screen in a browser", browser: true, secs: 65, ...node("screen/tests/browser.js") },
+  { name: "big viewer layout in a browser", browser: true, secs: 15, ...node("screen/tests/big-layout.js") },
   { name: "triggers in a browser", browser: true, secs: 25, ...node("screen/tests/triggers-browser.js") },
   { name: "catalyst window in a browser", browser: true, secs: 15, ...node("screen/tests/catalyst-browser.js") },
   { name: "category windows in a browser", browser: true, secs: 20, ...node("screen/tests/category-windows-browser.js") },
