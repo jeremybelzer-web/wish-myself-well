@@ -23067,6 +23067,432 @@
    "then": "the group pressure rises"
   },
   {
+   "id": "p:chaos-cruel-voice",
+   "proximity": "chaos-cruel-voice",
+   "label": "When the chaos inside rises, the inner voice turns cruel",
+   "from": {
+    "curiosity": "innerWeather",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfTalk",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chaos inside rises",
+   "then": "the inner voice turns cruel"
+  },
+  {
+   "id": "p:cruel-voice-beat-up",
+   "proximity": "cruel-voice-beat-up",
+   "label": "When the inner voice is cruel, they beat themselves up",
+   "from": {
+    "curiosity": "selfTalk",
+    "track": "character",
+    "is": "harsh",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughOrBeat.harsh",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the inner voice is cruel",
+   "then": "they beat themselves up"
+  },
+  {
+   "id": "p:laugh-settles",
+   "proximity": "laugh-settles",
+   "label": "When they laugh at themselves, the storm settles",
+   "from": {
+    "curiosity": "laughOrBeat",
+    "track": "character",
+    "is": "laugh it off",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they laugh at themselves",
+   "then": "the storm settles"
+  },
+  {
+   "id": "p:soothe-calms",
+   "proximity": "soothe-calms",
+   "label": "When the soothing works, they come back to calm",
+   "from": {
+    "curiosity": "selfSoothe.works",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the soothing works",
+   "then": "they come back to calm"
+  },
+  {
+   "id": "p:alone-numb",
+   "proximity": "alone-numb",
+   "label": "When they can't bear being alone, they reach for relief",
+   "from": {
+    "curiosity": "aloneComfort",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "reliefSeeking",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they can't bear being alone",
+   "then": "they reach for relief"
+  },
+  {
+   "id": "p:chaos-hurdle",
+   "proximity": "chaos-hurdle",
+   "label": "When the chaos inside rises, the inner hurdle grows",
+   "from": {
+    "curiosity": "innerWeather",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerHurdle",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chaos inside rises",
+   "then": "the inner hurdle grows"
+  },
+  {
+   "id": "p:hurdle-cleared-thrive",
+   "proximity": "hurdle-cleared-thrive",
+   "label": "When the inner hurdle is cleared, life starts climbing",
+   "from": {
+    "curiosity": "innerHurdle",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "thriving",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the inner hurdle is cleared",
+   "then": "life starts climbing"
+  },
+  {
+   "id": "p:healer-near-stay",
+   "proximity": "healer-near-stay",
+   "label": "When a healer is near, they stay with the feeling",
+   "from": {
+    "curiosity": "healerType.skill",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "facingFeelings",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a healer is near",
+   "then": "they stay with the feeling"
+  },
+  {
+   "id": "p:run-bad-choice",
+   "proximity": "run-bad-choice",
+   "label": "When they run from a feeling, the cost climbs",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "is": "runs at once",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "facingFeelings.cost",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they run from a feeling",
+   "then": "the cost climbs"
+  },
+  {
+   "id": "p:picture-both-calmer",
+   "proximity": "picture-both-calmer",
+   "label": "When they picture both outcomes, the fear loosens",
+   "from": {
+    "curiosity": "picturingOutcomes",
+    "track": "character",
+    "is": "both",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they picture both outcomes",
+   "then": "the fear loosens"
+  },
+  {
+   "id": "p:facing-welcome",
+   "proximity": "facing-welcome",
+   "label": "When they stay with the feeling, they start to welcome it",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "welcomingFeelings",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they stay with the feeling",
+   "then": "they start to welcome it"
+  },
+  {
+   "id": "p:welcome-awake",
+   "proximity": "welcome-awake",
+   "label": "When they welcome hard feelings, awareness deepens",
+   "from": {
+    "curiosity": "welcomingFeelings",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they welcome hard feelings",
+   "then": "awareness deepens"
+  },
+  {
+   "id": "p:awake-give",
+   "proximity": "awake-give",
+   "label": "When awareness deepens, they give more",
+   "from": {
+    "curiosity": "awakening",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "awareness deepens",
+   "then": "they give more"
+  },
+  {
+   "id": "p:healing-kind-voice",
+   "proximity": "healing-kind-voice",
+   "label": "When the healing moves forward, the inner voice softens",
+   "from": {
+    "curiosity": "healingArc",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfTalk",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the healing moves forward",
+   "then": "the inner voice softens"
+  },
+  {
+   "id": "p:healed-becomes-healer",
+   "proximity": "healed-becomes-healer",
+   "label": "When they're free, they become the healer",
+   "from": {
+    "curiosity": "healingArc",
+    "track": "character",
+    "is": "free on the other side",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "healingArc.shared",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they're free",
+   "then": "they become the healer"
+  },
+  {
+   "id": "p:facing-shame-cope",
+   "proximity": "facing-shame-cope",
+   "label": "When they face the feeling, the way they cope with shame changes",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "is": "stays and feels it all",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "copingStyle",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "face it",
+   "when": "they face the feeling",
+   "then": "the way they cope with shame changes"
+  },
+  {
+   "id": "p:through-to-freedom",
+   "proximity": "through-to-freedom",
+   "label": "When they feel a hard feeling all the way through, freedom is on the other side",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "healingArc",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "free on the other side",
+   "when": "they feel a hard feeling all the way through",
+   "then": "freedom is on the other side"
+  },
+  {
+   "id": "p:through-to-peace",
+   "proximity": "through-to-peace",
+   "label": "When they feel a hard feeling all the way through, the storm inside settles",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they feel a hard feeling all the way through",
+   "then": "the storm inside settles"
+  },
+  {
+   "id": "p:through-to-awareness",
+   "proximity": "through-to-awareness",
+   "label": "When they feel a hard feeling all the way through, awareness deepens",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they feel a hard feeling all the way through",
+   "then": "awareness deepens"
+  },
+  {
+   "id": "p:care-to-give",
+   "proximity": "care-to-give",
+   "label": "When they take care of their own body and mind, they have more to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they take care of their own body and mind",
+   "then": "they have more to give"
+  },
+  {
+   "id": "p:empty-cup",
+   "proximity": "empty-cup",
+   "label": "When they stop caring for themselves, they have less to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they stop caring for themselves",
+   "then": "they have less to give"
+  },
+  {
+   "id": "p:giving-is-meaning",
+   "proximity": "giving-is-meaning",
+   "label": "When they help others, life has meaning",
+   "from": {
+    "curiosity": "awakening.give",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.meaning",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they help others",
+   "then": "life has meaning"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -28671,6 +29097,98 @@
     "p:home-trapped-drive",
     "p:world-easier-thrive",
     "p:craft-rank"
+   ]
+  },
+  {
+   "id": "ps:the-spiral-alone",
+   "label": "The spiral alone",
+   "plain": "Alone and uneasy, the chaos rises, the voice turns cruel, they beat themselves up, reach for relief, and the inner hurdle grows.",
+   "proximities": [
+    "alone-numb",
+    "chaos-cruel-voice",
+    "cruel-voice-beat-up",
+    "chaos-hurdle"
+   ],
+   "links": [
+    "p:alone-numb",
+    "p:chaos-cruel-voice",
+    "p:cruel-voice-beat-up",
+    "p:chaos-hurdle"
+   ]
+  },
+  {
+   "id": "ps:finding-calm",
+   "label": "Finding calm",
+   "plain": "They laugh at the slip, the soothing works, the storm settles, the inner hurdle shrinks, and life climbs.",
+   "proximities": [
+    "laugh-settles",
+    "soothe-calms",
+    "hurdle-cleared-thrive"
+   ],
+   "links": [
+    "p:laugh-settles",
+    "p:soothe-calms",
+    "p:hurdle-cleared-thrive"
+   ]
+  },
+  {
+   "id": "ps:the-other-side",
+   "label": "The other side",
+   "plain": "The facts of healing, always on: take care of your own body and mind first; feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others, which is the point of life. Run from it and the cost climbs.",
+   "proximities": [
+    "through-to-peace",
+    "through-to-awareness",
+    "through-to-freedom",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healed-becomes-healer",
+    "run-bad-choice",
+    "care-to-give",
+    "empty-cup",
+    "giving-is-meaning"
+   ],
+   "links": [
+    "p:through-to-peace",
+    "p:through-to-awareness",
+    "p:through-to-freedom",
+    "p:facing-welcome",
+    "p:welcome-awake",
+    "p:awake-give",
+    "p:healed-becomes-healer",
+    "p:run-bad-choice",
+    "p:care-to-give",
+    "p:empty-cup",
+    "p:giving-is-meaning"
+   ]
+  },
+  {
+   "id": "ps:the-healing-road",
+   "label": "The healing road",
+   "plain": "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
+   "proximities": [
+    "healer-near-stay",
+    "picture-both-calmer",
+    "through-to-peace",
+    "through-to-freedom",
+    "through-to-awareness",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healing-kind-voice",
+    "healed-becomes-healer"
+   ],
+   "links": [
+    "p:healer-near-stay",
+    "p:picture-both-calmer",
+    "p:through-to-peace",
+    "p:through-to-freedom",
+    "p:through-to-awareness",
+    "p:facing-welcome",
+    "p:welcome-awake",
+    "p:awake-give",
+    "p:healing-kind-voice",
+    "p:healed-becomes-healer"
    ]
   },
   {
