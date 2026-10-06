@@ -3,8 +3,9 @@
    - A playhead on the storyboard strip: a line with a ▼ on a thin ruler above the panels, moving with the
      film. Drag along the ruler (or the ▼) to scrub; click anywhere in a panel to jump to that moment in it.
    - Sound while scrubbing and playing: every syllable of a speech balloon gives a little voice blip (each
-     character has their own pitch) at the rate of speech it is set to, falling rain hisses, and crossing from
-     one panel to the next gives a soft page-turn tick. 🔊 Sound in the strip turns it off.
+     character has their own pitch) at the rate of speech it is set to, and falling rain hisses. Crossing from
+     one panel to the next makes no sound (Jeremy 2026-10-06: the playhead already shows it). 🔊 Sound in the
+     strip turns it off.
    - "Read as a comic" gets a Layout choice: Simple grid, Modern comic, or Zine.
      Modern comic follows how comic artists pace a page: wide establishing panels take a whole tier, the big
      moments become large splash panels, inserts of small things are small, close-ups are narrow, views from
@@ -220,7 +221,6 @@
   let ac = null;
   let rain = null;
   let lastT = null;
-  let lastPanel = -1;
   let heard = 0;
   function wake() {
     if (ac || !sound) return;
@@ -339,10 +339,7 @@
       clearTimeout(still);
       still = setTimeout(() => ac && rain.gain.setTargetAtTime(0, ac.currentTime, 0.03), 140);
     }
-    if (!loud || (playing && Math.abs(dT) > 1.5)) {
-      lastPanel = i;
-      return;
-    }
+    if (!loud || (playing && Math.abs(dT) > 1.5)) return;
     const back = dT < 0;
     const rate = Math.abs(dT) / dWall;
     if (drag) Object.assign(scrubbed, { dir: back ? -1 : 1, rate, blips: [] });
@@ -367,11 +364,6 @@
       if (drag) scrubbed.blips.push(q.at);
       heard++;
     });
-    if (lastPanel >= 0 && i !== lastPanel) {
-      blip(2600, now, 0.03, "square");
-      heard++;
-    }
-    lastPanel = i;
     if (drag) grains(prev, T, dWall);
   }
 

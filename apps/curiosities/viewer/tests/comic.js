@@ -1,6 +1,6 @@
 /* The comic strip in a real browser: node apps/curiosities/viewer/tests/comic.js [--shots dir]
    (Jeremy's notes, 2026-10-04 20:16Z). A playhead (line and ▼) on the storyboard strip moves with the film;
-   dragging along the ruler scrubs, with voice blips for the words and a tick at each new panel; clicking in a
+   dragging along the ruler scrubs, with voice blips for the words and no sound at a new panel; clicking in a
    panel jumps to that moment; Pause goes back to where Play was pressed (or stays, if chosen); Read as a comic
    has Modern comic (frames sized and shaped by the shot and the story, read in order) and Zine layouts; no
    errors. */
@@ -95,7 +95,7 @@ const ok = (cond, msg) => {
   ok(rising && seen[seen.length - 1] > seen[0] + 3, `dragging along the ruler scrubs through the film (${seen[0].toFixed(1)} s → ${seen[seen.length - 1].toFixed(1)} s)`);
   ok((await L(() => CurioViewer.panel())) === 6, "and lands on the panel under the pointer");
   const h1 = await L(() => CurioComic.heard());
-  ok(h1 > h0 + 4, `scrubbing plays the words' syllables and the page turns (${h1 - h0} sounds)`);
+  ok(h1 > h0 + 2, `scrubbing plays the words' syllables (${h1 - h0} sounds)`);
   const fwd = await L(() => CurioComic.scrubbed());
   ok(fwd.dir === 1, "dragged right, the sound plays forwards");
 
