@@ -1175,3 +1175,9 @@ html[data-sc-splitting="xy"], html[data-sc-splitting="xy"] * { cursor: nwse-resi
   .sc-rail button span { font-size: 16px; }
   .sc-bigwin { inset: 8px; }
 }
+.sc-page[data-layout="big"][data-big-at="right"] .sc-viewers { justify-content: flex-start; }
+.sc-page[data-layout="big"][data-big-at="right"] .sc-viewer .sc-frame { margin: 0; }
+.sc-page[data-layout="big"][data-big-at="below"] .sc-main > .sc-overview .sc-ov-h { display: none; }
+.sc-page[data-layout="big"][data-big-at="below"] .sc-main > .sc-overview .sc-ov-strip { height: 40px; }
+.sc-page[data-layout="big"][data-view="screen"][data-big-at="right"] .sc-viewer { flex: 0 1 auto; }
+.sc-page[data-layout="big"][data-view="screen"][data-big-at="right"] .sc-viewer .sc-frame { width: calc((100cqh - 64px) * var(--sc-ar, 1.7778)); max-width: 100%; }

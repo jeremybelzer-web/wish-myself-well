@@ -99,7 +99,7 @@ const ok = (cond, msg) => {
       await page.click('.sc-rail [data-bigtab="insp"]');
       await page.waitForTimeout(300);
       const side = await page.evaluate(() => { const w = document.querySelector(".sc-bigwin").getBoundingClientRect(); const f = document.querySelector(".sc-viewers .sc-frame").getBoundingClientRect(); return [f.right, w.left, w.width]; });
-      ok(side[0] <= side[1] + 1 && side[2] > 450, `${tag}: with one viewer the window sits to its right (viewer ends ${Math.round(side[0])}, window starts ${Math.round(side[1])})`);
+      ok(side[0] <= side[1] + 1 && side[2] > 400, `${tag}: with one viewer the window sits to its right (viewer ends ${Math.round(side[0])}, window starts ${Math.round(side[1])})`);
       await page.screenshot({ path: path.join(SHOTS, `big-${tag}-one-details.png`) });
       await page.keyboard.press("Escape");
       await page.waitForTimeout(200);

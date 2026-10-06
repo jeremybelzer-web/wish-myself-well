@@ -51,7 +51,7 @@ server.listen(0, "127.0.0.1", async () => {
   await page.click('.cvb-rail [data-cvb="move"]');
   await page.waitForTimeout(300);
   const win = await box(".cvb-win");
-  ok(win && win.w >= 600 && win.h > 500 && (await page.isVisible(".cvb-win .cv-details .cv-body")), `Move it opens in a big window (${win && Math.round(win.w)}×${win && Math.round(win.h)})`);
+  ok(win && win.w >= 600 && win.h > 300 && (await page.isVisible(".cvb-win .cv-details .cv-body")), `Move it opens in a big window (${win && Math.round(win.w)}×${win && Math.round(win.h)})`);
   await page.screenshot({ path: path.join(SHOTS, "viewer-big-move.png") });
   const pic = await box(".cv-wins .cv-win");
   ok(pic.r <= win.l + 1, `with one picture the window sits to its right and covers none of it (picture ends ${Math.round(pic.r)}, window starts ${Math.round(win.l)})`);
@@ -79,6 +79,8 @@ server.listen(0, "127.0.0.1", async () => {
   await page.waitForTimeout(400);
   const w2 = await box(".cvb-win");
   const pics = await page.$$eval(".cv-wins .cv-win", (els) => els.map((e) => e.getBoundingClientRect().bottom));
+  const strip = await box(".cv-cards");
+  ok(strip && w2.b <= strip.t + 2 && strip.h > 20 && strip.h < 90, `the storyboard stays as a tiny strip under the window (${strip && Math.round(strip.h)}px)`);
   ok(w2.t >= Math.max(...pics) - 1 && w2.h > 250, `with two pictures the window sits under them (${Math.round(w2.t)} under ${Math.round(Math.max(...pics))}, ${Math.round(w2.h)} tall)`);
   await page.screenshot({ path: path.join(SHOTS, "viewer-big-two-camera.png") });
   await page.keyboard.press("Escape");

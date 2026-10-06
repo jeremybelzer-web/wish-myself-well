@@ -623,28 +623,31 @@
     win.dataset.tab = bigTab;
     bigPlace(main, win);
   }
-  /* The window never covers the viewer (Jeremy 2026-10-06 14:03Z): with one viewer the viewer moves left and the
-     window takes the right; with two or more (and on a phone) the viewers keep their size and the window takes
-     everything under them. */
+  /* Where the window goes (Jeremy 2026-10-06 14:03Z and 14:46Z): with one viewer the viewer keeps its size and moves
+     to the left, and the window takes all the blank room on top beside it; with two or more (and on a phone) the
+     window takes everything under the viewers, and the whole-film strip shrinks to a tiny row under it. */
   function bigPlace(main, win) {
     const S = win.style;
     main.style.paddingRight = "";
-    S.top = S.left = S.right = S.bottom = S.width = "";
-    if (!bigTab || !isBig()) return;
+    S.top = S.left = S.right = S.bottom = S.width = S.height = "";
+    if (!bigTab || !isBig()) return void delete page.dataset.bigAt;
+    const n = page.querySelectorAll(".sc-viewers .sc-viewer").length;
+    page.dataset.bigAt = n <= 1 && window.innerWidth > 720 ? "right" : "below";
     const pr = page.getBoundingClientRect();
     const mr = main.getBoundingClientRect();
-    const n = page.querySelectorAll(".sc-viewers .sc-viewer").length;
-    if (n <= 1 && window.innerWidth > 720) {
-      const w = Math.round(Math.min(760, window.innerWidth * 0.46));
-      main.style.paddingRight = w + 12 + "px";
-      Object.assign(S, { top: mr.top - pr.top + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - mr.bottom + 6 + "px", left: "auto", width: w + "px" });
+    const vr = page.querySelector(".sc-viewers").getBoundingClientRect();
+    if (page.dataset.bigAt === "right") {
+      const v = page.querySelector(".sc-viewers .sc-viewer").getBoundingClientRect();
+      Object.assign(S, { top: mr.top - pr.top + "px", left: v.right + 8 - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - vr.bottom + "px" });
       return;
     }
-    const vr = page.querySelector(".sc-viewers").getBoundingClientRect();
     const rail = main.querySelector(":scope > .sc-rail");
+    const ov = main.querySelector(":scope > .sc-overview");
     const left = window.innerWidth > 720 && rail ? rail.getBoundingClientRect().right + 6 : mr.left + 6;
-    Object.assign(S, { top: vr.bottom - pr.top + 6 + "px", left: left - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - mr.bottom + 6 + "px" });
+    const bottom = ov && ov.offsetHeight ? ov.getBoundingClientRect().top - 4 : mr.bottom - 6;
+    Object.assign(S, { top: vr.bottom - pr.top + 6 + "px", left: left - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - bottom + "px" });
   }
+
   function bigShow(id) {
     bigTab = id || "";
     bigApply();

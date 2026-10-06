@@ -53,6 +53,11 @@
 .cvb-body > .cv-details .cv-tabs { display: none; }
 .cvb-body .cv-body { font-size: 14px; }
 .cv-root.cv-big .cv-main { box-sizing: border-box; }
+.cv-root.cv-big[data-cvb-at="right"] .cv-wins { justify-content: start; }
+.cv-root.cv-big[data-cvb-at="below"] .cv-wins { align-content: start; }
+.cv-root.cv-big[data-cvb-at="below"] .cv-strip-head, .cv-root.cv-big[data-cvb-at="below"] .cv-card > :not(canvas) { display: none; }
+.cv-root.cv-big[data-cvb-at="below"] .cv-card { flex-basis: 84px; }
+.cv-root.cv-big[data-cvb-at="below"] .cv-card canvas { border-bottom: 0; }
 .cvb-side { display: none; }
 .cv-root.cv-big .cvb-side:not([hidden]) { display: flex; flex-direction: column; justify-content: center; gap: 8px; position: absolute; top: 0; bottom: 0; z-index: 3; width: 92px; }
 .cv-root.cv-big .cvb-side-l { left: 6px; }
@@ -127,10 +132,10 @@
     place();
     redraw();
   }
-  /* Where the window goes (Jeremy 2026-10-06 14:03Z: "should default to not covering the view screen"): with one
-     picture, the picture moves left and the window takes the right; with two or more pictures (and on a phone) the
-     pictures keep their size and the window takes everything under them (Front and center and the storyboard come
-     back when it closes). */
+  /* Where the window goes (Jeremy 2026-10-06 14:03Z and 14:46Z): with one picture, the picture keeps its size and
+     moves to the left, and the window takes all the blank room on top beside it; with two or more pictures (and on a
+     phone) the window takes the space under them, over Front and center and most of the storyboard, which shrinks to
+     a tiny strip of pictures at the bottom. Everything comes back when it closes. */
   const winCount = (root) => +((root.querySelector(".cv-wins") || {}).dataset || {}).n || 1;
   function place() {
     const root = rootEl();
@@ -147,20 +152,24 @@
     root.dataset.cvbAt = below ? "below" : "right";
     const rr = root.getBoundingClientRect();
     const mr = main.getBoundingClientRect();
+    const st = root.querySelector(".cv-stage").getBoundingClientRect();
     const S = win.style;
     S.top = S.bottom = S.left = S.right = S.width = S.height = "";
     if (below) {
-      /* under the pictures, over Front and center and the storyboard, which come back when it closes */
-      const st = root.querySelector(".cv-stage").getBoundingClientRect();
+      /* under the pictures, over Front and center and most of the storyboard, which shrinks to a tiny strip */
+      const strip = root.querySelector(".cv-strip").getBoundingClientRect();
+      const pb = Math.max(st.top, ...[...root.querySelectorAll(".cv-wins .cv-win")].map((w) => w.getBoundingClientRect().bottom));
       const pl = window.innerWidth <= 760 ? mr.left + 6 : player.getBoundingClientRect().left;
-      Object.assign(S, { left: pl - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: st.bottom - rr.top + 6 + "px", bottom: "10px" });
+      Object.assign(S, { left: pl - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: pb - rr.top + 6 + "px", bottom: rr.bottom - strip.top + 4 + "px" });
     } else {
-      const w = Math.round(Math.min(760, window.innerWidth * 0.46));
-      main.style.paddingRight = w + 12 + "px";
-      Object.assign(S, { right: rr.right - mr.right + 6 + "px", width: w + "px", top: mr.top - rr.top + 6 + "px", height: mr.height - 12 + "px" });
+      /* the picture keeps its size and moves to the left; the window takes all the blank room on top beside it */
+      const pic = root.querySelector(".cv-wins .cv-win");
+      const pr = pic ? pic.getBoundingClientRect() : st;
+      Object.assign(S, { left: pr.right + 8 - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: mr.top - rr.top + 6 + "px", bottom: rr.bottom - st.bottom + "px" });
     }
     sides();
   }
+
   /* Simple controls used all the time sit in the empty room left and right of a single picture. */
   function sides() {
     const root = rootEl();
@@ -180,7 +189,7 @@
     }
     const one = stage.querySelector(".cv-win");
     const gap = one ? (stage.getBoundingClientRect().width - one.getBoundingClientRect().width) / 2 : 0;
-    l.hidden = r.hidden = !on || winCount(root) > 1 || gap < 104;
+    l.hidden = r.hidden = !on || winCount(root) > 1 || gap < 104 || !!root.dataset.cvbAt;
     const play = root.querySelector(".cv-transport [data-act=play]");
     const pb = r.querySelector(".cvb-play");
     if (play && pb.textContent !== play.textContent) pb.textContent = play.textContent;
@@ -191,6 +200,8 @@
       /* Front and center measures the room beside the picture on a resize, so it stretches to the new edges. */
       window.dispatchEvent(new Event("resize"));
       if (v && v.redraw) v.redraw();
+      /* the pictures settle into their new room, then the window lines up with them */
+      requestAnimationFrame(place);
     });
   }
   function show(id) {
