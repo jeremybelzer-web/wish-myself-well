@@ -13,6 +13,7 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const prefs = load();
   if (window.CurioDetail) window.CurioDetail.configure({ on: prefs.detail });
+  if (window.CurioWiden) window.CurioWiden.configure({ on: prefs.wider });
   const slot = { a: { clip: null, d: null, busy: null }, b: { clip: null, d: null, busy: null } };
   let page = null,
     paidOpen = false,
@@ -31,7 +32,7 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, detail: p.detail !== false, open: openOf(p.open), pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, detail: p.detail !== false, wider: p.wider !== false, open: openOf(p.open), pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
   }
   /* Which sections of the switch list are open: { sectionId: true or false }. */
   function openOf(o) {
@@ -121,6 +122,7 @@
         <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: Math.min(5, slot.b.clip ? slot.b.clip.duration : 5) }))}.</span></div>
         <div class="vd-ai-row"><label>Stop any job over $<input type="number" min="0.05" max="100" step="0.05" data-ai-cap="job" value="${AI.caps().job}"></label>
         <label>Stop for the day after $<input type="number" min="0.1" max="100" step="0.5" data-ai-cap="day" value="${AI.caps().day}"></label>
+        ${hasKey && slot.b.clip && widenPaid() ? `<div class="vd-ai-row"><button type="button" data-act="ai-widen" title="Makes the frame showing in your clip's box wider, with AI painting the new edges (the free fill does this on every frame)">Paint wider edges with AI</button><span class="vd-k">One still frame, ${esc(widenPaid().cost({ frames: 1 }))}.</span></div>` : ""}
         <span class="vd-k">Spent today in this browser: $${AI.spent().dollars.toFixed(2)}. Every paid job shows its price first and keeps to short clips (5 seconds or less).</span></div></details>`
           : ""
       }
@@ -292,7 +294,7 @@
         const open = prefs.open[s.id] != null ? prefs.open[s.id] : s.id === "light";
         return `<details class="vd-sec" data-sec="${s.id}"${open ? " open" : ""}>
           <summary><strong>${esc(s.label)}</strong><span class="vd-count${on.length ? " some" : ""}">${on.length} of ${s.groups.length} on</span><span class="vd-which">${on.length ? esc(on.map((g) => g.label).join(", ")) : cant ? `${cant} need${cant === 1 ? "s" : ""} the AI cut-outs or both clips` : "all off"}</span></summary>
-          <div class="vd-sec-body">${s.groups.map((g) => applyRow(g, A, B)).join("")}${s.id === "camera" ? `<label class="vd-sub vd-detail" title="When your clip is zoomed in, its compression blocks are softened and its edges sharpened, without halos"><input type="checkbox" data-detail ${prefs.detail ? "checked" : ""}> Sharper zooms <small>(cleans and sharpens any zoomed-in picture)</small></label>` : ""}</div>
+          <div class="vd-sec-body">${s.groups.map((g) => applyRow(g, A, B)).join("")}${s.id === "camera" ? `<label class="vd-sub vd-detail" title="When your clip is zoomed in, its compression blocks are softened and its edges sharpened, without halos"><input type="checkbox" data-detail ${prefs.detail ? "checked" : ""}> Sharper zooms <small>(cleans and sharpens any zoomed-in picture)</small></label><label class="vd-sub vd-wider" title="When the inspiration's shot is wider than yours, your picture shrinks into the middle and the new edges are filled in, up to 25% wider"><input type="checkbox" data-wider ${prefs.wider ? "checked" : ""}> Wider shots <small>(fills in new edges when the inspiration is wider)</small></label>` : ""}</div>
         </details>`;
       })
       .join("");
@@ -340,7 +342,7 @@
     return { w, h: clip ? Math.round((w * clip.height) / clip.width / 2) * 2 : 360 };
   }
   function currentPlan() {
-    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines, pool: prefs.pool, framing: { tilt: prefs.tilt } });
+    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines, pool: prefs.pool, framing: { tilt: prefs.tilt }, wider: prefs.wider });
   }
 
   /* ---------- actions ---------- */
@@ -526,6 +528,7 @@
       }
       if (act === "ai-preview") return aiPreview();
       if (act === "ai-puppet") return aiPuppet();
+      if (act === "ai-widen") return aiWiden();
       if (t.dataset.show) {
         show = t.dataset.show;
         return draw();
@@ -577,6 +580,10 @@
         checks = null;
       } else if (t.dataset.tilt != null) {
         prefs.tilt = t.checked;
+        checks = null;
+      } else if (t.dataset.wider != null) {
+        prefs.wider = t.checked;
+        if (window.CurioWiden) window.CurioWiden.configure({ on: prefs.wider });
         checks = null;
       } else if (t.dataset.detail != null) {
         prefs.detail = t.checked;
@@ -681,6 +688,49 @@
       say("Opened the people in this frame as a puppet.");
     } catch (e) {
       say("Couldn't make the puppet: " + ((e && e.message) || "the rig didn't open") + ".");
+    }
+  }
+  /* The paid wider frame: the frame showing in your clip's box, made wider with AI-painted edges (as wide as the
+     plan wants there, or the widest the free fill goes), shown in the output box. Under the price caps. */
+  const widenPaid = () => window.CurioAI && window.CurioAI.providers("picture").find((x) => x.id === "fal-outpaint");
+  async function aiWiden() {
+    const v = page && page.querySelector('.vd-clips video[data-slot="b"]'),
+      P = widenPaid();
+    if (!v || !v.videoWidth || !P) return;
+    const W = Math.min(1024, v.videoWidth),
+      H = Math.round((W * v.videoHeight) / v.videoWidth);
+    const c = document.createElement("canvas");
+    c.width = W;
+    c.height = H;
+    c.getContext("2d").drawImage(v, 0, 0, W, H);
+    let s = window.CurioWiden ? window.CurioWiden.MIN : 0.8;
+    try {
+      const a = slot.a.d && slot.b.d ? V().at(currentPlan(), v.currentTime) : null;
+      if (a && a.widen < 1) s = a.widen;
+    } catch (e) {}
+    say("Painting wider edges with AI (" + P.cost({ frames: 1 }) + ")...");
+    try {
+      const out = await P.widenFrame(c.toDataURL("image/jpeg", 0.9), s, { width: W, height: H });
+      if (!out.imageUrl) return say("The AI sent no picture back.");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise((ok, bad) => {
+        img.onload = ok;
+        img.onerror = bad;
+        img.src = out.imageUrl;
+      });
+      note = "Wider with AI-painted edges (one still frame). The free fill does this on every frame as it plays.";
+      saved = null;
+      draw();
+      const cv = page.querySelector("canvas.vd-out");
+      const x = cv.getContext("2d", { willReadFrequently: true });
+      x.drawImage(img, 0, 0, cv.width, cv.height);
+      try {
+        saved = { frame: x.getImageData(0, 0, cv.width, cv.height) };
+      } catch (e) {}
+      result = true;
+    } catch (e) {
+      say("Couldn't paint wider edges: " + ((e && e.message) || "the AI didn't answer") + ".");
     }
   }
   /* Clips brought in while the AI was off get their cut-outs now. */

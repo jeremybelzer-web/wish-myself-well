@@ -9,7 +9,8 @@
    - pcm(clip) -> Promise<{ data: Float32Array, rate } | null>       the sound as one channel
    - drawApplied(ctx, video, adj, W, H, opts?)                        one output frame with a plan's changes
                                                                      (a zoom is drawn sharper by detail.js unless
-                                                                     opts.detail is false)
+                                                                     opts.detail is false; a wider shot's new
+                                                                     edges are filled by widen.js)
                                                                       (looks.js draws the palette, grain and frame shape)
    - check(plan, clip, group?, { onProgress? }) -> Promise<{ after, scores }>   renders the applied clip frame by
      frame (no recording), measures it again, and scores each group against the inspiration
@@ -297,6 +298,7 @@
 
   /* One output frame: zoom and slide (camera curiosities), then light and color, then the new line as a
      subtitle. */
+  let widenCopy = null;
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
     const SH = adj.shutter && window.CurioShutter; /* motion feel (video/shutter.js): a held picture is drawn again */
@@ -340,6 +342,16 @@
       ctx.restore();
     } else ctx.drawImage(pic, ax - ox, ay - oy, sw, sh, 0, 0, W, H);
     if (S) DT.finish(ctx, W, H, S.scale);
+    /* A wider shot (widen.js): the picture shrunk into the middle and its new edges filled in. */
+    if (adj.widen < 1 && window.CurioWiden && window.CurioWiden.on()) {
+      const c = widenCopy || (widenCopy = document.createElement("canvas"));
+      if (c.width !== W || c.height !== H) {
+        c.width = W;
+        c.height = H;
+      }
+      c.getContext("2d").drawImage(ctx.canvas, 0, 0, W, H, 0, 0, W, H);
+      window.CurioWiden.fill(ctx, c, W, H, adj.widen);
+    }
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
     const M = (adj.parts || adj.relight) && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
     const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;

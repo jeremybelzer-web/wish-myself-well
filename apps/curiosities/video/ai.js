@@ -17,6 +17,8 @@
    - spent() -> { date, dollars, log }           today's spending in this browser
    - check(dollars) -> null | reason             why a job of that price would be stopped
    - falRun(app, input, { estimate, label })     refuses to start past a cap, and records the price when done
+   - providers("picture") includes "fal-outpaint": widenFrame(imageUrl, s, { width, height }) paints wider edges
+     around one still frame (video/widen.js does the free fill on every frame)
    - faceSwap(), setFaceSwap({ own })            face swap on your own clips: on unless you turn it off
    - agree(clipName, yes), agreed(clipName)      everyone shown in that clip agreed to a face swap (or it is only you)
    - faceOk(clipName, { others }) -> null | reason   why a face swap on that clip would be stopped; others: the clip
@@ -225,6 +227,35 @@
     async editFrame(imageUrl, prompt, opts) {
       const res = await falRun(this.app, { image_url: imageUrl, prompt: String(prompt || "").slice(0, 500) }, Object.assign({ estimate: this.price({ frames: 1 }), label: "Frame edit" }, opts));
       return { imageUrl: res.images && res.images[0] && res.images[0].url, raw: res };
+    },
+  });
+
+  /* The paid wider shot (Jeremy, 2026-10-05: "yes fake the wider shot"): AI paints new edges around one still
+     frame, so the picture fills only s of the new frame. The free fill (video/widen.js) does every frame in the
+     browser and stays the default. Not yet run end to end: it needs a key. */
+  register("picture", "fal-outpaint", {
+    label: "Paid, opt in: paint wider edges with AI, on fal.ai (your own key)",
+    where: "server",
+    company: "fal",
+    app: "fal-ai/image-apps-v2/outpaint",
+    /* rough: about 5 cents an image */
+    price: (job) => 0.05 * Math.max(1, (job && job.frames) || 1),
+    cost(job) {
+      return `about ${money(this.price(job))} for ${(job && job.frames) || 1} frame(s) (rough; fal.ai's price applies)`;
+    },
+    /* the pixels to add on each side for a frame w by h to fill s (0.5..1) of the wider one */
+    edges(w, h, s) {
+      s = Math.max(0.5, Math.min(1, Number(s) || 1));
+      const x = Math.round((w / s - w) / 2),
+        y = Math.round((h / s - h) / 2);
+      return { expand_left: x, expand_right: x, expand_top: y, expand_bottom: y };
+    },
+    async widenFrame(imageUrl, s, opts) {
+      opts = opts || {};
+      const input = Object.assign({ image_url: imageUrl, prompt: "continue the scene naturally beyond the edges, same light and camera" }, this.edges(opts.width || 1024, opts.height || 576, s));
+      const res = await falRun(this.app, input, Object.assign({ estimate: this.price({ frames: 1 }), label: "Wider frame" }, opts));
+      const im = (res.images && res.images[0]) || res.image;
+      return { imageUrl: im && im.url, raw: res };
     },
   });
 
