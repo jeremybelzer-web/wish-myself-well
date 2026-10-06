@@ -5,13 +5,14 @@ const assert = require("assert");
 const path = require("path");
 const db = require(path.join(__dirname, "../../data/curiosity-db.json"));
 const { scenes } = require("../scenes.js");
+const { works } = require("../writing.js");
 const Hub = require("../search.js");
 
 const byId = {};
 db.curiosities.forEach((c) => (byId[c.id] = c));
 let errors = [];
 const ids = new Set();
-scenes.forEach((s) => {
+scenes.concat(works).forEach((s) => {
   if (ids.has(s.id)) errors.push("two scenes share id " + s.id);
   ids.add(s.id);
   if (!s.search) errors.push(s.id + ": no YouTube search");
@@ -64,6 +65,22 @@ assert.ok(Array.isArray(sm));
 const logged = hub.logClip({ work: "My clip", moment: "a test", feelings: ["joy"], search: "my clip", beats: [{ at: 0, values: { shotSize: "wide" } }, { at: 5, values: { shotSize: "close" } }] });
 hub.add(logged);
 assert.strictEqual(hub.results([{ text: "my clip" }]).length, 1);
+// Writing is its own database (novels, short stories, essays, poems): not mixed into films and games, found by
+// kind, author and movement, and read on Gutenberg.
+assert.ok(scenes.every((s) => !Hub.isWritten(s)) && works.every((s) => Hub.isWritten(s)), "the two databases stay apart");
+const wh = Hub.create({ scenes: works, curiosities: db.curiosities, suites: db.suites });
+assert.deepStrictEqual(wh.kinds([]).map((k) => k.id), ["novel", "short story", "essay", "poem"], "writing's subcategories");
+const books = wh.results([{ kind: "poem" }]);
+assert.ok(books.length >= 4, "poems are in the list");
+assert.ok(wh.results([{ text: "poe" }]).length >= 2, "authors are searchable");
+assert.ok(wh.movements([]).some((m) => m.id === "pacing") && wh.results([{ movement: "pacing" }]).length >= 2, "movement words filter");
+assert.ok(/gutenberg\.org/.test(wh.watchUrl(books[0], "youtube")), "writing opens on Project Gutenberg");
+assert.ok(/youtube/.test(hub.watchUrl(psycho, "youtube")), "films open on YouTube");
+assert.ok(works.every((s) => s.author && s.movements.length && s.year < 1930), "written sources: author, movements, public domain");
+// Every written work links its movements to the emotion-movement archive (relations/archive.js ids, mv-*).
+assert.ok(works.every((w) => w.archive.length && w.archive.every((id) => /^mv-[a-z-]+$/.test(id))), "movements link to the archive");
+assert.ok(wh.results([{ movement: "mv-pacing" }]).length >= 2, "an archive movement id filters too");
+console.log(`inspire: ${scenes.length} film and game scenes, ${works.length} written works, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);
 // Watch and tag: links to ids, times, and tags to beats.
 const W = require("../watch.js");
 assert.strictEqual(W.parseId("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30"), "dQw4w9WgXcQ");
@@ -107,4 +124,3 @@ const alive = { jNQXAC9IVRw: true, AAAAAAAAAAA: false, BBBBBBBBBBB: true, CCCCCC
   console.error(e);
   process.exit(1);
 });
-console.log(`inspire: ${scenes.length} scenes, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);

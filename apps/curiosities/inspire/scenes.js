@@ -16,11 +16,13 @@
     ST: "stakes",
   };
   const scenes = [];
-  /* s(work, year, kind, moment, feeling, search, beats: [[seconds, {short: value}]]) */
-  function s(work, year, kind, moment, feelings, search, beats) {
+  /* into(list) gives s(work, year, kind, moment, feelings, search, beats: [[at, {short: value}]], extra), which adds
+     one source to that list; extra adds fields such as author or movements. The writing database
+     (inspire/writing.js) uses it for its own list. */
+  const into = (list) => function (work, year, kind, moment, feelings, search, beats, extra) {
     let carry = {};
     const id = (work + "-" + moment).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
-    scenes.push({
+    list.push({
       id,
       work,
       year,
@@ -34,8 +36,10 @@
         carry = Object.assign({}, carry, values);
         return { at, values: carry };
       }),
+      ...(extra || {}),
     });
-  }
+  };
+  const s = into(scenes);
 
   /* ---------- dread and suspense ---------- */
   s("Jaws", 1975, "film", "A parent on a crowded beach scans the water", "dread, suspense", "Jaws beach scene dolly zoom", [
@@ -237,6 +241,6 @@
     [60, { S: "close", X: 5, EY: "both hold" }],
   ]);
 
-  root.CurioInspireScenes = { scenes, SHORT: K };
+  root.CurioInspireScenes = { scenes, SHORT: K, into };
   if (typeof module !== "undefined") module.exports = root.CurioInspireScenes;
 })(typeof window !== "undefined" ? window : globalThis);

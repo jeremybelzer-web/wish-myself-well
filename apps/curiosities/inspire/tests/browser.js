@@ -43,7 +43,7 @@ function serve() {
     const total = await page.evaluate(() => window.CurioInspire.hub().scenes.length);
     const count = () => page.$$eval("dialog.ci-hub .ci-card", (x) => x.length);
     ok((await count()) === total && total >= 30, `every scene is listed first (${total})`);
-    ok((await page.$$eval("dialog.ci-hub .ci-col:first-child .ci-row", (x) => x.length)) >= 6, "the big topics are on the left");
+    ok((await page.$$eval("dialog.ci-hub .ci-col:nth-child(2) .ci-row", (x) => x.length)) >= 6, "the big topics are in the columns");
     ok((await page.$$eval("dialog.ci-hub .ci-col:nth-child(2) .ci-row", (x) => x.length)) > 3, "ALL lists curiosity suites");
     await page.click('dialog.ci-hub [data-i="topic"][data-v="camera"]');
     await page.click('dialog.ci-hub [data-i="key"][data-v="shotSize"]');
@@ -72,7 +72,48 @@ function serve() {
       return { study: !!s, prism: !document.getElementById("prism").classList.contains("hidden"), closed: !document.querySelector("dialog.ci-hub").open };
     });
     ok(st.study && st.prism && st.closed, "Borrow makes it a curated film and opens the Prism");
+    /* The search pop-up a curiosity window opens: beside its anchor, on that curiosity, every column a filter. */
+    await page.evaluate(() => {
+      const a = document.createElement("div");
+      a.id = "fake-window";
+      a.style.cssText = "position:fixed;left:10px;top:60px;width:200px;height:200px";
+      document.body.appendChild(a);
+      window.CurioInspire.openSearch("pacing", { anchor: a });
+    });
+    const pop = await page.evaluate(() => {
+      const d = document.querySelector("dialog.ci-hub");
+      const r = d.getBoundingClientRect();
+      return { pop: d.classList.contains("ci-pop"), open: d.open, left: r.left, cols: d.querySelectorAll(".ci-grid > .ci-col").length, picked: !!d.querySelector('[data-i="key"][data-v="pacing"].on'), from: d.querySelector(".ci-from") && d.querySelector(".ci-from").textContent };
+    });
+    ok(pop.pop && pop.open && pop.left >= 210, "openSearch opens a pop-up beside the window it came from");
+    ok(pop.cols === 6 && pop.picked && /Walking back and forth/.test(pop.from || ""), "it has six filter columns and starts on that curiosity");
+    ok(await page.$('dialog.ci-hub [data-i="db"][data-v="writing"].on'), "a movement curiosity only writing has opens the Writing database");
+    ok(!(await page.$('dialog.ci-hub [data-i="kind"][data-v="film"]')), "films and games do not mix into writing");
+    await page.click('dialog.ci-hub [data-i="db"][data-v="writing"]');
+    const kinds = await page.$$eval('dialog.ci-hub [data-i="kind"]', (x) => x.map((b) => b.dataset.v));
+    ok(kinds.join() === "novel,short story,essay,poem", "Writing is its own database: novels, short stories, essays, poems");
+    await page.click('dialog.ci-hub [data-i="kind"][data-v="novel"]');
+    const books = await page.$$eval("dialog.ci-hub .ci-card", (x) => x.map((c) => c.textContent));
+    ok(books.length >= 1 && books.every((t) => /Read/.test(t)), "novels are read rather than watched (" + books.length + ")");
+    await page.click('dialog.ci-hub [data-i="clear"]');
+    await page.click('dialog.ci-hub [data-i="movement"][data-v="pacing"]');
+    ok((await count()) >= 2, "the Movements column filters by how characters move");
+    await page.click('dialog.ci-hub [data-ci="close"]');
+
+    /* The lanes' docked search window: CurioSceneSearch.mount(el, { curiosity, lane, label, from }). */
+    const docked = await page.evaluate(() => {
+      const el = document.createElement("div");
+      el.id = "dock";
+      document.body.appendChild(el);
+      window.CurioSceneSearch.mount(el, { curiosity: "tensionCurve", lane: "tensionCurve", label: "Tension", from: "viewer" });
+      return { cols: el.querySelectorAll(".ci-grid > .ci-col").length, cards: el.querySelectorAll(".ci-card").length, picked: !!el.querySelector('[data-i="key"][data-v="tensionCurve"].on') };
+    });
+    ok(docked.cols === 6 && docked.cards > 0 && docked.picked, "CurioSceneSearch.mount draws the search in a docked window, on that curiosity");
+    await page.click('#dock [data-i="value"]');
+    ok((await page.$$eval("#dock .ci-chip", (x) => x.length)) === 1, "the docked search filters too");
+
     await page.evaluate(() => window.CurioInspire.open({ filters: [] }));
+    await page.click('dialog.ci-hub [data-i="db"][data-v="screen"]');
     await page.click('dialog.ci-hub [data-i="log"]');
     await page.fill('dialog.ci-hub [data-l="work"]', "Test clip");
     await page.fill('dialog.ci-hub [data-l="moment"]', "a hello at a door");

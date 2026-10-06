@@ -83,6 +83,7 @@ const suites = [
      (a suite without it counts as 60). The long every-control runs are split in two by page. */
   { name: "screen in a browser", browser: true, secs: 65, ...node("screen/tests/browser.js") },
   { name: "triggers in a browser", browser: true, secs: 25, ...node("screen/tests/triggers-browser.js") },
+  { name: "category windows in a browser", browser: true, secs: 20, ...node("screen/tests/category-windows-browser.js") },
   { name: "every curiosity window in a browser", browser: true, secs: 30, ...node("screen/tests/windows-browser.js") },
   { name: "character matrix in a browser", browser: true, secs: 10, ...node("screen/tests/character-browser.js", threeArgs) },
   { name: "engine in a browser", browser: true, secs: 135, ...node("engine/tests/browser.js", threeArgs) },
@@ -94,6 +95,7 @@ const suites = [
   { name: "viewer looks and stuck drawings in a browser", browser: true, secs: 15, ...node("viewer/tests/wear.js", threeArgs) },
   { name: "app walkthrough in a browser", browser: true, secs: 15, ...node("viewer/tests/walkthrough.js") },
   { name: "front and center lane", browser: true, secs: 10, ...node("viewer/tests/focus-lane.js") },
+  { name: "scene focus pop-up", browser: true, secs: 15, ...node("viewer/tests/scene-focus.js") },
   { name: "viewer camera and windows", browser: true, secs: 12, ...node("viewer/tests/camera.js") },
   { name: "camera flight path", browser: true, secs: 15, ...node("viewer/tests/flight.js") },
   { name: "people: feelings, Enneagram, chaos matrix", browser: true, secs: 12, ...node("viewer/tests/people.js") },

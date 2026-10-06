@@ -23,13 +23,16 @@
     { id: "steps", label: "steps" },
     { id: "snaps", label: "snaps or jumps" },
   ];
-  const KINDS = ["film", "tv", "anime", "game", "my clip"];
+  const KINDS = ["film", "tv", "anime", "game", "novel", "short story", "essay", "poem", "my clip"];
+  /* Written sources open as reading, not watching. */
+  const WRITTEN = ["novel", "short story", "essay", "poem"];
   const WATCH = {
     youtube: { label: "YouTube", url: (q) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q) },
     vimeo: { label: "Vimeo", url: (q) => "https://vimeo.com/search?q=" + encodeURIComponent(q) },
     dailymotion: { label: "Dailymotion", url: (q) => "https://www.dailymotion.com/search/" + encodeURIComponent(q) },
     google: { label: "Any site (Google videos)", url: (q) => "https://www.google.com/search?tbm=vid&q=" + encodeURIComponent(q) },
   };
+  const READ = { label: "Project Gutenberg", url: (q) => "https://www.gutenberg.org/ebooks/search/?query=" + encodeURIComponent(q) };
 
   function create(src) {
     const scenes = (src.scenes || []).slice();
@@ -130,12 +133,13 @@
       return scene._suites;
     }
     function text(scene) {
-      return (scene.work + " " + scene.year + " " + scene.moment + " " + scene.feelings.join(" ") + " " + scene.kind).toLowerCase();
+      return (scene.work + " " + (scene.author || "") + " " + scene.year + " " + scene.moment + " " + scene.feelings.join(" ") + " " + (scene.movements || []).join(" ") + " " + scene.kind).toLowerCase();
     }
     function passes(scene, f) {
       if (f.text) return f.text.toLowerCase().split(/\s+/).filter(Boolean).every((w) => text(scene).includes(w));
       if (f.kind) return scene.kind === f.kind;
       if (f.feeling) return scene.feelings.includes(f.feeling);
+      if (f.movement) return (scene.movements || []).includes(f.movement) || (scene.archive || []).includes(f.movement);
       if (f.suite) return suitesFor(scene).some((s) => s.id === f.suite);
       if (f.topic) return keys(scene).some((k) => topicOf(k) === f.topic);
       if (f.curiosity) {
@@ -191,6 +195,18 @@
       const m = count(results(filters), (s) => s.feelings);
       return Array.from(m, ([id, n]) => ({ id, count: n })).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
     }
+    /* Movement words (from written sources and logged clips), for the Movements column. */
+    function movements(filters) {
+      const m = count(results(filters), (s) => s.movements || []);
+      return Array.from(m, ([id, n]) => ({ id, count: n })).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+    }
+    /* Where Watch (or Read, for writing) goes for a scene. */
+    function watchUrl(scene, pref) {
+      const v = scene.video;
+      if (!isWritten(scene) && v && v.site === "youtube" && v.id && !v.lost && (pref || "youtube") === "youtube")
+        return "https://www.youtube.com/watch?v=" + encodeURIComponent(v.id) + (v.start ? "&t=" + v.start + "s" : "");
+      return (isWritten(scene) ? READ : WATCH[pref] || WATCH.youtube).url(scene.search);
+    }
     function kinds(filters) {
       const m = count(results(filters), (s) => [s.kind]);
       return KINDS.filter((k) => m.has(k)).map((k) => ({ id: k, count: m.get(k) }));
@@ -199,7 +215,7 @@
     function details(scene) {
       return keys(scene).map((k) => {
         const t = track(scene, k);
-        return { key: k, label: label(k), topic: topicOf(k), path: t.map((x) => x.v), rate: rate(scene, k), perMinute: perMinute(scene, k) };
+        return { key: k, label: label(k), topic: topicOf(k), path: t.map((x) => x.v), rate: rate(scene, k), perMinute: scene.unit === "percent" ? 0 : perMinute(scene, k) };
       });
     }
     /* A scene as a curated film, so the Prism can split it and the user can borrow its curiosities. */
@@ -208,6 +224,7 @@
         id: "inspire-" + scene.id,
         title: scene.work + " (" + scene.year + "): " + scene.moment,
         kind: scene.kind === "game" ? "game" : "film",
+        author: scene.author || undefined,
         camera: scene.kind === "game" ? "player" : "authored",
         source: "scene inspiration",
         note: "Only the scene's shared curiosities, as first guesses. Watch it: " + scene.search,
@@ -242,10 +259,11 @@
       const i = scenes.findIndex((s) => s.id === id);
       if (i >= 0) scenes.splice(i, 1);
     }
-    return { TOPICS, RATES, WATCH, scenes, results, topics, curiosities, suiteList, values, rates, feelings, kinds, details, rate, suitesFor, toStudy, logClip, add, remove, label, sliderOf, topicOf };
+    return { TOPICS, RATES, WATCH, READ, KINDS, isWritten, movements, watchUrl, scenes, results, topics, curiosities, suiteList, values, rates, feelings, kinds, details, rate, suitesFor, toStudy, logClip, add, remove, label, sliderOf, topicOf };
   }
 
-  const api = { create, TOPICS, RATES, WATCH };
+  const isWritten = (scene) => WRITTEN.includes(scene.kind);
+  const api = { create, TOPICS, RATES, WATCH, READ, KINDS, WRITTEN, isWritten };
   root.CurioInspireSearch = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
