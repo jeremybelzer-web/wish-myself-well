@@ -364,6 +364,7 @@
     if (!page) build();
     page.hidden = false;
     document.documentElement.classList.add("sc-open");
+    document.documentElement.classList.remove("sc-boot");
     prefs.open = true;
     save();
     takeOpenSnap();
@@ -567,6 +568,7 @@
       ${exportMenuHtml()}
       ${historyMenuHtml()}
       ${window.CurioTriggers ? window.CurioTriggers.barHtml() : ""}
+      ${window.CuriosityWorkspaces && window.CuriosityWorkspaces.picker ? `<button type="button" data-act="workspaces" aria-haspopup="dialog" title="The Curiosity Browser: every workspace (Camera, People, Look, Feeling, Comedy, Story) in columns, with a search box">Curiosity Browser</button>` : ""}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
     if (histFocus) historyRefocus(histFocus);
@@ -5611,6 +5613,10 @@ document.addEventListener("click", function (e) {
     }
     const act = d.act;
     if (act === "close") return close();
+    if (act === "workspaces") {
+      close();
+      return setTimeout(() => window.CuriosityWorkspaces.picker(true), 0);
+    }
     if (act === "shortcuts") return showKeys(!keysOpen);
     if (act === "find") return toggleFind(true);
     if (act === "export") return toggleExport();
@@ -6380,7 +6386,9 @@ document.addEventListener("click", function (e) {
       const q = location.search;
       skip = /[?&]screen=0\b/.test(q) || (!!navigator.webdriver && !/[?&]screen=1\b/.test(q));
     } catch (e) {}
+    /* index.html hid the page under a dark cover while the Screen was on its way; when it is not opening, lift it. */
     if (prefs.open && !skip) setTimeout(open, 0);
+    else document.documentElement.classList.remove("sc-boot");
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);

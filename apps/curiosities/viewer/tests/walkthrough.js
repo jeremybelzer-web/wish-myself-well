@@ -79,7 +79,7 @@ function partSeen(sel) {
   return out;
 }
 const SCREEN_STEPS = ["The Screen", "Looking through", "The curiosity library", "The player", "Details", "The timeline", "Back to the app"];
-const APP_STEPS = ["My film, Storyboard and Library", "Workspaces", "Library"];
+const APP_STEPS = ["My film, Storyboard and Library", "Curiosity Browser", "Library"];
 
 /* Walks the tour with Next to Done, checking every lit step's part; shots go to SHOTS/prefix-NN.png. */
 async function walkAll(page, steps, prefix) {
@@ -212,10 +212,10 @@ const ok = (cond, msg) => {
   await real.keyboard.press("Escape");
   await real.waitForTimeout(150);
   ok(await real.evaluate(() => !CurioViewer.isOpen() && CurioScreen.isOpen() && CurioScreen.view() === "arrange"), "skipping puts back what was open: the Screen in Arrange view, the Viewer closed");
-  const ws = steps.findIndex((s) => s.title === "Workspaces");
+  const ws = steps.findIndex((s) => s.title === "Curiosity Browser");
   await real.evaluate((i) => CurioWalkthrough.start(i), ws);
   await real.waitForTimeout(300);
-  ok((await real.evaluate(partSeen, "#ws-buttons")).ok, "an app step shows the app's own Workspaces");
+  ok((await real.evaluate(partSeen, "#ws-pick")).ok, "an app step shows the app's own Curiosity Browser button");
   await real.click(".cw-bubble .cw-x");
   await real.waitForTimeout(150);
   ok(await real.evaluate(() => !CurioViewer.isOpen() && CurioScreen.isOpen() && CurioScreen.view() === "arrange"), "closing it from an app step puts the Screen back too");
