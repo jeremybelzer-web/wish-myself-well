@@ -217,6 +217,53 @@ const sideways = (page) => page.evaluate(() => { const m = document.querySelecto
      not softer, and leaves an unzoomed frame alone. */
   ok(dt.gain > 0.98 && dt.changed > 0.005 && dt.same, "sharper zooms: a 2.5x zoom is drawn through it and is no softer, no zoom is untouched: " + JSON.stringify(dt));
   ok(dt.box, "the Sharper zooms switch shows");
+  /* A wider shot: the picture shrunk into the middle, the new edges filled from it (no black, close to its colors). */
+  const wd = await page.evaluate(async () => {
+    const clip = await window.CurioClip.open(window.__b),
+      v = clip.video;
+    await window.CurioClip.seek(v, Math.min(1, clip.duration / 2));
+    const W = v.videoWidth,
+      H = v.videoHeight;
+    const draw = (widen) => {
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      const x = c.getContext("2d", { willReadFrequently: true });
+      window.CurioClip.drawApplied(x, v, { zoom: 1, widen, luma: 1, contrast: 1, sat: 1 }, W, H, { captions: false, detail: false });
+      return x.getImageData(0, 0, W, H).data;
+    };
+    const full = draw(1),
+      wide = draw(0.8);
+    const r = window.CurioWiden.rect(W, H, 0.8);
+    const mean = (d, x0, y0, x1, y1) => {
+      let s = 0,
+        n = 0;
+      for (let y = y0; y < y1; y += 2) for (let x = x0; x < x1; x += 2) (s += d[(y * W + x) * 4] + d[(y * W + x) * 4 + 1] + d[(y * W + x) * 4 + 2]), n++;
+      return s / Math.max(1, n) / 3;
+    };
+    /* the middle of the wide frame is the whole frame, shrunk: compare a small grid */
+    let diff = 0,
+      n = 0;
+    for (let gy = 1; gy < 8; gy++)
+      for (let gx = 1; gx < 8; gx++) {
+        const fx = Math.round((gx / 8) * W),
+          fy = Math.round((gy / 8) * H);
+        const wx = Math.round(r.x + (gx / 8) * r.w),
+          wy = Math.round(r.y + (gy / 8) * r.h);
+        diff += Math.abs(mean(full, fx - 3, fy - 3, fx + 3, fy + 3) - mean(wide, wx - 3, wy - 3, wx + 3, wy + 3));
+        n++;
+      }
+    const edgeLeft = mean(wide, 0, 0, Math.max(2, r.x - 2), H),
+      fullLeft = mean(full, 0, 0, Math.round(W * 0.1), H);
+    window.CurioWiden.configure({ on: false });
+    const off = draw(0.8);
+    window.CurioWiden.configure({ on: true });
+    let same = true;
+    for (let i = 0; i < off.length; i += 97) if (off[i] !== full[i]) same = false;
+    return { middle: diff / n, edgeLeft, fullLeft, same, box: !!document.querySelector("[data-wider]") };
+  });
+  ok(wd.middle < 12 && wd.edgeLeft > 8 && Math.abs(wd.edgeLeft - wd.fullLeft) < 40 && wd.same, "wider shot: the picture in the middle, its new edges filled from it, untouched when off: " + JSON.stringify(wd));
+  ok(wd.box, "the Wider shots switch shows");
   const key = st.a && st.a.nodes.valueKey;
   ok(key && key.length >= 3, "the light lane changes as the clip goes dark and bright: " + JSON.stringify(key));
   ok((await page.locator(".vd-lane").count()) >= 15, "a lane per curiosity: " + (await page.locator(".vd-lane").count()));
