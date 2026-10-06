@@ -100,6 +100,18 @@
     ],
     [3, "The goal is won or lost on the inner hurdle as much as the outer one.", "Shows that people have to get out of their own way.", "We wonder whether they'll beat the one hurdle nobody else can see.", "plot", "Give her everything she needs to win the race, and let her stop ten meters from the line because of the voice in her head."], PER);
 
+  c("selfCare", "Taking care of their own body and mind", "mindset",
+    "How well the character looks after themselves first: sleep, food, movement, rest, and a quiet mind. Jeremy: \"first take care of our own body and mind first.\" It's what lets them help anyone else.",
+    [
+      ["care", "How well they look after themselves", [0, 100, "%"], "0 running on empty; 100 body and mind well cared for."],
+      ["body", "Their body", ["neglected", "getting by", "looked after", "thriving"], "Sleep, food, movement and rest."],
+      ["mind", "Their mind", ["neglected", "getting by", "looked after", "thriving"], "Quiet time, help when they need it, kindness to themselves."],
+      ["how", "What they do for it", ["sleep", "eating well", "exercise", "time in nature", "meditation", "therapy", "time with friends", "saying no"], "Their main way of caring for themselves.", U],
+      ["first", "Themselves first or others first", ["only others", "others first", "balanced", "themselves first, then others"], "Whether they fill their own cup before pouring for others."],
+      ["guilt", "Guilt about it", ["none", "a little", "a lot"], "Whether caring for themselves feels selfish to them."],
+    ],
+    [1, "A character running on empty can't save anyone; one who looks after themselves has something to give.", "Shows that caring for yourself is the first step to helping others.", "We want them to rest before they break.", "visual", "Let the nurse who looks after everyone finally sit in her car, eat a real meal, and sleep for ten minutes before going back in."], PER);
+
   /* ---------- the healer, and the healing ---------- */
 
   c("healerType", "The healer", "arc",
@@ -304,6 +316,16 @@
     "A fact of the app: each hard feeling felt all the way through deepens their awareness within 3 beats.",
     { curiosity: "facingFeelings", slider: "through", change: "rises" }, { curiosity: "awakening", change: "rises" }, 3, F());
 
+  P("care-to-give", "When they take care of their own body and mind, they have more to give", "arc",
+    "A fact of the app: when they take better care of themselves first, their capacity to give to others rises within 3 beats.",
+    { curiosity: "selfCare", change: "rises" }, { curiosity: "awakening", slider: "give", change: "rises" }, 3, F({ also: ["mindset"] }));
+  P("empty-cup", "When they stop caring for themselves, they have less to give", "arc",
+    "A fact of the app: when they neglect their own body and mind, their capacity to give drops within 3 beats.",
+    { curiosity: "selfCare", change: "drops" }, { curiosity: "awakening", slider: "give", change: "drops" }, 3, F({ also: ["mindset"] }));
+  P("giving-is-meaning", "When they help others, life has meaning", "arc",
+    "A fact of the app: the point of life is helping others. When they give more, their sense of what life means grows within 2 beats.",
+    { curiosity: "awakening", slider: "give", change: "rises" }, { curiosity: "awakening", slider: "meaning", change: "rises" }, 2, F());
+
   /* ---------- proximity suites ---------- */
 
   PS("the-spiral-alone", "The spiral alone", "mindset",
@@ -313,8 +335,8 @@
     "They laugh at the slip, the soothing works, the storm settles, the inner hurdle shrinks, and life climbs.",
     ["laugh-settles", "soothe-calms", "hurdle-cleared-thrive"]);
   PS("the-other-side", "The other side", "arc",
-    "The facts of healing, always on: feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others. Run from it and the cost climbs.",
-    ["through-to-peace", "through-to-awareness", "through-to-freedom", "facing-welcome", "welcome-awake", "awake-give", "healed-becomes-healer", "run-bad-choice"]);
+    "The facts of healing, always on: take care of your own body and mind first; feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others, which is the point of life. Run from it and the cost climbs.",
+    ["through-to-peace", "through-to-awareness", "through-to-freedom", "facing-welcome", "welcome-awake", "awake-give", "healed-becomes-healer", "run-bad-choice", "care-to-give", "empty-cup", "giving-is-meaning"]);
   PS("the-healing-road", "The healing road", "arc",
     "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
     ["healer-near-stay", "picture-both-calmer", "through-to-peace", "through-to-freedom", "through-to-awareness", "facing-welcome", "welcome-awake", "awake-give", "healing-kind-voice", "healed-becomes-healer"]);

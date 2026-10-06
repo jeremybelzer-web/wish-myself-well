@@ -113896,6 +113896,176 @@
    }
   },
   {
+   "id": "selfCare",
+   "level": "curiosity",
+   "label": "Taking care of their own body and mind",
+   "plain": "How well the character looks after themselves first: sleep, food, movement, rest, and a quiet mind. Jeremy: \"first take care of our own body and mind first.\" It's what lets them help anyone else.",
+   "workspace": "mindset",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "care",
+   "sliders": [
+    {
+     "id": "care",
+     "label": "How well they look after themselves",
+     "plain": "0 running on empty; 100 body and mind well cared for.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "body",
+     "label": "Their body",
+     "plain": "Sleep, food, movement and rest.",
+     "scale": [
+      "neglected",
+      "getting by",
+      "looked after",
+      "thriving"
+     ],
+     "from": "neglected",
+     "to": "thriving",
+     "curve": "linear"
+    },
+    {
+     "id": "mind",
+     "label": "Their mind",
+     "plain": "Quiet time, help when they need it, kindness to themselves.",
+     "scale": [
+      "neglected",
+      "getting by",
+      "looked after",
+      "thriving"
+     ],
+     "from": "neglected",
+     "to": "thriving",
+     "curve": "linear"
+    },
+    {
+     "id": "how",
+     "label": "What they do for it",
+     "plain": "Their main way of caring for themselves.",
+     "scale": [
+      "sleep",
+      "eating well",
+      "exercise",
+      "time in nature",
+      "meditation",
+      "therapy",
+      "time with friends",
+      "saying no"
+     ],
+     "from": "sleep",
+     "to": "saying no",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "first",
+     "label": "Themselves first or others first",
+     "plain": "Whether they fill their own cup before pouring for others.",
+     "scale": [
+      "only others",
+      "others first",
+      "balanced",
+      "themselves first, then others"
+     ],
+     "from": "only others",
+     "to": "themselves first, then others",
+     "curve": "linear"
+    },
+    {
+     "id": "guilt",
+     "label": "Guilt about it",
+     "plain": "Whether caring for themselves feels selfish to them.",
+     "scale": [
+      "none",
+      "a little",
+      "a lot"
+     ],
+     "from": "none",
+     "to": "a lot",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "A character running on empty can't save anyone; one who looks after themselves has something to give.",
+    "theme": "Shows that caring for yourself is the first step to helping others.",
+    "pull": "We want them to rest before they break.",
+    "cue": "visual",
+    "tryThis": "Let the nurse who looks after everyone finally sit in her car, eat a real meal, and sleep for ten minutes before going back in."
+   }
+  },
+  {
    "id": "healerType",
    "level": "curiosity",
    "label": "The healer",
@@ -290037,6 +290207,305 @@
    ]
   },
   {
+   "id": "care-to-give",
+   "level": "proximity",
+   "label": "When they take care of their own body and mind, they have more to give",
+   "plain": "A fact of the app: when they take better care of themselves first, their capacity to give to others rises within 3 beats.",
+   "workspace": "arc",
+   "also": [
+    "mindset"
+   ],
+   "when": {
+    "curiosity": "selfCare",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "awakening",
+    "slider": "give",
+    "change": "rises"
+   },
+   "whenText": "they take care of their own body and mind",
+   "thenText": "they have more to give",
+   "within": 3,
+   "often": 100,
+   "fact": true,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "Always. This is a fact of the app, so the effect always follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [
+    "fact"
+   ]
+  },
+  {
+   "id": "empty-cup",
+   "level": "proximity",
+   "label": "When they stop caring for themselves, they have less to give",
+   "plain": "A fact of the app: when they neglect their own body and mind, their capacity to give drops within 3 beats.",
+   "workspace": "arc",
+   "also": [
+    "mindset"
+   ],
+   "when": {
+    "curiosity": "selfCare",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "awakening",
+    "slider": "give",
+    "change": "drops"
+   },
+   "whenText": "they stop caring for themselves",
+   "thenText": "they have less to give",
+   "within": 3,
+   "often": 100,
+   "fact": true,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "Always. This is a fact of the app, so the effect always follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [
+    "fact"
+   ]
+  },
+  {
+   "id": "giving-is-meaning",
+   "level": "proximity",
+   "label": "When they help others, life has meaning",
+   "plain": "A fact of the app: the point of life is helping others. When they give more, their sense of what life means grows within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "awakening",
+    "slider": "give",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "awakening",
+    "slider": "meaning",
+    "change": "rises"
+   },
+   "whenText": "they help others",
+   "thenText": "life has meaning",
+   "within": 2,
+   "often": 100,
+   "fact": true,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "Always. This is a fact of the app, so the effect always follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [
+    "fact"
+   ]
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -329997,7 +330466,7 @@
    "id": "the-other-side",
    "level": "proximitySuite",
    "label": "The other side",
-   "plain": "The facts of healing, always on: feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others. Run from it and the cost climbs.",
+   "plain": "The facts of healing, always on: take care of your own body and mind first; feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others, which is the point of life. Run from it and the cost climbs.",
    "workspace": "arc",
    "also": [],
    "members": [
@@ -330008,7 +330477,10 @@
     "welcome-awake",
     "awake-give",
     "healed-becomes-healer",
-    "run-bad-choice"
+    "run-bad-choice",
+    "care-to-give",
+    "empty-cup",
+    "giving-is-meaning"
    ],
    "sliders": [
     {
@@ -330238,6 +330710,90 @@
     {
      "id": "chance:run-bad-choice",
      "label": "How often run-bad-choice",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:care-to-give",
+     "label": "Delay of care-to-give",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:care-to-give",
+     "label": "How often care-to-give",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:empty-cup",
+     "label": "Delay of empty-cup",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:empty-cup",
+     "label": "How often empty-cup",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:giving-is-meaning",
+     "label": "Delay of giving-is-meaning",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:giving-is-meaning",
+     "label": "How often giving-is-meaning",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

@@ -475,7 +475,7 @@
     {
       "slug": "Curio-arc-6",
       "name": "Character arc 6",
-      "description": "9 curiosities, suites and pairs from Character arc, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
+      "description": "12 curiosities, suites and pairs from Character arc, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
       "tags": [
         "Controller",
         "MIDI"
@@ -565,7 +565,7 @@
     {
       "slug": "Curio-mindset-4",
       "name": "Perspective & mindset 4",
-      "description": "15 curiosities, suites and pairs from Perspective & mindset, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "description": "16 curiosities, suites and pairs from Perspective & mindset, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
       "tags": [
         "Controller",
         "MIDI"

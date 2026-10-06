@@ -23436,6 +23436,63 @@
    "then": "awareness deepens"
   },
   {
+   "id": "p:care-to-give",
+   "proximity": "care-to-give",
+   "label": "When they take care of their own body and mind, they have more to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they take care of their own body and mind",
+   "then": "they have more to give"
+  },
+  {
+   "id": "p:empty-cup",
+   "proximity": "empty-cup",
+   "label": "When they stop caring for themselves, they have less to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they stop caring for themselves",
+   "then": "they have less to give"
+  },
+  {
+   "id": "p:giving-is-meaning",
+   "proximity": "giving-is-meaning",
+   "label": "When they help others, life has meaning",
+   "from": {
+    "curiosity": "awakening.give",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.meaning",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they help others",
+   "then": "life has meaning"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -29077,7 +29134,7 @@
   {
    "id": "ps:the-other-side",
    "label": "The other side",
-   "plain": "The facts of healing, always on: feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others. Run from it and the cost climbs.",
+   "plain": "The facts of healing, always on: take care of your own body and mind first; feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others, which is the point of life. Run from it and the cost climbs.",
    "proximities": [
     "through-to-peace",
     "through-to-awareness",
@@ -29086,7 +29143,10 @@
     "welcome-awake",
     "awake-give",
     "healed-becomes-healer",
-    "run-bad-choice"
+    "run-bad-choice",
+    "care-to-give",
+    "empty-cup",
+    "giving-is-meaning"
    ],
    "links": [
     "p:through-to-peace",
@@ -29096,7 +29156,10 @@
     "p:welcome-awake",
     "p:awake-give",
     "p:healed-becomes-healer",
-    "p:run-bad-choice"
+    "p:run-bad-choice",
+    "p:care-to-give",
+    "p:empty-cup",
+    "p:giving-is-meaning"
    ]
   },
   {

@@ -122,6 +122,7 @@
   self("laughOrBeat", "harsh", (g) => [g.steps("answer", "Laugh or beat"), g.num("harsh", "How harsh"), g.steps("long", "How long"), g.steps("out", "Out loud"), g.word("kind", "Which mistakes"), g.steps("growing", "Changing")]);
   self("aloneComfort", "comfort", (g) => [g.num("comfort", "At ease", "%"), g.word("does", "Does"), g.steps("silence", "Silence"), g.steps("mirror", "Mirror"), g.steps("how-often", "How often"), g.steps("chose", "Chosen")], true);
   self("innerHurdle", "size", (g) => [g.num("size", "Inner hurdle"), g.num("outer", "Outer hurdle"), g.word("what", "What"), g.steps("aware", "Sees it"), g.steps("over", "Getting over"), g.steps("decides", "Decides it")]);
+  self("selfCare", "care", (g) => [g.num("care", "Care", "%"), g.steps("body", "Body"), g.steps("mind", "Mind"), g.word("how", "How"), g.steps("first", "First"), g.steps("guilt", "Guilt")], true);
   heal("healerType", "skill", (g) => [g.num("skill", "Skill", "%"), g.word("kind", "Healer"), g.word("way", "How"), g.steps("healed", "Healed"), g.steps("looks", "Looks it"), g.steps("paid", "Paid")]);
   heal("facingFeelings", "stay", (g) => [g.steps("stay", "Run or stay"), g.word("feeling", "Feeling"), g.word("running", "Running to"), g.num("cost", "Cost"), g.steps("helped", "Help"), g.num("through", "Through", "%")]);
   heal("picturingOutcomes", "vivid", (g) => [g.steps("way", "Pictures"), g.num("vivid", "How vivid"), g.steps("guided", "Guided"), g.steps("feel", "Feels it"), g.steps("after", "After"), g.word("shown", "Shown as")]);
