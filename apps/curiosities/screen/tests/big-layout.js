@@ -85,6 +85,14 @@ const ok = (cond, msg) => {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(100);
     ok(await page.evaluate(() => document.querySelector(".sc-bigwin").hidden), `${tag}: Esc closes the window`);
+    if (tag !== "phone") {
+      await page.evaluate(() => window.CurioScreen.openWin("shotSize"));
+      await page.waitForTimeout(300);
+      const free = await page.evaluate(() => { const w = [...document.querySelectorAll(".sc-win")].pop(); if (!w) return null; const b = w.getBoundingClientRect(); return [...document.querySelectorAll(".sc-viewers .sc-frame")].every((f) => { const r = f.getBoundingClientRect(); return b.top >= r.bottom - 1 || b.left >= r.right - 1; }); });
+      ok(free === true, `${tag}: a curiosity window opens clear of the viewers (${free})`);
+      await page.screenshot({ path: path.join(SHOTS, `big-${tag}-curiosity-window.png`) });
+      await page.evaluate(() => document.querySelectorAll(".sc-win [data-win-close], .sc-win .sc-win-x").forEach((b) => b.click()));
+    }
     await page.click('[data-wins="1"]');
     await page.waitForTimeout(200);
     if (tag !== "phone") {

@@ -4853,6 +4853,20 @@ document.addEventListener("click", function (e) {
         const room = Math.max(0, vh - wh - 16);
         return room > 0 ? 8 + ((82 + (n % 7) * 28) % (room + 1)) : 8;
       })(), focus: id === base ? "" : id });
+      /* In the Big viewer a new window never covers a viewer (Jeremy 2026-10-06 14:03Z): beside a single viewer when
+         there is room, otherwise under the viewers; each new one still steps along. */
+      const vs = isBig() ? [...page.querySelectorAll(".sc-viewers .sc-frame")].map((f) => f.getBoundingClientRect()) : [];
+      if (vs.length) {
+        const w = wins[wins.length - 1];
+        const right = Math.max(...vs.map((b) => b.right));
+        const bottom = Math.max(...vs.map((b) => b.bottom));
+        const step = (n % 5) * 24;
+        if (vs.length === 1 && vw - right - 16 >= ww) Object.assign(w, { x: Math.round(Math.min(right + 8 + step, vw - ww - 8)), y: Math.round(Math.max(8, vs[0].top + step)) });
+        else {
+          Object.assign(w, { x: Math.round(Math.max(8, Math.min(vs[0].left + step, vw - ww - 8))), y: Math.round(Math.min(bottom + 8 + step, vh - 200)) });
+          w.h = Math.round(Math.max(190, vh - w.y - 8));
+        }
+      }
     }
     drawWins();
   }
