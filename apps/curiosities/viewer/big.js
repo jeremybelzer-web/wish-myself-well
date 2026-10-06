@@ -40,7 +40,7 @@
 .cv-root.cv-big .cv-card { flex-basis: 140px; font-size: 11px; }
 .cv-root.cv-big .cv-cards { gap: 8px; }
 .cvb-win { display: none; }
-.cv-root.cv-big .cvb-win:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr); position: absolute; z-index: 20; top: 52px; right: 10px; bottom: 10px; width: min(760px, 52vw); background: var(--c-panel, #1c1c1f); border: 1px solid var(--c-accent, #22d3ee); border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.cv-root.cv-big .cvb-win:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr); position: absolute; z-index: 20; background: var(--c-panel, #1c1c1f); border: 1px solid var(--c-accent, #22d3ee); border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden; }
 .cvb-win-h { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--c-line, #2e2e33); }
 .cvb-tabs { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
 .cv-root .cvb-tabs button { font-size: 14px; padding: 7px 14px; background: transparent; }
@@ -52,6 +52,13 @@
 .cvb-win:not([data-panel="things"]) .cvb-body > .cv-details { display: grid !important; }
 .cvb-body > .cv-details .cv-tabs { display: none; }
 .cvb-body .cv-body { font-size: 14px; }
+.cv-root.cv-big .cv-main { box-sizing: border-box; }
+.cvb-side { display: none; }
+.cv-root.cv-big .cvb-side:not([hidden]) { display: flex; flex-direction: column; justify-content: center; gap: 8px; position: absolute; top: 0; bottom: 0; z-index: 3; width: 92px; }
+.cv-root.cv-big .cvb-side-l { left: 6px; }
+.cv-root.cv-big .cvb-side-r { right: 6px; }
+.cv-root .cvb-side button { padding: 10px 4px; font-size: 12.5px; border-radius: 8px; }
+.cv-root .cvb-side .cvb-play { background: #22d3ee; color: #062a31; font-weight: 700; }
 @media (max-width: 760px) {
   .cv-root.cv-big .cv-main { grid-template-columns: minmax(0, 1fr) !important; }
   .cv-root.cv-big .cvb-rail { flex-direction: row; grid-row: auto; overflow-x: auto; }
@@ -117,7 +124,66 @@
     win.querySelector(".cvb-tabs").innerHTML = items.map(([id, label]) => `<button type="button" role="tab" data-cvb="${id}" class="${cur === id ? "on" : ""}" aria-selected="${cur === id}">${esc(label)}</button>`).join("");
     win.hidden = !on || !panel;
     win.dataset.panel = panel === "things" ? "things" : "details";
+    place();
     redraw();
+  }
+  /* Where the window goes (Jeremy 2026-10-06 14:03Z: "should default to not covering the view screen"): with one
+     picture, the picture moves left and the window takes the right; with two or more pictures (and on a phone) the
+     pictures keep their size and the window takes everything under them (Front and center and the storyboard come
+     back when it closes). */
+  const winCount = (root) => +((root.querySelector(".cv-wins") || {}).dataset || {}).n || 1;
+  function place() {
+    const root = rootEl();
+    const win = root && root.querySelector(".cvb-win");
+    if (!win) return;
+    const main = root.querySelector(".cv-main");
+    const player = root.querySelector(".cv-player");
+    main.style.paddingRight = main.style.paddingBottom = "";
+    if (win.hidden) {
+      delete root.dataset.cvbAt;
+      return sides();
+    }
+    const below = winCount(root) > 1 || window.innerWidth <= 760;
+    root.dataset.cvbAt = below ? "below" : "right";
+    const rr = root.getBoundingClientRect();
+    const mr = main.getBoundingClientRect();
+    const S = win.style;
+    S.top = S.bottom = S.left = S.right = S.width = S.height = "";
+    if (below) {
+      /* under the pictures, over Front and center and the storyboard, which come back when it closes */
+      const st = root.querySelector(".cv-stage").getBoundingClientRect();
+      const pl = window.innerWidth <= 760 ? mr.left + 6 : player.getBoundingClientRect().left;
+      Object.assign(S, { left: pl - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: st.bottom - rr.top + 6 + "px", bottom: "10px" });
+    } else {
+      const w = Math.round(Math.min(760, window.innerWidth * 0.46));
+      main.style.paddingRight = w + 12 + "px";
+      Object.assign(S, { right: rr.right - mr.right + 6 + "px", width: w + "px", top: mr.top - rr.top + 6 + "px", height: mr.height - 12 + "px" });
+    }
+    sides();
+  }
+  /* Simple controls used all the time sit in the empty room left and right of a single picture. */
+  function sides() {
+    const root = rootEl();
+    const stage = root && root.querySelector(".cv-stage");
+    if (!stage) return;
+    let l = stage.querySelector(".cvb-side-l");
+    let r = stage.querySelector(".cvb-side-r");
+    if (!l) {
+      l = document.createElement("div");
+      l.className = "cvb-side cvb-side-l";
+      l.innerHTML = `<button type="button" data-cvb-do=".cv-transport [data-act=first]" title="First panel">⏮ First</button><button type="button" data-cvb-do=".cv-transport [data-act=prev]" title="Previous panel">◀ Back</button><button type="button" data-cvb-do=".cv-bar [data-act=undo]" title="Undo (⌘Z)">↶ Undo</button>`;
+      r = document.createElement("div");
+      r.className = "cvb-side cvb-side-r";
+      r.innerHTML = `<button type="button" class="cvb-play" data-cvb-do=".cv-transport [data-act=play]" title="Play (space)">▶ Play</button><button type="button" data-cvb-do=".cv-transport [data-act=next]" title="Next panel">Next ▶</button><button type="button" data-cvb-do=".cv-transport [data-act=addwin]" title="Open another window next to your film">+ Window</button>`;
+      stage.appendChild(l);
+      stage.appendChild(r);
+    }
+    const one = stage.querySelector(".cv-win");
+    const gap = one ? (stage.getBoundingClientRect().width - one.getBoundingClientRect().width) / 2 : 0;
+    l.hidden = r.hidden = !on || winCount(root) > 1 || gap < 104;
+    const play = root.querySelector(".cv-transport [data-act=play]");
+    const pb = r.querySelector(".cvb-play");
+    if (play && pb.textContent !== play.textContent) pb.textContent = play.textContent;
   }
   function redraw() {
     const v = window.CurioViewer;
@@ -152,6 +218,12 @@
     if (tab && !showing) return void setTimeout(() => show(tab.dataset.tab));
     const old = e.target.closest && e.target.closest("[data-cvb-old]");
     if (old) return set(false);
+    const d = e.target.closest && e.target.closest("[data-cvb-do]");
+    if (d) {
+      const t = rootEl().querySelector(d.dataset.cvbDo);
+      if (t && !t.disabled) t.click();
+      return void setTimeout(sides, 50);
+    }
     const b = e.target.closest && e.target.closest("[data-cvb]");
     if (!b) return;
     e.stopPropagation();
@@ -174,6 +246,7 @@
     show("");
   });
 
+  window.addEventListener("resize", () => place());
   function boot() {
     const st = document.createElement("style");
     st.id = "cvb-css";
@@ -183,11 +256,11 @@
     const tick = () => {
       const root = rootEl();
       if (root) {
-        const n = root.querySelectorAll(".cv-details .cv-tabs [data-tab]").length + (root.classList.contains("cv-big") === on ? 0 : 100);
+        const n = root.querySelectorAll(".cv-details .cv-tabs [data-tab]").length + (root.classList.contains("cv-big") === on ? 0 : 100) + winCount(root) * 1000;
         if (n !== tick.n || !root.querySelector(".cvb-rail")) {
           tick.n = n;
           apply();
-        }
+        } else sides();
       }
       setTimeout(tick, 500);
     };

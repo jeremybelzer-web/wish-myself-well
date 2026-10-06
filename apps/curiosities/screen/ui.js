@@ -489,6 +489,7 @@
     /* Something outside the Screen changed what it shows (the Character tab's picked character). */
     window.addEventListener("curio-screen-redraw", () => !page.hidden && drawAll());
     window.addEventListener("resize", () => !page.hidden && lanes && lanes.draw());
+    window.addEventListener("resize", () => page && !page.hidden && isBig() && bigPlace(page.querySelector(".sc-main"), page.querySelector(":scope > .sc-bigwin") || document.createElement("i")));
   }
   function drawAll(fromEngine) {
     if (!page || page.hidden) return;
@@ -620,10 +621,34 @@
     win.querySelector(".sc-bigwin-tabs").innerHTML = tabs.map(([id, label]) => `<button type="button" role="tab" data-bigtab="${id}" class="${bigTab === id ? "on" : ""}" aria-selected="${bigTab === id}">${esc(label)}</button>`).join("");
     win.hidden = !bigTab;
     win.dataset.tab = bigTab;
+    bigPlace(main, win);
+  }
+  /* The window never covers the viewer (Jeremy 2026-10-06 14:03Z): with one viewer the viewer moves left and the
+     window takes the right; with two or more (and on a phone) the viewers keep their size and the window takes
+     everything under them. */
+  function bigPlace(main, win) {
+    const S = win.style;
+    main.style.paddingRight = "";
+    S.top = S.left = S.right = S.bottom = S.width = "";
+    if (!bigTab || !isBig()) return;
+    const pr = page.getBoundingClientRect();
+    const mr = main.getBoundingClientRect();
+    const n = page.querySelectorAll(".sc-viewers .sc-viewer").length;
+    if (n <= 1 && window.innerWidth > 720) {
+      const w = Math.round(Math.min(760, window.innerWidth * 0.46));
+      main.style.paddingRight = w + 12 + "px";
+      Object.assign(S, { top: mr.top - pr.top + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - mr.bottom + 6 + "px", left: "auto", width: w + "px" });
+      return;
+    }
+    const vr = page.querySelector(".sc-viewers").getBoundingClientRect();
+    const rail = main.querySelector(":scope > .sc-rail");
+    const left = window.innerWidth > 720 && rail ? rail.getBoundingClientRect().right + 6 : mr.left + 6;
+    Object.assign(S, { top: vr.bottom - pr.top + 6 + "px", left: left - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - mr.bottom + 6 + "px" });
   }
   function bigShow(id) {
     bigTab = id || "";
     bigApply();
+    sizesApply();
     /* The library measures its category tabs, which it can only do once the window shows. */
     if (bigTab === "lib") drawLibrary();
   }

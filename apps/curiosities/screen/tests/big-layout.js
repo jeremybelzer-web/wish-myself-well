@@ -74,6 +74,8 @@ const ok = (cond, msg) => {
     await page.waitForTimeout(200);
     const w1 = await page.evaluate(() => { const b = document.querySelector(".sc-bigwin").getBoundingClientRect(); const l = document.querySelector(".sc-bigwin .sc-lib").getBoundingClientRect(); return { w: b.width, h: b.height, lw: l.width }; });
     ok(w1.w > (tag === "phone" ? 300 : 900) && w1.lw > w1.w - 10, `${tag}: Library opens in a big window (${Math.round(w1.w)}×${Math.round(w1.h)})`);
+    const clear = await page.evaluate(() => { const w = document.querySelector(".sc-bigwin").getBoundingClientRect(); return [...document.querySelectorAll(".sc-viewers .sc-frame")].every((f) => { const b = f.getBoundingClientRect(); return b.bottom <= w.top + 1 || b.right <= w.left + 1; }); });
+    ok(clear, `${tag}: the window covers none of the viewers (two viewers: it sits under them)`);
     await page.screenshot({ path: path.join(SHOTS, `big-${tag}-library.png`) });
     await page.click('.sc-bigwin-tabs [data-bigtab="insp"]');
     await page.waitForTimeout(200);
@@ -85,6 +87,15 @@ const ok = (cond, msg) => {
     ok(await page.evaluate(() => document.querySelector(".sc-bigwin").hidden), `${tag}: Esc closes the window`);
     await page.click('[data-wins="1"]');
     await page.waitForTimeout(200);
+    if (tag !== "phone") {
+      await page.click('.sc-rail [data-bigtab="insp"]');
+      await page.waitForTimeout(300);
+      const side = await page.evaluate(() => { const w = document.querySelector(".sc-bigwin").getBoundingClientRect(); const f = document.querySelector(".sc-viewers .sc-frame").getBoundingClientRect(); return [f.right, w.left, w.width]; });
+      ok(side[0] <= side[1] + 1 && side[2] > 450, `${tag}: with one viewer the window sits to its right (viewer ends ${Math.round(side[0])}, window starts ${Math.round(side[1])})`);
+      await page.screenshot({ path: path.join(SHOTS, `big-${tag}-one-details.png`) });
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+    }
     if (tag === "laptop") {
       const one = await page.evaluate(() => [document.querySelector(".sc-viewers .sc-frame").getBoundingClientRect().width, document.querySelector(".sc-viewers").getBoundingClientRect().width]);
       ok(one[0] >= g1 - 1 && one[0] > 380, `${tag}: one viewer alone is at least as big as each of two (${Math.round(one[0])}px wide)`);
