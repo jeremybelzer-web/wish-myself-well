@@ -627,7 +627,7 @@
       return /[",\r\n]/.test(s) || /^\s|\s$/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     }
     /* One row per moment, one column per curiosity that has a value anywhere, plain labels and plain values.
-       moments: [{ n, clock, note, values }]; o: { keys, label(k), text(k, v) }. Starts with a byte-order mark so
+       moments: [{ n, clock, note, section?, values }]; o: { keys, label(k), text(k, v) }. Starts with a byte-order mark so
        spreadsheet apps read it as UTF-8; lines end in CRLF (the CSV standard). */
     function csv(moments, o) {
       const keys = keysWithValues(moments, o.keys);
@@ -636,8 +636,10 @@
       const tr = moments.some((m) => m.transition);
       /* Words on the frame: a "Text" column (every text that shows on the moment) once any moment has one. */
       const tx = moments.some((m) => m.text);
-      const head = ["Moment", "Time", "Marker note"].concat(tr ? ["Transition in"] : [], tx ? ["Text"] : [], keys.map((k) => o.label(k)));
-      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(tr ? [m.n > 1 ? m.transition || "Cut" : ""] : [], tx ? [m.text || ""] : [], keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
+      /* Sections: a "Section" column (the Opening, Act 2...) once the film has markers. */
+      const sc = moments.some((m) => m.section);
+      const head = ["Moment", "Time", "Marker note"].concat(sc ? ["Section"] : [], tr ? ["Transition in"] : [], tx ? ["Text"] : [], keys.map((k) => o.label(k)));
+      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(sc ? [m.section || ""] : [], tr ? [m.n > 1 ? m.transition || "Cut" : ""] : [], tx ? [m.text || ""] : [], keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
       return "﻿" + [head].concat(rows).map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
     }
     /* The printable storyboard sheet: a whole page of its own (opened in a new tab), 2, 3 or 4 frames per row,
@@ -646,10 +648,11 @@
       const per = [2, 3, 4].includes(Number(d.perRow)) ? Number(d.perRow) : 3;
       const n = d.moments.length;
       const shape = SHAPES[d.shape] || SHAPES.wide;
-      const card = (m) => `<figure class="f">
+      /* a section's name (the Opening, Act 2...) on the first frame of each section */
+      const card = (m, i) => `<figure class="f">
   <div class="pic">${m.svg}</div>
   <figcaption><b>Moment ${html(m.n)}</b> <span class="t">${html(m.clock)}</span>${m.label ? ` <span class="l">${html(m.label)}</span>` : ""}
-  ${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
+  ${m.section && (!i || d.moments[i - 1].section !== m.section) ? `<p class="sec">Section: ${html(m.section)}</p>` : ""}${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
   ${m.transition ? `<p class="tr">Comes in with: ${html(m.transition)}</p>` : ""}${m.text ? `<p class="tx">On the frame: ${html(m.text)}</p>` : ""}<p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
 </figure>`;
       return `<!doctype html>
@@ -673,6 +676,7 @@
   .t { color: #6b625a; font-variant-numeric: tabular-nums; }
   .l { color: #6b625a; }
   .mk { margin: 3px 0 0; font-weight: 600; }
+  .sec { margin: 3px 0 0; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #6b625a; }
   .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
   .ch { margin: 3px 0 0; color: #4a423b; font-size: 12px; }
   .tr { margin: 3px 0 0; color: #0e7490; font-size: 12px; font-weight: 600; }
@@ -1089,13 +1093,20 @@ document.addEventListener("click", function (e) {
   function exportData() {
     const beats = mineBeats();
     const marks = exportMarkers();
+    /* Each moment's section once the film has markers: the Opening (before the first marker) is one like any other. */
+    const T = window.CurioTriggers;
+    let secs = [];
+    try {
+      secs = Object.keys(marks).length && T && T.sections ? T.sections() : [];
+    } catch (e) {}
+    const sectionAt = (i) => (secs.find((x) => i >= x.from && i <= x.to) || {}).label || "";
     const moments = beats.map((b, i) => {
       const values = {};
       Object.keys(b.values).forEach((k) => (/\.setting$/.test(k) && b.values[L().base(k)] != null ? null : (values[k] = b.values[k])));
       const mk = marks[String(b.row)];
       const tr = i ? trAt(i + 1) : null;
       const texts = TEXT.at(txtData(), i + 1);
-      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "", transition: tr && tr.kind !== "cut" ? TRANSITIONS.label(tr) : "", texts, text: TEXT.csvText(texts) };
+      return { n: i + 1, clock: tc(i), values, raw: b.values, section: sectionAt(i), note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "", transition: tr && tr.kind !== "cut" ? TRANSITIONS.label(tr) : "", texts, text: TEXT.csvText(texts) };
     });
     const film = E() ? E().state().name : "";
     return { moments, film, keys: EXPORT.keysWithValues(moments, prefs.lanes), shape: ratioShape() };
