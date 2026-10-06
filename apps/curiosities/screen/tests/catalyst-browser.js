@@ -80,8 +80,9 @@ const ok = (cond, msg) => {
   await page.waitForTimeout(300);
   const adds = await page.$$(".cat-win [data-cat-pick]");
   ok(adds.length >= 2, "finding sparks to add as ingredients");
-  await adds[0].click();
-  await (await page.$$(".cat-win [data-cat-pick]:not([disabled])"))[0].click();
+  /* locators, not held handles: the found list can redraw a moment after typing */
+  await page.locator(".cat-win [data-cat-pick]").first().click();
+  await page.locator(".cat-win [data-cat-pick]:not([disabled])").first().click();
   await page.fill('.cat-win [data-cat-mk="name"]', "Test potion");
   await page.click('.cat-win [data-cat="make-elixir"]');
   const mine = await T(() => window.CurioCatalyst.mine());
