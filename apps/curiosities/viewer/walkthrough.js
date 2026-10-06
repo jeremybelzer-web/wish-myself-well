@@ -23,7 +23,8 @@
         if (b) b.click();
       }
       /* The big Viewer (viewer/big.js) keeps In the scene and the Details tabs in a big window: open the one shown. */
-      if (window.CurioBigView && window.CurioBigView.on()) window.CurioBigView.show(tab || panel || "");
+      const big = window.CurioBigView;
+      if (big && big.on() && big.panel() !== (tab || panel || "")) big.show(tab || panel || "");
     };
     go.tab = tab || "";
     return go;
