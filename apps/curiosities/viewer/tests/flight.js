@@ -63,8 +63,9 @@ const ok = (cond, msg) => {
       const cv = CurioViewer.live().canvas;
       const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
       let sat = 0, n = 0, edge = 0;
-      /* the lower half only: the words (caption, balloons) stay clear on top of filters and blur */
-      for (let i = Math.floor(cv.height / 2) * cv.width * 4; i < d.length; i += 4 * 37) {
+      /* the lower 40% only: the words (caption, balloons) stay clear on top of filters and blur, and the
+         caption box can reach just past the middle on a shorter Viewer */
+      for (let i = Math.floor(cv.height * 0.6) * cv.width * 4; i < d.length; i += 4 * 37) {
         const mx = Math.max(d[i], d[i + 1], d[i + 2]);
         const mn = Math.min(d[i], d[i + 1], d[i + 2]);
         sat += mx - mn;

@@ -34,8 +34,9 @@
    APPLYING (one clip's curiosities onto another)
    - GROUPS: what can be applied, one by one (light, contrast, color, warmth, shake, camera move, shot size,
      cuts, movement speed, loudness, dialogue).
-   - plan(inspiration, target, { mode: "same" | "stretch", on: { group: amount 0..1 }, title, lines? }) -> a plan
-   - at(plan, t) -> { src, luma, contrast, sat, warm, dx, dy, zoom, cx, cy, gainDb, duck, line }   what to do to
+   - plan(inspiration, target, { mode: "same" | "stretch", on: { group: amount 0..1 }, title, lines?, wider? }) -> a plan
+     (wider: false keeps "How close the shot is" from ever making the shot wider)
+   - at(plan, t) -> { src, luma, contrast, sat, warm, dx, dy, zoom, widen?, cx, cy, gainDb, duck, line }   what to do to
      the frame shown at output time t
    - paint(data, w, h, adj, mean) -> changes RGBA pixels in place (light, contrast, color, warmth)
    - palette, grain and softness, frame shape: measured and drawn by video/looks.js (CurioLooks); at() gives
@@ -674,6 +675,7 @@
   }
 
   /* ---------- applying one clip's curiosities to another ---------- */
+  const WIDEST = 0.8; /* a wider shot: the picture fills at least 80% of the frame (video/widen.js MIN) */
   const GROUPS = [
     { id: "light", label: "Light and dark", curiosities: ["valueKey", "setBrightness"], check: "luma", plain: "Brightens and darkens the clip so it gets lighter and darker exactly when, and as fast as, the inspiration does." },
     { id: "contrast", label: "Contrast", curiosities: ["contrast"], check: "std", plain: "Pulls the darks and lights apart or together to follow the inspiration's contrast." },
@@ -681,7 +683,7 @@
     { id: "warmth", label: "Warm and cool", curiosities: ["warmCool", "colorTemp"], check: "warm", plain: "Tints the clip warmer (orange) or cooler (blue) as the inspiration does." },
     { id: "shake", label: "Camera shake", curiosities: ["cameraShake", "cameraCarry"], check: "jitter", plain: "Steadies the clip's own wobble and adds the inspiration's, frame by frame, as if the same hand held the camera." },
     { id: "move", label: "Camera moves", curiosities: ["cameraMove", "moveSpeed"], check: "panX", plain: "Slides and pushes the frame the way the inspiration's camera pans, tilts and pushes in." },
-    { id: "size", label: "How close the shot is", curiosities: ["shotSize"], check: "skin", plain: "Moves in closer on the people when the inspiration is closer (it can only move in, not out)." },
+    { id: "size", label: "How close the shot is", curiosities: ["shotSize"], check: "skin", plain: "Moves in closer on the people when the inspiration is closer, and makes the shot wider when the inspiration is wider: your picture shrinks into the middle and the new edges are filled in (free in the browser, up to 25% wider; a paid AI fill paints them on a still frame). Turn off \"Wider shots\" to only ever move in." },
     { id: "cuts", label: "Cuts", curiosities: ["cutRate"], check: "cuts", plain: "Cuts where the inspiration cuts, by jumping ahead a little (a jump cut). Cuts already in the clip stay." },
     { id: "speed", label: "Movement speed", curiosities: ["movementAmount"], check: "local", plain: "Speeds the clip up where the inspiration moves more and slows it down where it moves less." },
     { id: "loud", label: "Loudness", curiosities: ["volume", "emoVoice"], check: "db", plain: "Turns the sound up and down so it gets louder and quieter with the inspiration." },
@@ -717,7 +719,7 @@
       const v = opts.on ? opts.on[g.id] : g.off ? 0 : 1; /* given a list, what it leaves out is off */
       on[g.id] = v === true ? 1 : clamp(Number(v) || 0, 0, 1);
     });
-    const p = { mode, on, insp, target, fps: 30 };
+    const p = { mode, on, insp, target, fps: 30, wider: opts.wider !== false };
     /* The inspiration's time for an output time: the same seconds (repeating when the clip is longer), or the
        whole inspiration stretched over the clip. */
     p.tA = (t, outDur) => (mode === "stretch" ? (t * insp.duration) / Math.max(0.001, outDur || target.duration) : insp.duration > 0 ? t % insp.duration : 0);
@@ -874,6 +876,9 @@
     if (on.size) {
       const [a, b] = g("skin");
       if (a > 0.005 && b > 0.002 && a > b) zoom = Math.max(zoom, mix(clamp(Math.sqrt(a / b), 1, 1.8), on.size));
+      /* A wider inspiration: the picture shrinks and its new edges are filled in (video/widen.js). */
+      if (p.wider !== false && a > 0.002 && b > 0.005 && a < b) adj.widen = r3(mix(clamp(Math.sqrt(a / b), WIDEST, 1), on.size));
+      if (adj.widen >= 0.999) delete adj.widen;
       adj.cx = sampleAt(B, B.raw.skinX, s);
       adj.cy = sampleAt(B, B.raw.skinY, s);
     }

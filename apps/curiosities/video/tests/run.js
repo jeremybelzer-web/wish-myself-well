@@ -530,6 +530,35 @@ check("grain and softness: grain is measured, a soft grainy inspiration softens 
   assert(!V.at(V.plan(p.insp, p.target, { on: { light: 1 } }), 1).looks, "off: no looks change");
   assert(V.GROUPS.find((g) => g.id === "shape").off && !V.GROUPS.find((g) => g.id === "palette").off, "frame shape is off unless turned on");
 });
+check("wider shot: a wider inspiration shrinks the picture (no further than 80%), never when turned off or when it is closer", () => {
+  const skin = (d, v) => Object.assign({}, d, { raw: Object.assign({}, d.raw, { skin: d.times.map(() => v), skinX: d.times.map(() => 0.5), skinY: d.times.map(() => 0.5) }) });
+  const wide = skin(insp, 0.05),
+    close = skin(target, 0.3);
+  const a = V.at(V.plan(wide, close, { on: { size: 1 } }), 3);
+  assert(a.widen >= 0.8 && a.widen < 0.81 && a.zoom === 1, "wider, held at 80%: " + JSON.stringify([a.widen, a.zoom]));
+  const half = V.at(V.plan(skin(insp, 0.25), close, { on: { size: 1 } }), 3).widen;
+  assert(half > 0.9 && half < 0.92, "a little wider: about sqrt(0.25 / 0.3) = 0.91: " + half);
+  assert(V.at(V.plan(wide, close, { on: { size: 1 }, wider: false }), 3).widen === undefined, "off: never wider");
+  assert(V.at(V.plan(wide, close, { on: { light: 1 } }), 3).widen === undefined, "shot size off: never wider");
+  const inward = V.at(V.plan(close, skin(target, 0.05), { on: { size: 1 } }), 3);
+  assert(inward.widen === undefined && inward.zoom > 1, "a closer inspiration still moves in");
+  const W = w.CurioWiden;
+  assert(W && W.MIN === 0.8, "widen.js loads with the core");
+  const r = W.rect(1000, 500, 0.8);
+  assert(r.w === 800 && r.h === 400 && r.x === 100 && r.y === 50, "the picture sits in the middle: " + JSON.stringify(r));
+  assert(W.rect(1000, 500, 0.5).w === 800, "never smaller than 80%");
+});
+check("wider shot, paid: AI paints the new edges on one still frame, priced first and under the caps", () => {
+  const store = {};
+  const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };
+  ctx.window = ctx;
+  require("vm").runInNewContext(fs.readFileSync(path.join(__dirname, "..", "ai.js"), "utf8"), ctx);
+  const P = ctx.CurioAI.providers("picture").find((p) => p.id === "fal-outpaint");
+  assert(P && P.where === "server" && P.company === "fal", "a paid picture provider on fal.ai");
+  const e = P.edges(1000, 500, 0.8);
+  assert(e.expand_left === 125 && e.expand_right === 125 && e.expand_top === 63 && e.expand_bottom === 63, "edges for 80%: " + JSON.stringify(e));
+  assert(ctx.CurioAI.price(P, { frames: 1 }) > 0 && ctx.CurioAI.price(P, { frames: 1 }) <= ctx.CurioAI.caps().job, "one frame is priced and fits the $1 job cap");
+});
 check("face swap: on for your own clips, others shown must agree", () => {
   const store = {};
   const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };

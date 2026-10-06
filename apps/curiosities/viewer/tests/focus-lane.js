@@ -152,6 +152,8 @@ const ok = (cond, msg) => {
   await page.evaluate(() => CurioViewer.undo());
   await page.waitForTimeout(200);
   ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels[2].v))) === wv0, "and Undo puts it back");
+  /* without the scene inspiration search, Search opens the plain docked search window */
+  await page.evaluate(() => { window.__ci = window.CurioInspire; window.CurioInspire = undefined; });
   await page.click('.cf-cwin [data-cw="search"]');
   await page.waitForTimeout(150);
   const docked = await page.evaluate(() => { const a = document.querySelector(".cf-cwin").getBoundingClientRect(); const b = document.querySelector(".cf-swin").getBoundingClientRect(); return Math.abs(b.top - a.top) < 2 && (Math.abs(b.left - a.right - 6) < 2 || Math.abs(a.left - b.right - 6) < 2); });
@@ -163,7 +165,7 @@ const ok = (cond, msg) => {
     let got = null;
     window.CurioInspire = { openSearch: (id, o) => (got = [id, !!(o && o.anchor && o.anchor.classList.contains("cf-cwin"))]) };
     document.querySelector('.cf-cwin [data-cw="search"]').click();
-    delete window.CurioInspire;
+    window.CurioInspire = window.__ci;
     return got;
   });
   ok(asked && asked[0] === "tensionCurve" && asked[1] && !(await page.isVisible(".cf-swin")), "with the inspiration search loaded, Search opens it on this curiosity, beside the window: " + JSON.stringify(asked));
