@@ -921,7 +921,7 @@
 
   // ---------- Suites ----------
   S("tearjerker-finale", "Tearjerker finale", "emo-road",
-    "An ending built to make the audience cry, the honest way: long setup, a small trigger, and a release we have waited for.",
+    "An ending built to make the audience cry, the honest way: long setup, a small spark, and a release we have waited for.",
     [
       { curiosity: "earnedTears", value: 5 },
       { curiosity: "catharsis", value: 4 },

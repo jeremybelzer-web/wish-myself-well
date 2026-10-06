@@ -15876,7 +15876,7 @@
    "port": 1,
    "channel": 15,
    "cc": 12,
-   "label": "When a trigger appears, the feeling turns",
+   "label": "When a spark appears, the feeling turns",
    "level": "proximity",
    "workspace": "emotion",
    "module": 99,

@@ -12,13 +12,16 @@ Clone that repo. Work only in `apps/curiosities/`. The rest of the repository is
 
 Working title: **Curiomatic** (Jeremy, 2026-10-02). Use it in visible text; code ids, globals and folder names keep "curiosities".
 
-A live-action, animation, zine, comic-strip, and storyboard app. Every scene is made of three kinds of thing:
+A live-action, animation, zine, comic-strip, and storyboard app. The words (Jeremy, 2026-10-05; never write "trigger" or "proximity suite" in visible text):
 
-1. **Curiosities** — one measurable value in a beat. Shot size. A person crossing. A cup lifted. A camera that is locked, smooth, or handheld.
-2. **Curiosity suites** — a named group of curiosities that fire together.
-3. **Curiosity proximities** — when curiosity or suite X happens, curiosity or suite Y happens within a number of beats.
+1. **Curiosity** — one measurable value in a beat. Shot size. A person crossing. A cup lifted. A camera that is locked, smooth, or handheld.
+2. **Suite** — a named group of curiosities that move together. Blue Steel is a suite: pursed lips, eyes to the camera, cheeks in.
+3. **Proximity** — how closely curiosities are related: the web of branches and roots in the 3D relationship map. It never sets anything off.
+4. **Catalyst** — something that sets other curiosities off, in two kinds:
+   - **Spark** — one thing sets things off: when curiosity or suite X happens, curiosity or suite Y happens within a number of beats. A MIDI note, a word heard or a camera movement (screen/triggers.js) is a spark too.
+   - **Elixir** — a key catalyst: several ingredients (sparks) must all line up, like ridges of a key in a lock. Its Lock lane makes it fire only on panels where every ingredient's cause is there.
 
-A model of a movie, a TV hour, or a video game is only those three. If a fact cannot be stated as a curiosity, a suite, or a proximity, it does not belong in the model.
+In code the old names stay so saved projects keep working: sparks are `PROXIMITIES`, `p:<id>` and level `"proximity"`; elixirs are `PROXIMITY_SUITES`, `ps:<id>` and level `"proximity suite"` / `"proximitySuite"`; Screen sparks are `window.CurioTriggers`. A model of a movie, a TV hour, or a video game is only curiosities, suites and catalysts. If a fact cannot be stated that way, it does not belong in the model.
 
 ## Read next
 
@@ -100,7 +103,7 @@ Games wait until the curiosity model is fleshed out; they will be the last thing
 
 ## Automation (the core)
 
-Every curiosity, suite, proximity and proximity suite is an automatable parameter (`automation.js`, `window.CurioAuto`). Its trigger (MIDI note, key, or button) turns it on and off. Inside, its main lane runs between two settings through the curiosity's scale (angle height: floor, low, eye, high, overhead), and its other lanes grade its other parts (a curiosity's other dimensions, a suite's members, a proximity's cause, delay, how often and effect size, a proximity suite's members). Each lane has a from, a to, a curve and its own modulator (follows the main one, LFO, knob, or MIDI CC). Each patch plays in a moment, a span of panels, and a lane can sweep across it. A performer can wear MIDI straps and make a parameter flick or glide between settings at a rate they set. Running parameters play on the Board as an "Automation" layer over any applied strand and can send their position out as MIDI CC for VCV Rack and other modular synths (and take CCs in). Each workspace shows the modules for its own curiosities; the Library's Automation patch bay shows them all. Patches and bindings are `localStorage` key `curiosities-automation-v1`.
+Every curiosity, suite, proximity and proximity suite is an automatable parameter (`automation.js`, `window.CurioAuto`). Its switch (MIDI note, key, or button) turns it on and off. Inside, its main lane runs between two settings through the curiosity's scale (angle height: floor, low, eye, high, overhead), and its other lanes grade its other parts (a curiosity's other dimensions, a suite's members, a proximity's cause, delay, how often and effect size, a proximity suite's members). Each lane has a from, a to, a curve and its own modulator (follows the main one, LFO, knob, or MIDI CC). Each patch plays in a moment, a span of panels, and a lane can sweep across it. A performer can wear MIDI straps and make a parameter flick or glide between settings at a rate they set. Running parameters play on the Board as an "Automation" layer over any applied strand and can send their position out as MIDI CC for VCV Rack and other modular synths (and take CCs in). Each workspace shows the modules for its own curiosities; the Library's Automation patch bay shows them all. Patches and bindings are `localStorage` key `curiosities-automation-v1`.
 
 **Prism** (`prism.js`, in the Library and, filtered, in every workspace): a curated film (any study, or My board) is white light; the Prism splits it into four bands, the curiosities it uses with the range each went through, the suites it shows and how much of each (top 6 by best share, Show all for the rest), the proximities that held with the delays seen, and the proximity suites whose members held. Pick a moment of your own film (a span of board panels) and drop any row onto it: it becomes a CurioAuto patch built from the film's own ranges (a curiosity's lowest to highest, with lanes for the curiosities that moved with it; a proximity's delay and how often it held) and plays there. Each row offers "Copy it" (the film's own values) or "Make it an analogy" (A is to B as C is to D: the same move, by its place on the scale, starting from where your moment is). A "Borrow this film's emotional road" card stretches a film's feeling over your story's scenes into a character or The film row, with a preview and undo. A Develop card then offers three next moves (push it further, answer it, turn it around). Its view is `localStorage` key `curiosities-prism-view-v1`.
 

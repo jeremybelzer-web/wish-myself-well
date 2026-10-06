@@ -34791,7 +34791,7 @@
     "push": 2,
     "plot": "Feeling-driven choices are fast and messy; reasoned ones are slow and cold, and both create trouble.",
     "theme": "Heart versus head is how the film weighs what makes a good choice.",
-    "pull": "When a rational character finally breaks down, the audience is pulled into what triggered it.",
+    "pull": "When a rational character finally breaks down, the audience is pulled into what sparked it.",
     "cue": "thought",
     "tryThis": "Have the coolest thinker in the room cry at something small and ridiculous."
    }
@@ -39727,7 +39727,7 @@
     "push": 1,
     "plot": "A quick cutaway to a memory can fill in backstory the plot needs without slowing down.",
     "theme": "Cutting to what really happened shows the gap between what people say and the truth.",
-    "pull": "Once the film starts cutting away, the audience waits for the next line that will trigger one.",
+    "pull": "Once the film starts cutting away, the audience waits for the next line that will spark one.",
     "cue": "visual",
     "tryThis": "Cut to the memory that proves the line wrong, then straight back to their face."
    },
@@ -110821,7 +110821,7 @@
    "id": "whoIsNear",
    "level": "curiosity",
    "label": "Who is near them",
-   "plain": "Who is close to this character in this scene, and where they are. A relationship curiosity starts here: \"when an authority figure is near, trust drops\" is a proximity from this one.",
+   "plain": "Who is close to this character in this scene, and where they are. A relationship curiosity starts here: \"when an authority figure is near, trust drops\" is a spark from this one.",
    "workspace": "herd",
    "also": [
     "archetype"
@@ -153848,7 +153848,7 @@
    "id": "tearjerker-finale",
    "level": "suite",
    "label": "Tearjerker finale",
-   "plain": "An ending built to make the audience cry, the honest way: long setup, a small trigger, and a release we have waited for.",
+   "plain": "An ending built to make the audience cry, the honest way: long setup, a small spark, and a release we have waited for.",
    "workspace": "emo-road",
    "also": [
     "emotion",
@@ -199382,7 +199382,7 @@
   {
    "id": "trigger-turns",
    "level": "proximity",
-   "label": "When a trigger appears, the feeling turns",
+   "label": "When a spark appears, the feeling turns",
    "plain": "An object, a line or news sets off a turn in the feeling within a beat.",
    "workspace": "emotion",
    "also": [],
@@ -199395,7 +199395,7 @@
     "curiosity": "emoTurn",
     "change": "rises"
    },
-   "whenText": "a trigger appears",
+   "whenText": "a spark appears",
    "thenText": "the feeling turns",
    "within": 1,
    "often": null,
@@ -305950,7 +305950,7 @@
    "id": "the-dam-breaks",
    "level": "proximitySuite",
    "label": "The dam breaks",
-   "plain": "A trigger turns the feeling, what was held in comes out, and the character is lighter after.",
+   "plain": "A spark turns the feeling, what was held in comes out, and the character is lighter after.",
    "workspace": "emo-road",
    "also": [
     "emotion",

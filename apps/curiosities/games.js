@@ -13,8 +13,8 @@
   const GAMES = [
     { id: "rhythm", level: "Curiosity", label: "1 · Catch the rhythm", goal: "Recreate one curiosity's rhythm from an inspiration film as an automation, beat by beat." },
     { id: "swap", level: "Suite", label: "2 · Suite swap", goal: "Tell which suite each beat belongs to, then build an LFO that flips between them at the films' rhythm." },
-    { id: "cause", level: "Proximity", label: "3 · Cause and effect", goal: "A curiosity is hidden. Name the proximity that explains it and its delay in beats." },
-    { id: "chain", level: "Proximity suite", label: "4 · Chain reaction", goal: "Chain two or three proximities from different films into one proximity suite and fire it." },
+    { id: "cause", level: "Spark", label: "3 · Cause and effect", goal: "A curiosity is hidden. Name the spark that explains it and its delay in beats." },
+    { id: "chain", level: "Elixir", label: "4 · Chain reaction", goal: "Chain two or three sparks from different films into one elixir and fire it." },
   ];
 
   /* ---------- small helpers ---------- */
@@ -413,7 +413,7 @@
     const unlocked = S.unlocked || [];
     el.innerHTML = `
       <div class="bar-actions"><label class="field">Inspiration film${filmSelect('data-k="film"', s.film)}</label></div>
-      <p class="cap">Round ${s.rounds + 1}. One curiosity is hidden (the ? row). It changed at the beat marked ★. Which proximity explains it, and how many beats after its cause?</p>
+      <p class="cap">Round ${s.rounds + 1}. One curiosity is hidden (the ? row). It changed at the beat marked ★. Which spark explains it, and how many beats after its cause?</p>
       <div class="scroll"><table class="trace g-q"><tr><th></th>${q.beats.map((_, k) => `<th>${k + 1}</th>`).join("")}</tr>
         ${rows.map((id) => `<tr><td>${esc(label(id))}</td>${q.beats.map((b) => `<td>${esc(b.values[id] != null ? b.values[id] : "·")}</td>`).join("")}</tr>`).join("")}
         <tr><td><b>? hidden</b></td>${q.beats.map((b, k) => `<td>${s.answered ? esc(b.values[q.y]) : k === q.j ? "★" : "?"}</td>`).join("")}</tr></table></div>
@@ -423,8 +423,8 @@
         <button type="button" data-act="answer" ${s.answered ? "disabled" : ""}>Answer</button>
         <button type="button" data-act="next">Next round</button>
       </div>
-      ${s.answered ? `<p>${s.pick === q.P.id ? "Right proximity." : `It was: when ${esc(q.P.when)}, ${esc(q.P.then)}.`} ${Number(s.delay) === q.delay ? "Right delay." : `The delay was ${q.delay}.`} The hidden curiosity was ${esc(label(q.y))}.</p>` : ""}
-      <p class="cap">Unlocked patches: ${unlocked.length ? unlocked.map((id) => `<button type="button" class="chip-btn" data-unl="${esc(id)}">${esc(id)}</button>`).join(" ") : "none yet. A right answer unlocks that proximity."}</p>
+      ${s.answered ? `<p>${s.pick === q.P.id ? "Right spark." : `It was: when ${esc(q.P.when)}, ${esc(q.P.then)}.`} ${Number(s.delay) === q.delay ? "Right delay." : `The delay was ${q.delay}.`} The hidden curiosity was ${esc(label(q.y))}.</p>` : ""}
+      <p class="cap">Unlocked patches: ${unlocked.length ? unlocked.map((id) => `<button type="button" class="chip-btn" data-unl="${esc(id)}">${esc(id)}</button>`).join(" ") : "none yet. A right answer unlocks that spark."}</p>
       <div class="bar-actions">${useBtn("cause")}</div>`;
     const sc = s.rounds ? Math.round(s.total / s.rounds) : 0;
     el.querySelector(".g-score").innerHTML = `Score <b>${sc}</b> over ${s.rounds} round${s.rounds === 1 ? "" : "s"} · best ${best("cause", s.rounds >= 3 ? sc : null)}`;
@@ -432,7 +432,7 @@
     el.querySelector('[data-k="film"]').addEventListener("change", (e) => { s.film = e.target.value; s.answered = false; s.pick = ""; save(); g3(el); });
     el.querySelector('[data-k="delay"]').addEventListener("change", (e) => { s.delay = Number(e.target.value); save(); });
     el.querySelector('[data-act="answer"]').addEventListener("click", () => {
-      if (!s.pick) return toast(el, "Pick a proximity first.");
+      if (!s.pick) return toast(el, "Pick a spark first.");
       const pts = (s.pick === q.P.id ? 70 : 0) + (Number(s.delay) === q.delay ? 30 : 0);
       s.total += pts;
       s.rounds += 1;
@@ -456,7 +456,7 @@
     el.querySelectorAll("[data-unl]").forEach((b) => b.addEventListener("click", () => run(b.dataset.unl, (PROXIMITIES.find((p) => p.id === b.dataset.unl) || {}).within || 0)));
     el.querySelector('[data-use="cause"]').addEventListener("click", () => {
       const id = s.unlock || S.unlocked[S.unlocked.length - 1];
-      if (!id) return toast(el, "Answer one right to unlock a proximity patch.");
+      if (!id) return toast(el, "Answer one right to unlock a spark patch.");
       run(id, s.unlock === id ? s.unlockDelay : (PROXIMITIES.find((p) => p.id === id) || {}).within || 0);
     });
   }
@@ -478,20 +478,20 @@
     el.innerHTML = `
       <p class="cap">Inspiration films (pick two or three):</p>
       <div class="g-films">${all.map((f) => `<label class="field"><span><input type="checkbox" data-film="${esc(f.id)}" ${s.films.includes(f.id) ? "checked" : ""}> ${esc(f.title)}</span></label>`).join("")}</div>
-      <p class="cap">${targets.length ? `These films hold ${targets.length} proximit${targets.length === 1 ? "y" : "ies"}. Build a chain of two or three that reproduces them, ideally from different films.` : "None of the picked films holds a proximity. Add another film."}</p>
+      <p class="cap">${targets.length ? `These films hold ${targets.length} spark${targets.length === 1 ? "" : "s"}. Build a chain of two or three that reproduces them, ideally from different films.` : "None of the picked films holds a spark. Add another film."}</p>
       <ul class="g-plist">${PROX().map((p) => `<li><label><input type="checkbox" data-p="${esc(p.id)}" ${s.chain.includes(p.id) ? "checked" : ""} ${!s.chain.includes(p.id) && s.chain.length >= 3 ? "disabled" : ""}> When ${esc(p.when)}, ${esc(p.then)}</label>
         ${heldBy[p.id] ? `<span class="chip lit">held in ${esc(heldBy[p.id].length)} film${heldBy[p.id].length > 1 ? "s" : ""}</span>` : ""}
         ${s.chain.includes(p.id) ? `<select data-delay="${esc(p.id)}" aria-label="delay">${opts([0, 1, 2, 3, 4, 6, 8], s.delays[p.id] != null ? s.delays[p.id] : p.within)}</select> beats` : ""}</li>`).join("")}</ul>
-      <div class="bar-actions"><button type="button" data-act="fire">Trigger the chain</button> <button type="button" data-act="stop">Stop</button> ${useBtn("chain")}</div>
+      <div class="bar-actions"><button type="button" data-act="fire">Spark the chain</button> <button type="button" data-act="stop">Stop</button> ${useBtn("chain")}</div>
       <div id="g4-out"></div>`;
-    el.querySelector(".g-score").innerHTML = `Score <b>${sc}</b> (${hit} of the films' proximities, from ${chainFilms.size} film${chainFilms.size === 1 ? "" : "s"}) · best ${best("chain", s.chain.length >= 2 ? sc : null)}`;
+    el.querySelector(".g-score").innerHTML = `Score <b>${sc}</b> (${hit} of the films' sparks, from ${chainFilms.size} film${chainFilms.size === 1 ? "" : "s"}) · best ${best("chain", s.chain.length >= 2 ? sc : null)}`;
     save();
     el.querySelectorAll("[data-film]").forEach((c) => c.addEventListener("change", () => { s.films = c.checked ? s.films.concat(c.dataset.film).slice(-3) : s.films.filter((x) => x !== c.dataset.film); save(); g4(el); }));
     el.querySelectorAll("[data-p]").forEach((c) => c.addEventListener("change", () => { s.chain = c.checked ? s.chain.concat(c.dataset.p).slice(0, 3) : s.chain.filter((x) => x !== c.dataset.p); save(); g4(el); }));
     el.querySelectorAll("[data-delay]").forEach((x) => x.addEventListener("change", () => { s.delays[x.dataset.delay] = Number(x.value); save(); }));
     const fire = () => {
       if (!A()) return;
-      if (s.chain.length < 2) return toast(el, "Chain at least two proximities.");
+      if (s.chain.length < 2) return toast(el, "Chain at least two sparks.");
       s.chain.forEach((id) => {
         const within = s.delays[id] != null ? s.delays[id] : (PROXIMITIES.find((p) => p.id === id) || {}).within || 0;
         A().set("p:" + id, { a: { on: false, within }, b: { on: true, within }, mod: "manual", manual: 1, mode: "toggle" });
@@ -514,7 +514,7 @@
       }
       const changed = {};
       r.panels.forEach((p, i) => Object.keys(p).forEach((k) => { if (!same(p[k], base[k])) (changed[k] = changed[k] || Array(4).fill(""))[i] = p[k]; }));
-      el.querySelector("#g4-out").innerHTML = `<p class="cap">The chain is running on your board. What it changed, panel by panel:</p>${Object.keys(changed).length ? `<div class="scroll"><table class="trace"><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th></tr>${Object.entries(changed).map(([k, v]) => `<tr><td>${esc(label(k))}</td>${v.map((x) => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table></div>` : "<p class='cap'>Nothing yet: the board has no cause for these proximities. Set a cause on the board (for example handheld, or an object entering) and the chain follows.</p>"}${boardPanels(Object.fromEntries(Object.keys(changed).map((k) => [k, r.panels.map((p) => p[k])])), 4)}`;
+      el.querySelector("#g4-out").innerHTML = `<p class="cap">The chain is running on your board. What it changed, panel by panel:</p>${Object.keys(changed).length ? `<div class="scroll"><table class="trace"><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th></tr>${Object.entries(changed).map(([k, v]) => `<tr><td>${esc(label(k))}</td>${v.map((x) => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table></div>` : "<p class='cap'>Nothing yet: the board has no cause for these sparks. Set a cause on the board (for example handheld, or an object entering) and the chain follows.</p>"}${boardPanels(Object.fromEntries(Object.keys(changed).map((k) => [k, r.panels.map((p) => p[k])])), 4)}`;
     };
     el.querySelector('[data-act="fire"]').addEventListener("click", fire);
     el.querySelector('[data-use="chain"]').addEventListener("click", fire);
@@ -561,7 +561,7 @@
     unsubscribe = null;
     const g = GAMES.find((x) => x.id === S.tab) || GAMES[0];
     root.innerHTML = `<h2>Cross-pollinate</h2>
-      <p class="cap">Four games, one per automation level. Each takes what an inspiration film does and turns it into an automation you can run in your own film, trigger from a key or a MIDI note, and send to a modular synth.</p>
+      <p class="cap">Four games, one per automation level. Each takes what an inspiration film does and turns it into an automation you can run in your own film, spark from a key or a MIDI note, and send to a modular synth.</p>
       <nav class="subtabs">${GAMES.map((x) => `<button type="button" data-game="${x.id}" class="${x.id === g.id ? "on" : ""}">${esc(x.label)}</button>`).join("")}</nav>
       <p><span class="chip suite">${esc(g.level)}</span> <b>${esc(g.goal)}</b></p>
       <p class="g-score"></p>

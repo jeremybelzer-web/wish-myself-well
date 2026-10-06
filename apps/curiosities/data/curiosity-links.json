@@ -4170,7 +4170,7 @@
   {
    "id": "p:trigger-turns",
    "proximity": "trigger-turns",
-   "label": "When a trigger appears, the feeling turns",
+   "label": "When a spark appears, the feeling turns",
    "from": {
     "curiosity": "emoTurn.trigger",
     "track": "master",
@@ -4183,7 +4183,7 @@
    "within": 1,
    "amount": 0.25,
    "does": "rise",
-   "when": "a trigger appears",
+   "when": "a spark appears",
    "then": "the feeling turns"
   },
   {
@@ -26413,7 +26413,7 @@
   {
    "id": "ps:the-dam-breaks",
    "label": "The dam breaks",
-   "plain": "A trigger turns the feeling, what was held in comes out, and the character is lighter after.",
+   "plain": "A spark turns the feeling, what was held in comes out, and the character is lighter after.",
    "proximities": [
     "trigger-turns",
     "held-in-release",

@@ -1,7 +1,7 @@
 /* viewer/focus-lane.js: "Front and center", the lane under the Viewer's picture (Jeremy, 2026-10-04 18:55Z):
    usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This
    lane always shows which ones, moment by moment, and the suite they make up when one is there. When the one in
-   front was set off by something else (a proximity: a curiosity or suite triggered by another), it says by what.
+   front was set off by something else (a spark: a curiosity or suite set off by another), it says by what.
 
    It reads My film's panels as curiosity values and asks the app's own attention model (momentum/attention.js,
    CurioAttention.read) who holds attention, the same reading the Screen's Attention band uses. The values:
@@ -465,7 +465,7 @@
       .join("");
     const bolts = r.panels
       .filter((p) => p.trigger)
-      .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by: ${p.trigger.when}`)}">⚡</i>`)
+      .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by a spark: ${p.trigger.when}`)}">⚡</i>`)
       .join("");
     const was = box.dataset.only || "";
     el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><span class="cf-now" aria-live="polite"></span><span class="cf-name" aria-live="polite"></span></div>
@@ -514,7 +514,7 @@
       html += `${sw(p.lead.family)}<strong>${esc(p.lead.label)}</strong> <em>(${esc(M().mark(p.lead.family).label)}${st ? `, held ${seg ? seg.dur : 0} s, ${st.icon} ${st.words}` : ""})</em>`;
     }
     if (p.second) html += ` with ${sw(p.second.family)}${esc(p.second.label)}`;
-    if (p.trigger) html += ` <span class="cf-trig">⚡ ${esc(whoLabel(p.trigger.who))} was set off by something else: ${esc(p.trigger.when)}${p.trigger.from < i ? ` (panel ${p.trigger.from + 1})` : ""}</span>`;
+    if (p.trigger) html += ` <span class="cf-trig">⚡ ${esc(whoLabel(p.trigger.who))} was set off by a spark: ${esc(p.trigger.when)}${p.trigger.from < i ? ` (panel ${p.trigger.from + 1})` : ""}</span>`;
     if (p.suite) html += ` <em>· suite</em> ${esc(p.suite.label)} <em>${Math.round(p.suite.share * 100)}%</em>`;
     const line = box.querySelector(".cf-now");
     if (line) {

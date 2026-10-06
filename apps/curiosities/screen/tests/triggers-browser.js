@@ -77,7 +77,7 @@ const ok = (cond, msg) => {
 
   /* Right-click the node: the timeline's own menu now has Assign On Trigger…. */
   await page.click(nodeSel, { button: "right" });
-  ok(await page.$(".sl-linemenu [data-ctr-assign]"), "right-clicking a node offers Assign On Trigger… in its menu");
+  ok(await page.$(".sl-linemenu [data-ctr-assign]"), "right-clicking a node offers Assign On Spark… in its menu");
   ok(await T(() => !!document.querySelector('.sl-linemenu [data-m="remove"]')), "the node menu keeps its own items");
   await page.click(".sl-linemenu [data-ctr-assign]");
   ok(await page.$('.ctr-win[data-ctr="edit"]'), "the trigger editor opens: when + does + limits");
@@ -92,7 +92,7 @@ const ok = (cond, msg) => {
   await page.click(".ctr-win [data-ctr-save]");
   const tl = await T(() => window.CurioTriggers.list());
   ok(tl.length === 1 && tl[0].when.kind === "midi" && tl[0].when.num === 60 && tl[0].does.act === "off" && tl[0].does.mode === "hold" && tl[0].target.kind === "node", "Assign saves one trigger: MIDI note 60, off, while held, on that node");
-  ok((await T(() => window.CurioStore.history().undo.length)) === appUndo0 + 1 && /Assign On Trigger/.test(await T(() => window.CurioStore.history().undo.slice(-1)[0])), "assigning is one undo step");
+  ok((await T(() => window.CurioStore.history().undo.length)) === appUndo0 + 1 && /Assign On Spark/.test(await T(() => window.CurioStore.history().undo.slice(-1)[0])), "assigning is one undo step");
   const id1 = tl[0].id;
 
   /* A pad press: the node switches off while held, and nothing is saved or undoable. */

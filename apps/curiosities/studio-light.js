@@ -1131,7 +1131,7 @@
             <button type="button" data-act="play">Play</button>
           </div>
           <div data-out="beatRead"></div>
-          <p class="group-label">Lighting proximities</p>
+          <p class="group-label">Lighting sparks</p>
           <div data-out="prox"></div>
           <p><button type="button" data-act="shelf">Keep on Shelf</button> <span class="cap">Keeps key, contrast, colorTemp, lightChange and lighting, one value per beat.</span></p>
         </div>

@@ -864,7 +864,7 @@
         <div class="bar-actions"><label class="cap"><input type="checkbox" id="cv-lmute"${c.layerMute ? " checked" : ""}> Mute layer</label><button type="button" data-act="layer-clear">Clear layer</button><button type="button" data-act="layer-merge">Merge down</button></div>` : ""}
 
         <div class="g">Set Driven Key</div>
-        <p class="cap">A proximity: when the driver reaches X, the driven curiosity follows to Y in the same beat.</p>
+        <p class="cap">A spark: when the driver reaches X, the driven curiosity follows to Y in the same beat.</p>
         <label class="cap"><input type="checkbox" id="cv-sdk-on"${sd.on ? " checked" : ""}> Driven key on</label>
         <div class="cv-row">
           <label class="field">Driver<select id="cv-sdk-driver">${options(curveOpts, sd.driver)}</select></label>
@@ -1014,7 +1014,7 @@
   function proxHtml() {
     const list = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
     const mine = list.filter((p) => p.x && p.y && p.x.curiosity && p.y.curiosity && S.sel.includes(p.x.curiosity) && S.sel.includes(p.y.curiosity));
-    if (!mine.length) return `<p class="cap cv-legend">Proximities: animate both sides of one (for example volume and moveSpeed) to see where it holds.</p>`;
+    if (!mine.length) return `<p class="cap cv-legend">Sparks: animate both sides of one (for example volume and moveSpeed) to see where it holds.</p>`;
     const vals = beatValues();
     const rows = mine
       .map((p) => {
@@ -1035,7 +1035,7 @@
         return `<div class="cv-prox"><span class="cap">When ${esc(p.when)}, ${esc(p.then)} within ${p.within} beat${p.within === 1 ? "" : "s"}. <span class="mono">${held}/${fired}</span></span><span class="cv-ticks">${ticks}</span></div>`;
       })
       .join("");
-    return `<div class="g">Proximities</div>${rows}`;
+    return `<div class="g">Sparks</div>${rows}`;
   }
 
   function preview() {

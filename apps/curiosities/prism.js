@@ -15,8 +15,8 @@
   const BANDS = [
     { id: "curiosity", label: "Curiosities", hue: 12, note: "One measurable thing each, and how far it moved." },
     { id: "suite", label: "Suites", hue: 40, note: "Groups of lenses you look through together. Each beat shows a share of a suite, from none to all of it." },
-    { id: "proximity", label: "Proximities", hue: 150, note: "When X happened, Y followed within a few beats." },
-    { id: "proximity suite", label: "Proximity suites", hue: 232, note: "Groups of proximities that held together." },
+    { id: "proximity", label: "Sparks", hue: 150, note: "When X happened, Y followed within a few beats." },
+    { id: "proximity suite", label: "Elixirs", hue: 232, note: "Groups of sparks that held together." },
   ];
 
   /* The film and the moment are shared by every Prism on the page (the Prism tab and the
@@ -431,7 +431,7 @@
   function beam() {
     const ys = [18, 40, 62, 84];
     const rays = BANDS.map((b, i) => `<path d="M118 51 L300 ${ys[i] - 6} L300 ${ys[i] + 6} Z" fill="hsl(${b.hue} 65% 52%)" opacity="0.85"/><text x="306" y="${ys[i] + 4}" font-size="11" font-family="IBM Plex Mono, monospace" fill="#1c1712">${esc(b.label)}</text>`).join("");
-    return `<svg class="pr-beam" viewBox="0 0 420 100" role="img" aria-label="A film splits into curiosities, suites, proximities and proximity suites">
+    return `<svg class="pr-beam" viewBox="0 0 420 100" role="img" aria-label="A film splits into curiosities, suites, sparks and elixirs">
       <text x="0" y="40" font-size="11" font-family="IBM Plex Mono, monospace" fill="#1c1712">a film</text>
       <path d="M0 51 L104 51" stroke="#1c1712" stroke-width="5"/>
       <path d="M96 22 L136 80 L76 80 Z" fill="#fffaf2" stroke="#1c1712" stroke-width="2"/>
@@ -500,7 +500,7 @@
       : `<h2>Prism</h2>
       <div class="pr-head">
         ${beam()}
-        <p class="cap">A film is white light. The Prism splits it into its colors: the curiosities it uses and how low to how high each went, the suites it shows and how much of each, the proximities that held and after how many beats, and the proximity suites whose members held. Pick a moment of your own film, then drop any color onto it. It plays there, built from the film's own ranges, and you can develop it from there.</p>
+        <p class="cap">A film is white light. The Prism splits it into its colors: the curiosities it uses and how low to how high each went, the suites it shows and how much of each, the sparks that held and after how many beats, and the elixirs whose members held. Pick a moment of your own film, then drop any color onto it. It plays there, built from the film's own ranges, and you can develop it from there.</p>
       </div>`;
     root.innerHTML = `
       ${head}
@@ -688,7 +688,7 @@
     let lanes = [];
     x.members.forEach((mm) => (lanes = lanes.concat(delayLanes(key, mm.m, beats, ":" + mm.id))));
     laneOff(key, lanes);
-    return { key, title: x.ps.label, how: `${x.held.length} of its ${x.members.length} proximities play with the delays and how often they held in the film.` };
+    return { key, title: x.ps.label, how: `${x.held.length} of its ${x.members.length} sparks play with the delays and how often they held in the film.` };
   }
 
 
@@ -985,7 +985,7 @@
     const ansMove = ans
       ? {
           head: "Answer it:",
-          text: `add "when ${ans.p.when}, ${ans.p.then}", a proximity this film uses (${delaysText(ans.delays)}).`,
+          text: `add "when ${ans.p.when}, ${ans.p.then}", a spark this film uses (${delaysText(ans.delays)}).`,
           run() {
             const r = apply("proximity", ans.p.id, sp, playing.m);
             A().start(r.key);
