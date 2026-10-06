@@ -131,6 +131,7 @@
     body.innerHTML = `<div class="ci-dbs" role="tablist" aria-label="Database">${tabs}</div><div class="ci-top">
         <input type="search" class="ci-search" placeholder="${view.db === "writing" ? "Type a title, an author, a feeling, a movement" : "Type a film, a game, a feeling, a moment"}" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
         <label class="ci-small">Watch on <select data-i="watch">${Object.entries(h.WATCH).map(([id, w]) => `<option value="${id}" ${store.watch === id ? "selected" : ""}>${esc(w.label)}</option>`).join("")}</select></label>
+        ${view.db === "writing" ? "" : `<button type="button" data-i="tag">Watch and tag a clip</button>`}
         <button type="button" data-i="log">${view.db === "writing" ? "Log a passage you read" : "Log a clip you watched"}</button>
       </div>
       <div class="ci-pills"><span class="ci-small">What the audience feels</span> ${feels}</div>
@@ -153,13 +154,14 @@
     const focus = view.key && view.topic !== "all" ? h.details(s).find((d) => d.key === view.key) : null;
     const views = store.views[s.id] || 0;
     return `<article class="ci-card${open ? " open" : ""}">
-      <header><strong>${esc(s.work)}</strong> <small>${s.author ? esc(s.author) + " · " : ""}${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${views ? ` · ${h.isWritten(s) ? "read" : "watched"} ${views}×` : ""}</small></header>
+      <header><strong>${esc(s.work)}</strong> <small>${s.author ? esc(s.author) + " · " : ""}${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${s.video && s.video.lost ? " · link lost, Watch searches for it" : ""}${views ? ` · ${h.isWritten(s) ? "read" : "watched"} ${views}×` : ""}</small></header>
       <p>${esc(s.moment)} <small class="ci-small">(${esc(s.feelings.join(", "))})</small></p>
       ${(s.movements || []).length ? `<p class="ci-small">Movements: ${s.movements.map(esc).join(", ")}</p>` : ""}
       ${(s.archive || []).length && (window.CurioRelationsLoad || window.CurioRelations) ? `<p class="ci-small">On the relationship map: ${s.archive.map((id) => `<button type="button" class="ci-link" data-i="map" data-v="${esc(id)}">${esc(archiveLabel(id))}</button>`).join(" ")}</p>` : ""}
       ${focus ? `<p class="ci-small">${esc(focus.label)}: ${focus.path.map(esc).join(" → ")} <em>(${esc(focus.rate)})</em></p>` : ""}
       <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">${h.isWritten(s) ? "Read" : "Watch"}</button>
         <button type="button" data-i="borrow" data-v="${esc(s.id)}" title="Open it in the Prism, then drop any curiosity onto a moment of your film">Borrow its curiosities</button>
+        ${h.isWritten(s) ? "" : `<button type="button" data-i="tag-scene" data-v="${esc(s.id)}" title="Play it here and tag its curiosities as they change">Watch and tag</button>`}
         <button type="button" class="ci-link" data-i="open" data-v="${esc(s.id)}">${open ? "Hide" : "Every curiosity"}</button>
         ${s.logged ? `<button type="button" class="ci-link" data-i="forget" data-v="${esc(s.id)}">Forget</button>` : ""}</p>
       ${open ? details(s) : ""}
@@ -298,6 +300,7 @@
       if (!s) return;
       store.views[s.id] = (store.views[s.id] || 0) + 1;
       save();
+      /* A kept YouTube link opens right at the scene (watchUrl); a lost one, or another site, opens a search. */
       window.open(getHub().watchUrl(s, store.watch), "_blank", "noopener");
       return draw();
     }
@@ -326,6 +329,11 @@
       return draw();
     }
     if (i === "logsave") return saveLog();
+    if ((i === "tag" || i === "tag-scene") && window.CurioWatchTag) {
+      const sc = i === "tag-scene" ? sceneOf(v) : null;
+      if (dlg && dlg.open) dlg.close();
+      return window.CurioWatchTag.open(sc ? { search: sc.search, work: sc.work, year: sc.year, kind: sc.kind, moment: sc.moment, feelings: sc.feelings, video: sc.video } : {});
+    }
   }
   function keepLogFields() {
     /* Redrawing the log form for a new row should not lose what was typed. */
@@ -406,6 +414,22 @@
     if (typeof dlg.showModal === "function" && !dlg.open) dlg.showModal();
     else dlg.setAttribute("open", "");
     draw();
+    recheck();
+  }
+  /* In the background: links not checked in 30 days are checked, a live one moves to the front. */
+  let checking = false;
+  function recheck() {
+    if (checking || !window.CurioWatchTag || !window.CurioWatchTag.check) return;
+    checking = true;
+    window.CurioWatchTag.check(store.clips || [])
+      .then((n) => {
+        if (!n) return;
+        (store.clips || []).filter((c) => !window.CurioInspireSearch.isWritten(c)).forEach((c) => getHub("screen").add(c));
+        save();
+        if (dlg && dlg.open && !view.logging) draw();
+      })
+      .catch(() => {})
+      .then(() => (checking = false));
   }
   /* The search pop-up a curiosity window opens with its search button: openSearch(curiosityId, { anchor, movement,
      filters }). It opens beside the window it came from (anchor: that window's element), already on that curiosity,
@@ -548,6 +572,17 @@ dialog.ci-hub.ci-pop>header{cursor:move}
     else setTimeout(wire, 0);
   }
 
+  /* Keep a clip from Watch and tag in the screen database. */
+  function keep(clip) {
+    const scene = getHub("screen").logClip(clip);
+    store.clips = (store.clips || []).filter((c) => c.id !== scene.id).concat([scene]);
+    save();
+    view.db = "screen";
+    getHub("screen").add(scene);
+    view.logging = false;
+    return scene;
+  }
+
   window.CurioSceneSearch = { mount };
-  window.CurioInspire = { open, openSearch, mount, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
+  window.CurioInspire = { open, openSearch, mount, keep, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
 })();
