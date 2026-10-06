@@ -1899,7 +1899,15 @@
           w.video.src = f.url;
           w.video.dataset.src = f.url;
         }
-        if (playing && w.video.paused) w.video.play().catch(() => {});
+        /* your video plays with its sound (Play is pressed by hand, so the browser allows it); if it won't, it
+           plays silent */
+        if (playing && w.video.paused) {
+          w.video.muted = false;
+          w.video.play().catch(() => {
+            w.video.muted = true;
+            w.video.play().catch(() => {});
+          });
+        }
         if (!playing) {
           w.video.pause();
           const d = w.video.duration;
@@ -2376,6 +2384,12 @@
       drawAll();
     }
   }
+  /* moving the playhead by hand: falling rain follows it, so dragged back the rain goes back up */
+  function scrubTo(t) {
+    const to = clamp(+t || 0, 0, total());
+    if (!playing && film.panels[panelAt(Math.min(to, total() - 1e-6)).i].rain === "fall") rainT += to - T;
+    T = to;
+  }
   let last = 0;
   function tick(now) {
     if (!playing || !root || root.hidden) return;
@@ -2623,7 +2637,7 @@
     if (!k) {
       if (el.classList.contains("cv-scrub")) {
         setPlaying(false);
-        T = (+el.value / 1000) * total();
+        scrubTo((+el.value / 1000) * total());
         const at = panelAt(T);
         if (at.i !== cur) {
           cur = at.i;
@@ -3065,7 +3079,7 @@
     togglePlay: () => togglePlay(),
     time: (t) => {
       if (t !== undefined) {
-        T = clamp(+t, 0, total());
+        scrubTo(t);
         draw();
       }
       return T;

@@ -96,6 +96,64 @@ const ok = (cond, msg) => {
   ok((await L(() => CurioViewer.panel())) === 6, "and lands on the panel under the pointer");
   const h1 = await L(() => CurioComic.heard());
   ok(h1 > h0 + 4, `scrubbing plays the words' syllables and the page turns (${h1 - h0} sounds)`);
+  const fwd = await L(() => CurioComic.scrubbed());
+  ok(fwd.dir === 1, "dragged right, the sound plays forwards");
+
+  /* drag back to the left: the sound plays backwards, in the order the playhead crosses the words */
+  const c7b = await page.locator('.cv-card[data-i="6"]').boundingBox();
+  const c6b = await page.locator('.cv-card[data-i="5"]').boundingBox();
+  const x1 = c7b.x + c7b.width - 6;
+  const x0 = c6b.x + 3;
+  await page.mouse.move(x1, rb.y + rb.height / 2);
+  await page.mouse.down();
+  const back = [];
+  let order = true;
+  for (let k = 1; k <= 20; k++) {
+    await page.mouse.move(x1 - ((x1 - x0) * k) / 20, rb.y + rb.height / 2);
+    back.push(await L(() => CurioViewer.time()));
+    const b = await L(() => CurioComic.scrubbed());
+    if (b.dir === -1 && !b.blips.every((t, j) => j === 0 || t <= b.blips[j - 1])) order = false;
+  }
+  const bk = await L(() => CurioComic.scrubbed());
+  await page.mouse.up();
+  ok(back.every((t, k) => k === 0 || t <= back[k - 1] + 1e-6) && back[back.length - 1] < back[0] - 3, `dragging left goes back through the film (${back[0].toFixed(1)} s → ${back[back.length - 1].toFixed(1)} s)`);
+  ok(bk.dir === -1 && order, "dragged left, the sound plays backwards, last word first");
+
+  /* the faster the drag, the faster the sound */
+  const speedOf = async (steps) => {
+    await page.mouse.move(x0, rb.y + rb.height / 2);
+    await page.mouse.down();
+    let r = 0;
+    for (let k = 1; k <= steps; k++) {
+      await page.mouse.move(x0 + ((x1 - x0) * k) / steps, rb.y + rb.height / 2);
+      if (steps > 4) await page.waitForTimeout(25);
+      r = Math.max(r, (await L(() => CurioComic.scrubbed())).rate);
+    }
+    await page.mouse.up();
+    return r;
+  };
+  const slow = await speedOf(30);
+  const fast = await speedOf(3);
+  ok(fast > slow * 2, `a quick drag plays faster than a slow one (${fast.toFixed(1)}× against ${slow.toFixed(1)}× normal speed)`);
+
+  /* a jump (a click) makes no sound; only playing or dragging does */
+  const hj = await L(() => CurioComic.heard());
+  await L(() => CurioViewer.time(CurioViewer.starts()[5] + 0.2));
+  await L(() => CurioViewer.time(CurioViewer.starts()[6] + 1.5));
+  ok((await L(() => CurioComic.heard())) === hj, "jumping the playhead without dragging it is silent");
+
+  /* the space bar starts and stops the picture and the sound */
+  await L(() => CurioViewer.select(5));
+  await L(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(600);
+  const on = await L(() => [CurioViewer.playing(), CurioComic.heard()]);
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(30);
+  const off = await L(() => [CurioViewer.playing(), CurioComic.sounding(), CurioComic.heard()]);
+  await page.waitForTimeout(400);
+  ok(on[0] && !off[0], "the space bar plays, and pressed again stops");
+  ok(off[1] === 0 && (await L(() => CurioComic.heard())) === off[2], `and stopping silences every sound at once (${off[1]} left playing)`);
 
   /* Pause goes back to where Play was pressed */
   await L(() => CurioViewer.select(3));

@@ -244,6 +244,12 @@ Data: `panel.words[k].rate`. Test: `node viewer/tests/speech.js`.
 - Sound while scrubbing and playing (Web Audio, no files): a blip for every syllable of a balloon at its rate
   of speech, each speaker with their own pitch; a hiss over falling rain; a tick at each new panel. 🔊 Sound
   in the strip head turns it off (key `curiosities-viewer-sound-v1`).
+- Scrubbing (Jeremy 2026-10-06): holding the playhead (the ruler's ▼ or the slider under the picture) and
+  moving it plays the sound at the hand's speed: right plays forwards, as fast as the drag (pitch rises with
+  speed); left plays backwards (last word first, each blip reversed) and the picture, rain included, runs
+  backwards. Your own videos in a window are scrubbed with their real sound (read once, kept forwards and
+  backwards) and play with sound. Jumps (a click, Stop going back) are silent. The space bar or ❚❚ stops
+  every sound at once (`CurioComic.hush`, `sounding()`, `scrubbed()`).
 - Pause goes back to where Play was pressed (default) or stays where it stopped, picked under the picture
   (key `curiosities-viewer-afterstop-v1`; `CurioViewer.onPlay`, `playing()`, `togglePlay()`).
 - Read as a comic → Layout: Simple grid, **Modern comic** (frame by shot and story: establishing = full tier,
