@@ -211,11 +211,11 @@ const ok = (cond, msg) => {
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  const spin = await L(() => {
-    const p = CurioViewer.live().panel;
-    return CurioFlight.poseAt(p.flight, 1, p.place).roll - CurioFlight.poseAt(p.flight, 0, p.place).roll;
+  /* the waypoints were edited above, so compare with the path as it is now, not the first take */
+  const [spin, rolls] = await L(() => {
+    const p = CurioViewer.live().panel, q = p.flight.pts;
+    return [CurioFlight.poseAt(p.flight, 1, p.place).roll - CurioFlight.poseAt(p.flight, 0, p.place).roll, (q[q.length - 1].roll || 0) - (q[0].roll || 0)];
   });
-  const rolls = f.pts[f.pts.length - 1].roll - f.pts[0].roll;
   ok(Math.abs(spin - rolls - 360) < 1, `Spin the lens 360° adds a full turn over the panel (${Math.round(spin)}°)`);
   await shot("flight-poi-spin");
 

@@ -251,7 +251,7 @@
       : "No goal can be reached with these decks.";
     root.innerHTML = `
       <h2>Flip Book</h2>
-      <p class="cap">Each panel has three flaps: Camera, Bodies and Mood. Flip one and only that slice changes, borrowed from a study, a suite or the emotion map. A suite that fires in a panel is 10 points. A proximity that holds across the panels is 15. A goal is 50.</p>
+      <p class="cap">Each panel has three flaps: Camera, Bodies and Mood. Flip one and only that slice changes, borrowed from a study, a suite or the emotion map. A suite that fires in a panel is 10 points. A spark that holds across the panels is 15. A goal is 50.</p>
       <div class="scoreboard">
         <span><strong>${game.score}</strong> points</span>
         <span>${game.flips} flips</span>
@@ -261,7 +261,7 @@
       <p class="goal-card">${goal}</p>
       ${game.flash ? `<p class="applied flash">${esc(game.flash)}</p>` : ""}
       <div class="flipbook">${panels}</div>
-      <p class="g">Proximities holding</p>
+      <p class="g">Sparks holding</p>
       <p class="cap">${t.prox.length ? t.prox.map((x) => esc(`When ${x.p.when}, ${x.p.then}: panel ${x.from + 1} to ${x.to + 1}`)).join("<br>") : "None yet. Change something between neighboring panels."}</p>
       <p class="row-actions">
         <button type="button" data-act="shuffle">Shuffle every flap</button>

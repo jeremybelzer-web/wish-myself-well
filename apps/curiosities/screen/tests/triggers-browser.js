@@ -1,14 +1,14 @@
 /* Triggers ("curiosity proximity") in a real browser, inside the real app:
    node apps/curiosities/screen/tests/triggers-browser.js   (needs Playwright and Chromium)
 
-   Walks it the way a person would, with a real mouse and real keys: right-click a node, Assign On Trigger…,
+   Walks it the way a person would, with a real mouse and real keys: right-click a node, Assign On Spark…,
    pick a MIDI note, Off, While held; a pad press switches the node off and letting go puts it back; no firing is
    an undo step and the saved film never changes; assigning is one undo step; playback stop puts a latched
    firing back; Map… then click a control makes it the source (and does not press it); a chosen event (one line
    of dialogue at one moment), a section from the markers, the oscillator, typed words standing in for speech,
    the camera's movement, the limits (first N, every Nth, several ranges, only / never in sections, between two
    values, only while playing); a lane's name and a suite card take triggers too; a master node's hook; the
-   Triggers and Curiosity Proximity windows; a locked lane (🔒) is left alone. The page must report no errors. */
+   Sparks and Live inputs windows; a locked lane (🔒) is left alone. The page must report no errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -75,9 +75,9 @@ const ok = (cond, msg) => {
   const row1 = await T(() => window.CurioEngine.state().rows[1].id);
   const valMid = () => T(([r, t]) => window.CurioEngine.value(r, t, "shotSize"), [row1, trackId]);
 
-  /* Right-click the node: the timeline's own menu now has Assign On Trigger…. */
+  /* Right-click the node: the timeline's own menu now has Assign On Spark…. */
   await page.click(nodeSel, { button: "right" });
-  ok(await page.$(".sl-linemenu [data-ctr-assign]"), "right-clicking a node offers Assign On Trigger… in its menu");
+  ok(await page.$(".sl-linemenu [data-ctr-assign]"), "right-clicking a node offers Assign On Spark… in its menu");
   ok(await T(() => !!document.querySelector('.sl-linemenu [data-m="remove"]')), "the node menu keeps its own items");
   await page.click(".sl-linemenu [data-ctr-assign]");
   ok(await page.$('.ctr-win[data-ctr="edit"]'), "the trigger editor opens: when + does + limits");
@@ -92,7 +92,7 @@ const ok = (cond, msg) => {
   await page.click(".ctr-win [data-ctr-save]");
   const tl = await T(() => window.CurioTriggers.list());
   ok(tl.length === 1 && tl[0].when.kind === "midi" && tl[0].when.num === 60 && tl[0].does.act === "off" && tl[0].does.mode === "hold" && tl[0].target.kind === "node", "Assign saves one trigger: MIDI note 60, off, while held, on that node");
-  ok((await T(() => window.CurioStore.history().undo.length)) === appUndo0 + 1 && /Assign On Trigger/.test(await T(() => window.CurioStore.history().undo.slice(-1)[0])), "assigning is one undo step");
+  ok((await T(() => window.CurioStore.history().undo.length)) === appUndo0 + 1 && /Assign On Spark/.test(await T(() => window.CurioStore.history().undo.slice(-1)[0])), "assigning is one undo step");
   const id1 = tl[0].id;
 
   /* A pad press: the node switches off while held, and nothing is saved or undoable. */
@@ -284,12 +284,67 @@ const ok = (cond, msg) => {
     nf.push((await T((id) => window.CurioTriggers.live(id).fired, id3)) - nf0);
   }
   ok(nf.join() === "1,1,1,1,2", `the oscillator fires every other moment, never in Act 2 (${nf})`);
+
+  /* The Opening (before the first marker) is a section like any other: a "when", only in, never in, the pickers. */
+  ok(secs[0].id === "opening" && secs[0].from === 0 && secs[0].to === 1, "the Opening runs from moment 1 to just before the first marker");
+  await T(([id]) => (window.CurioTriggers.putBack(), window.CurioTriggers.set(id, { when: { kind: "section", section: "opening" }, does: { act: "off", mode: "hold" }, limits: {} })), [id3]);
+  const of = [];
+  for (const j of [2, 0, 1, 2, 4]) {
+    await T((j) => window.CurioScreen.setRow(j), j);
+    of.push(await T((id) => window.CurioTriggers.live(id).active, id3));
+  }
+  ok(!of[0] && of[1] && of[2] && !of[3] && !of[4], `the film reaching the Opening holds it on through the Opening, like any section (${of})`);
+  ok((await T((id) => window.CurioTriggers.names.of(window.CurioTriggers.get(id)), id3)).includes("Opening"), "its name says the Opening");
+  await T(([id]) => (window.CurioTriggers.putBack(), window.CurioTriggers.set(id, { when: { kind: "lfo", every: 1 }, limits: { sections: { mode: "only", list: ["opening"] } } })), [id3]);
+  const of0 = await T((id) => window.CurioTriggers.live(id).fired, id3);
+  const ofl = [];
+  for (const j of [0, 1, 2, 3, 4]) {
+    await T((j) => window.CurioScreen.setRow(j), j);
+    ofl.push((await T((id) => window.CurioTriggers.live(id).fired, id3)) - of0);
+  }
+  ok(ofl.join() === "1,1,1,1,1", `only in the Opening: the oscillator fires there and nowhere else (${ofl})`);
+  /* Playback from moment 1 is the film reaching the Opening, even with the playhead already parked there. */
+  await T(([id]) => (window.CurioTriggers.putBack(), window.CurioTriggers.set(id, { when: { kind: "section", section: "opening" }, does: { act: "off", mode: "hold" }, limits: { playing: true } })), [id3]);
+  await T(() => window.CurioScreen.setRow(0));
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "with Only while playing, parking on the Opening does nothing");
+  await page.click('button.sc-playb[data-act="play"]');
+  const playOn = await T((id) => window.CurioTriggers.live(id).active, id3);
+  await page.click('button.sc-playb[data-act="play"]');
+  ok(playOn, "pressing Play on moment 1 fires the Opening's trigger at once");
+  await page.waitForFunction(() => !window.CurioScreen.playing(), null, { timeout: 5000 });
+  await T(() => window.CurioScreen.setRow(0));
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "and stopping puts it back");
+  /* The editor lists the Opening as a section to pick and to limit to. */
+  await T((id) => window.CurioTriggers.edit(id), id3);
+  ok(await T(() => [...document.querySelectorAll('.ctr-win[data-ctr="edit"] [data-f="when.section"] option')].some((o) => o.value === "opening" && /Opening \(moments 1–2\)/.test(o.textContent))), "the editor's section list has the Opening, with its moments");
+  ok(await T(() => /before your first marker is the Opening/.test(document.querySelector('.ctr-win[data-ctr="edit"]').textContent)), "and says what the Opening is");
+  ok(await T(() => !/trigger|Curiosity Proximity/i.test(document.querySelector('.ctr-win[data-ctr="edit"]').textContent)), "the editor never says trigger or Curiosity Proximity");
+  await page.selectOption('.ctr-win[data-ctr="edit"] [data-f="limits.sections.mode"]', "never");
+  ok(!!(await page.$('.ctr-win[data-ctr="edit"] input[data-sec="opening"]')), "never in these sections offers the Opening too");
+  await page.click('.ctr-win[data-ctr="edit"] [data-ctr-close]');
+  /* The Export names each moment's section, the Opening included. */
+  const secCsv = await T(() => {
+    const d = [];
+    const real = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (!this.download) return real.call(this);
+      d.push(fetch(this.href).then((r) => r.text()));
+    };
+    document.querySelector('.sc-bar [data-act="export"]').click();
+    document.querySelector('[data-export="csv"]').click();
+    HTMLAnchorElement.prototype.click = real;
+    return d.length ? d[0] : "";
+  });
+  const secRows = secCsv.replace(/^\uFEFF/, "").trim().split("\r\n");
+  ok(/^Moment,Time,Marker note,Section,/.test(secRows[0]) && /,Opening,/.test(secRows[1]) && /,Opening,/.test(secRows[2]) && /Act 2/.test(secRows[3]), "the settings list's Section column names the Opening's moments (" + (secRows[1] || "").slice(0, 40) + ")");
   await T(() => (window.CurioTriggers.putBack(), window.CurioLanes.setMarkers([])));
 
   /* Speech: typed words stand in where the browser can't listen. */
   await T((id) => window.CurioTriggers.set(id, { when: { kind: "speech", words: "cut to black" }, does: { act: "off", mode: "hold" }, limits: {} }), id3);
   await page.click('[data-ctr-open="prox"]');
-  ok(await page.$('.ctr-win[data-ctr="prox"]'), "the bar's Proximity opens the Curiosity Proximity window");
+  ok(await page.$('.ctr-win[data-ctr="prox"]'), "the bar's Live opens the Live inputs window");
+  ok(await T(() => document.querySelector('.ctr-win[data-ctr="prox"]').getAttribute("aria-label") === "Live inputs"), "the window is called Live inputs");
+  ok(await T(() => !/trigger|Curiosity Proximity/i.test(document.querySelector('.ctr-win[data-ctr="prox"]').textContent + document.querySelector('.ctr-win[data-ctr="prox"] [data-ctr-type]').getAttribute("aria-label"))), "and never says trigger or Curiosity Proximity");
   ok(await page.$(".ctr-win [data-ctr-type]"), "it has a box to type words, the fallback for speech");
   ok(await T(() => typeof window.CurioTriggers.speech.supported === "boolean" && window.CurioTriggers.speech.on === false), "listening is off until switched on");
   await page.fill(".ctr-win [data-ctr-type]", "OK, cut to black now");
@@ -319,9 +374,110 @@ const ok = (cond, msg) => {
   await T(() => window.CurioTriggers.body({ any: 0, left: 0, right: 0, high: 0 }));
   ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "and lets go when still");
 
+  /* Poses: off until switched on; the download is explained first; the model is stubbed here (tests never download it). */
+  const poseFetches = [];
+  await page.route(/pose_landmarker/, (route) => (poseFetches.push(route.request().url()), route.abort()));
+  ok(await T(() => window.CurioTriggers.pose.state === "off" && !window.CurioTriggers.pose.model), "poses are off by default and no pose model is loaded");
+  ok(await T(() => typeof window.CurioMask.vision === "function" && /pose_landmarker_lite/.test(window.CurioMask.models().pose)), "poses load through the cut-outs' own MediaPipe (CurioMask.vision) with the pose model next to the cut-out model");
+  /* A made-up body, facing the camera: points[i] = [x, y]; left hand up when asked. */
+  await T(() => {
+    window.__body = (leftUp) => {
+      const p = [];
+      for (let i = 0; i < 33; i++) p.push({ x: 0.5, y: 0.2, z: 0, visibility: 0.9 });
+      const put = (i, x, y) => (p[i] = { x, y, z: 0, visibility: 0.9 });
+      [[0, 0.5, 0.2], [7, 0.53, 0.2], [8, 0.47, 0.2], [11, 0.58, 0.3], [12, 0.42, 0.3], [13, 0.6, leftUp ? 0.2 : 0.42], [14, 0.4, 0.42], [15, 0.6, leftUp ? 0.12 : 0.53], [16, 0.4, 0.53], [23, 0.55, 0.55], [24, 0.45, 0.55], [25, 0.55, 0.72], [26, 0.45, 0.72], [27, 0.55, 0.9], [28, 0.45, 0.9]].forEach((a) => put(...a));
+      return p;
+    };
+  });
+  await T((id) => window.CurioTriggers.set(id, { when: { kind: "pose", pose: "hand_left", sens: 50 }, does: { act: "off", mode: "hold" }, limits: {} }), id3);
+  ok((await T((id) => window.CurioTriggers.get(id).when, id3)).pose === "hand_left", "a trigger can wait for a pose (Left hand raised)");
+  await T(() => window.CurioTriggers.pose.feed(window.__body(true)));
+  ok(await T((id) => window.CurioTriggers.live(id).active, id3), "a body with the left hand raised fires it");
+  await T(() => window.CurioTriggers.pose.feed(window.__body(false)));
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "and lowering the hand lets go");
+  await T((id) => window.CurioTriggers.set(id, { when: { kind: "pose", pose: "hand_left", sens: 0 } }), id3);
+  await T(() => window.CurioTriggers.pose.feed(window.__body(false).map((p, i) => (i === 15 ? Object.assign({}, p, { y: 0.24 }) : i === 13 ? Object.assign({}, p, { y: 0.3 }) : p))));
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "at the lowest sensitivity a half-raised hand is not enough");
+  await T((id) => window.CurioTriggers.set(id, { when: { kind: "pose", pose: "hand_left", sens: 100 } }), id3);
+  await T(() => window.CurioTriggers.pose.feed(window.__body(false).map((p, i) => (i === 15 ? Object.assign({}, p, { y: 0.24 }) : i === 13 ? Object.assign({}, p, { y: 0.3 }) : p))));
+  ok(await T((id) => window.CurioTriggers.live(id).active, id3), "at the highest it is");
+  await T(() => window.CurioTriggers.pose.feed(null));
+  await T((id) => window.CurioTriggers.set(id, { when: { kind: "pose", pose: "hand_left", sens: 50 } }), id3);
+  /* The editor: a pose, a sensitivity, and the download said plainly. */
+  await T((id) => window.CurioTriggers.edit(id), id3);
+  ok(await T(() => {
+    const w = document.querySelector('.ctr-win[data-ctr="edit"]');
+    const opts = [...w.querySelectorAll('[data-f="when.pose"] option')].map((o) => o.value);
+    return opts.length === 10 && opts.includes("crouch") && !!w.querySelector('input[type="range"][data-f="when.sens"]') && /about 6 MB/.test(w.textContent) && /nothing is recorded or uploaded/.test(w.textContent) && /switch them on in the Live inputs window/.test(w.textContent) && /this spark listens for/.test(w.textContent) && !/trigger|Curiosity Proximity/i.test(w.textContent);
+  }), "the editor offers the poses, a sensitivity slider, and says what the download is, that nothing is uploaded, and where to switch poses on (Live inputs), never saying trigger");
+  await page.click('.ctr-win[data-ctr="edit"] [data-ctr-close]');
+
+  /* A pretend camera (a drawn canvas) and a MediaPipe that can't load: the plain message, and movement still works. */
+  await T(() => {
+    const c = document.createElement("canvas");
+    c.width = 320;
+    c.height = 240;
+    const g = c.getContext("2d");
+    /* the same grey, painted again and again: frames keep coming, and nothing moves */
+    window.__camDraw = setInterval(() => ((g.fillStyle = "#777"), g.fillRect(0, 0, 320, 240)), 50);
+    navigator.mediaDevices.getUserMedia = () => Promise.resolve(c.captureStream(20));
+    window.__realVision = window.CurioMask.vision;
+    window.CurioMask.vision = () => Promise.reject(new Error("offline"));
+  });
+  await page.click('[data-ctr-open="prox"]');
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose]');
+  ok(await T(() => window.CurioTriggers.pose.state === "asking" && !window.CurioTriggers.camera.on), "switching Poses on first asks, before any download or camera");
+  const askText = await page.$eval('.ctr-win[data-ctr="prox"] .ctr-ask', (d) => d.textContent);
+  ok(/about 6 MB/.test(askText) && /one-time/.test(askText) && /this browser only/.test(askText) && /nothing is recorded or uploaded/.test(askText), "it says the size, that it is downloaded once, and that it stays in the browser with nothing uploaded");
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose-no]');
+  ok(await T(() => window.CurioTriggers.pose.state === "off"), "Not now leaves it off");
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose]');
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose-yes]');
+  await page.waitForFunction(() => window.CurioTriggers.pose.state === "failed", null, { timeout: 10000 });
+  ok(await T(() => window.CurioTriggers.camera.on), "when the pose model can't load, the camera stays on for the movement zones");
+  const failText = await page.$eval('.ctr-win[data-ctr="prox"]', (d) => d.textContent);
+  ok(/couldn't load/.test(failText) && /movement zones still work/.test(failText) && !!(await page.$('.ctr-win[data-ctr="prox"] [data-ctr-pose-yes]')), "and says so in plain words, with Try again");
+  ok(/pose sparks listen for movement instead/.test(failText) && !/trigger|Curiosity Proximity/i.test(failText), "in Spark words, never trigger");
+  await T(() => window.CurioTriggers.body({ any: 0.3, left: 0, right: 0, high: 0.3 }));
+  ok(await T((id) => window.CurioTriggers.live(id).active, id3), "meanwhile a pose trigger falls back to movement (a raised hand: movement up high)");
+  await T(() => window.CurioTriggers.body({ any: 0, left: 0, right: 0, high: 0 }));
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "and lets go when still");
+
+  /* Try again with a pose model that loads (stubbed): the live skeleton, the pose meters, and a firing from the camera. */
+  await T(() => {
+    window.__lm = window.__body(false);
+    window.__created = [];
+    window.CurioMask.vision = () =>
+      Promise.resolve({
+        files: {},
+        MP: { PoseLandmarker: { createFromOptions: (files, o) => (window.__created.push(o), Promise.resolve({ detectForVideo: () => ({ landmarks: window.__lm ? [window.__lm] : [] }), close() {} })) } },
+      });
+  });
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose-yes]');
+  await page.waitForFunction(() => window.CurioTriggers.pose.state === "on", null, { timeout: 10000 });
+  const made = await T(() => window.__created[0]);
+  ok(made && made.runningMode === "VIDEO" && /pose_landmarker_lite/.test(made.baseOptions.modelAssetPath), "the pose model is made through MediaPipe's PoseLandmarker, from the pose model's address");
+  await page.waitForFunction(() => document.querySelectorAll('.ctr-win[data-ctr="prox"] .ctr-skel line').length >= 10, null, { timeout: 10000 }).catch(() => {});
+  ok(await T(() => document.querySelectorAll('.ctr-win[data-ctr="prox"] .ctr-skel line').length >= 10), "the Live inputs window shows a live stick figure of the body");
+  ok(await T(() => document.querySelectorAll('.ctr-win[data-ctr="prox"] [data-pose-now]').length === 10), "and a meter for every pose");
+  await T(() => (window.__lm = window.__body(true)));
+  await page.waitForFunction((id) => window.CurioTriggers.live(id).active, id3, { timeout: 10000 }).catch(() => {});
+  ok(await T((id) => window.CurioTriggers.live(id).active, id3), "raising the left hand in front of the camera fires the pose trigger");
+  ok(await T(() => /% of the way|acting now/.test(document.querySelector('.ctr-win[data-ctr="prox"] .ctr-near').textContent)), "and the window shows how close each spark is");
+  await T(() => (window.__lm = null));
+  await page.waitForFunction((id) => !window.CurioTriggers.live(id).active, id3, { timeout: 10000 }).catch(() => {});
+  ok(!(await T((id) => window.CurioTriggers.live(id).active, id3)), "no one in the picture lets go");
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-pose]');
+  ok(await T(() => window.CurioTriggers.pose.state === "off" && window.CurioTriggers.camera.on), "switching Poses off keeps the camera's movement zones");
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-cam]');
+  ok(await T(() => !window.CurioTriggers.camera.on && window.CurioTriggers.pose.state === "off"), "and the camera switches off as before");
+  ok(poseFetches.length === 0, "the real pose model was never downloaded in this test");
+  await T(() => (clearInterval(window.__camDraw), (window.CurioMask.vision = window.__realVision)));
+  await page.click('.ctr-win[data-ctr="prox"] [data-ctr-close]');
+
   /* A lane's name (its curiosity suite) and a suite card take triggers. */
   await page.click(`.sl-head .sl-name[data-pick="shotSize"]`, { button: "right" });
-  ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a lane's name offers Assign On Trigger… for its suite");
+  ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a lane's name offers Assign On Spark… for its suite");
   ok(await T(() => [...document.querySelectorAll(".ctr-menu [data-ctr-edit]")].length >= 1), "and lists the triggers already on it");
   await page.keyboard.press("Escape");
   ok(!(await page.$(".ctr-menu")), "Esc closes it");
@@ -331,7 +487,7 @@ const ok = (cond, msg) => {
   const card = await page.$('[data-pick-card^="suite|"]');
   if (card) {
     await card.click({ button: "right" });
-    ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a suite card offers Assign On Trigger…");
+    ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a suite card offers Assign On Spark…");
     await page.click(".ctr-menu [data-ctr-assign]");
     ok(await T(() => window.CurioTriggers.draft() && window.CurioTriggers.draft().target.from === "library"), "for that suite");
     await page.click('.ctr-win[data-ctr="edit"] [data-ctr-close]');
@@ -353,7 +509,7 @@ const ok = (cond, msg) => {
     document.body.appendChild(d);
   });
   await page.click(".fake-master", { button: "right" });
-  ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a master node offers Assign On Trigger…");
+  ok(await page.$(".ctr-menu [data-ctr-assign]"), "right-clicking a master node offers Assign On Spark…");
   await page.click(".ctr-menu [data-ctr-assign]");
   await page.fill('.ctr-win [data-f="when.num"]', "62");
   await page.dispatchEvent('.ctr-win [data-f="when.num"]', "change");
@@ -365,12 +521,12 @@ const ok = (cond, msg) => {
   await T(() => (window.CurioTriggers.midi({ kind: "note", num: 62, on: true, vel: 90 }), window.CurioTriggers.midi({ kind: "note", num: 62, on: false })));
   const calls = await T(() => window.__mcalls);
   ok(calls.length === 2 && calls[0][0] === "n1" && calls[0][1] === true && calls[0][2] === 25 && calls[1][1] === null, `a master node is driven through CurioMasters.trigger(id, on, { scale }) (${JSON.stringify(calls)})`);
-  ok((await T(() => window.CurioTriggers.forTarget("mnode:n1"))).length === 1, "forTarget lists a master node's triggers for its Proximity view");
+  ok((await T(() => window.CurioTriggers.forTarget("mnode:n1"))).length === 1, "forTarget lists a master node's triggers for its Spark view");
   await T(() => { if (window.__mreal) window.CurioMasters.trigger = window.__mreal; });
 
   /* The Triggers window. */
   await page.click('[data-ctr-open="list"]');
-  ok(await page.$('.ctr-win[data-ctr="list"] .ctr-list li'), "the bar's Triggers opens the Triggers window with every trigger");
+  ok(await page.$('.ctr-win[data-ctr="list"] .ctr-list li'), "the bar's Sparks opens the Sparks window with every spark");
   const nOn = await T(() => window.CurioTriggers.list().filter((t) => t.on).length);
   await page.click(`.ctr-win[data-ctr="list"] [data-ctr-onoff="${id1}"]`);
   ok((await T(() => window.CurioTriggers.list().filter((t) => t.on).length)) === nOn - 1, "a trigger switches off from its window");

@@ -16,21 +16,26 @@ or a MIDI pad, and moved over time by a knob, a wave (an LFO, like on a synthesi
 VCV Rack. You then drop any of those pieces onto a moment of **your own** film. The first version is a
 **storyboard**: lots of drawn panels you flip through like a flip book.
 
-**The four levels**
+**The four words** (Jeremy, 2026-10-05; "trigger" is gone everywhere)
 
-| Level | Plain meaning | Example |
+| Word | Plain meaning | Example |
 | --- | --- | --- |
 | Curiosity | One way of looking at one aspect of a scene, with its own sliders | Music: how loud, how fast, heard by the characters or only by us |
-| Curiosity suite | A few curiosities you look through together | "Needle drop": a famous song, loud, with cuts on the beat |
-| Curiosity proximity | When one thing happens, another tends to follow within a few beats | When the music stops, a big line lands within one beat |
-| Proximity suite | A few of those cause-and-effect pairs that work together | "Music steers the edit" |
+| Suite | A few curiosities you look through together | Blue Steel: pursed lips, eyes to the camera, cheeks in |
+| Proximity | How closely curiosities are related: the web of branches and roots in the 3D relationship map. It never sets anything off | The curiosities around the cube you are inside |
+| Catalyst | Something that sets other curiosities off. It comes in two kinds: | |
+| · Spark | A single catalyst: one thing sets things off, soon after | When the music stops, a big line lands within one beat; a crash cymbal; a MIDI note |
+| · Elixir | A key catalyst: it only works once every ingredient is in, like ridges of a key in a lock. Each ingredient is a spark; its Lock switch makes it wait for all of them | "Music steers the edit" |
+
+In the code, sparks are still `PROXIMITIES` / `p:` keys and elixirs `PROXIMITY_SUITES` / `ps:` keys, so saved projects keep working.
 
 ## Already built
 
+- [x] New words (2026-10-05): Catalyst, Spark and Elixir replace spark and elixir everywhere on screen; Spark now means only how related curiosities are (the 3D map). Elixirs have a Lock: switched on, they fire only where every ingredient lines up
 - [x] Storyboard strip that redraws panels from controls, with character paths, object paths and camera moves (PR #1 to #3)
 - [x] Study tab: trace a film as curiosities only, keep pieces on a Shelf (PR #1)
-- [x] The filmmaking catalog loaded: 157 curiosities, 49 suites, 15 proximities (PR #3)
-- [x] Every curiosity, suite, proximity and proximity suite can be automated: on/off trigger, sliders with from, to and a curve, knob, LFO or MIDI (PR #4)
+- [x] The filmmaking catalog loaded: 157 curiosities, 49 suites, 15 sparks (PR #3)
+- [x] Every curiosity, suite, spark and elixir can be automated: on/off switch, sliders with from, to and a curve, knob, LFO or MIDI (PR #4)
 - [x] Prism: split a curated film into its curiosities and drop any of them onto a moment of your film (PR #4)
 - [x] Workspaces instead of tabs, each with "In my film", "Automate", "Cross-pollinate" and "Tools" (PR #4)
 - [x] Maya and Arnold tools in the workspaces (PR #4)
@@ -44,11 +49,11 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 737 curiosities, 479 suites,
-1,130 proximities, 213 proximity suites and 17,088 sliders, across 32 workspaces, plus 80 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 772 curiosities, 493 suites,
+1,177 sparks, 224 elixirs and 17,866 sliders, across 32 workspaces, plus 80 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
-- [x] Bring in every existing curiosity, suite and proximity from the catalog
+- [x] Bring in every existing curiosity, suite and spark from the catalog
 - [x] Music for the scene, and no music, as curiosities with their own sliders
 - [x] Emotion, with its channels (movement, voice, face, posture, how much is said, contrast with the last scene)
 - [x] Comedy as a central set of curiosities (timing, escalation, deadpan to broad, callbacks, running gags, rule of three...)
@@ -57,21 +62,21 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 737
 - [x] Color (palette, filters, black and white, saturation, warm to cool)
 - [x] Lighting as a lens with sliders
 - [x] Character matrix axes, health and role as curiosities
-- [x] Suites, proximities and proximity suites for all of the above
+- [x] Suites, sparks and elixirs for all of the above
 - [x] A checker that makes sure every item is complete and every link points somewhere real
 - [x] A JSON copy of the database for other tools (Maya, the desktop app)
 - [x] Give every older catalog curiosity at least three sliders of its own
 - [x] Merge with the app's own lens list (lenses.js) so nothing is listed twice
 - [x] Switch the database on in the app: one block of script lines in index.html (PR #7, tested: all 25 workspaces open with no errors)
 - [x] Workspaces read their curiosity lists from the database (app thread, PR #4)
-- [x] Fill the thin workspaces: Personal plot, Perspective & mindset, Focus, Herd mentality and Page & panel now have their own suites and proximities (data/db-story.js)
+- [x] Fill the thin workspaces: Personal plot, Perspective & mindset, Focus, Herd mentality and Page & panel now have their own suites and sparks (data/db-story.js)
 - [x] Deeper comedy and emotion: comic flaw, premise, topper, oddly specific, talking to camera, exaggeration, humiliation, the lie that grows, misunderstanding, cutaways; mixed feelings, said against meant, eyes, hands, personal space, release, what the audience feels, catharsis, feeling held in; real sliders on every comedy and emotion row (data/db-feeling-comedy.js)
 - [x] Deeper Comedy from the mix and Emotional road: the double act, the straight man, the odd one out, clash of egos, who knows what, the unwanted guest, chemistry; hope, what they stand to lose, breathers, false highs, two roads, a feeling that comes back, warmth, dread (data/db-mix-road.js)
-- [x] Deeper Character arc and Movement with lines: which way they change, the lie they believe, the old wound, fighting the change, the test, slipping back, how the change shows; walk and talk, business with a prop, move on the line, the listener's body; plus suites and proximities for Camera angle and Character motion (data/db-arc-body.js)
+- [x] Deeper Character arc and Movement with lines: which way they change, the lie they believe, the old wound, fighting the change, the test, slipping back, how the change shows; walk and talk, business with a prop, move on the line, the listener's body; plus suites and sparks for Camera angle and Character motion (data/db-arc-body.js)
 - [x] Every curiosity carries a momentum note: how it moves the plot and the themes forward, how it pulls the audience's attention onward, its usual cue, how hard it pushes the story (0 to 5) and one thing to try; plus three sliders every curiosity shares (pushes the story, points ahead, tied to a theme) so momentum can be automated (data/db-momentum.js)
 - [x] Editing curiosities from Final Cut Pro and CapCut: transitions, filters and adjustments, text and captions, speed and timing, the audio mix, layers and masks, the frame, CapCut's transition and effect families, and mood stickers that feed the emotion curiosities (Main layout thread, moved into data/db-editing.js)
 - [x] Character tab on the Screen: each character track has its own matrix lanes (18 axes, health, role); the 3D matrix opens over the Screen linked to the film, every edit a timeline node (draft PR #31)
-- [x] Every curiosity tied into the four levels: each is the cause or effect of at least one proximity and in at least one suite (data/db-ties.js: 223 proximities, 55 suites, 45 proximity suites)
+- [x] Every curiosity tied into the four levels: each is the cause or effect of at least one spark and in at least one suite (data/db-ties.js: 223 sparks, 55 suites, 45 elixirs)
 - [x] Comedy and emotion, deeper: 28 comedy curiosities (the button, the joke that falls flat, cartoon rules, cracking up, the record scratch ...) and 23 emotion curiosities (empathy, awe, shame, guilt, pride, jealousy, grief, betrayal, forgiveness, the feeling left when the film ends ...), each with its own window, phrases and live picture (data/db-heart.js)
 - [x] Thin workspaces, deeper: 22 music and sound curiosities (tempo and key changes, a character's own tune, someone humming, repeating notes that build tension, music that warns us early, handmade sounds, the sound of the place, hearing through their ears ...), 25 story and attention curiosities (what starts it all, the reversal, a choice with a cost, no going back, the forgotten plant, where the eye goes first, what we do not see, blind spot, the crowd turns, a rumor spreads ...) and 22 cut, speed, text, frame and color curiosities (holding before the cut, a hidden cut, time-lapse, stretching a moment, texts on screen, the title drop, frame within a frame, a color for each character ...), each with its own window and tied into the four levels
 - [x] Acting, camera, place and page, deeper: 20 curiosities for line delivery, movement and camera moves (cut off mid-sentence, a speech that builds, one side of a phone call, a habit of their own, making an entrance, squaring off, a slow push in on a face, the stretching background shot ...) and 21 for background, set, placement and comic pages (danger behind their back, the season, crossing the doorway, a mirror in the room, who stands higher, a line between them, a full-page picture, a panel with no words ...), each with its own window
@@ -80,11 +85,15 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 737
 - [x] Light, effects, layers, structure and the emotional road, deeper: 21 curiosities (a light that flickers when something is wrong, only an outline against the light, rain on the window, fog that hides then shows, one thing keeps its color, a map that shows the journey, the story told backwards, a glimpse of what is coming, it seems to end but doesn't, all seems lost, the calm before the storm ...)
 - [x] Comedy, deeper again: 20 curiosities (the wrong person overhears, trying too hard to be cool, taking it literally, the plan that fails at step one, the long walk of shame, the deliberately cheap effect, the joke you catch the second time, mistaken for someone else, the animal that steals the scene, a war fought politely, two talks that cross, everyone fixing it at once ...)
 - [x] Comedy style playbooks: 12 comedy styles, in the spirit of Mel Brooks, Monty Python, Edgar Wright, Judd Apatow, the Coen brothers, Chaplin, Jarmusch and Kaurismaki, Wilder and Sturges, Ricky Gervais, the Airplane! team, John Hughes and Lubitsch (data/db-styles-comedy.js)
-- [x] Audience attention, deeper: 16 curiosities (keeping the eye in place across a cut, everyone looks the same way, something that doesn't belong, how far apart the surprises come, the promise of the opening, a stretch where nothing pulls, leaving at the best part, the answer almost given, the closed box we want opened, one answer opens a bigger question, the clue that points the wrong way, knowing what they want in this scene, a rule we learn early, asking our question for us, time to take in the shot, the moment we're all waiting for), 8 suites, 27 proximities and 4 proximity suites, each with its window (data/db-depth-attention.js)
-- [x] Feeling and the emotional road, deeper: 16 curiosities (numb after the shock, taking it out on the wrong thing, playing the big moment small, out of step with the room, comfort taken or pushed away, bracing for it, whose face carries it, keeping busy so as not to feel, the feeling hits later, a thing that holds a feeling, a feeling that grows the whole film, the come-down after a high, trading places in feeling, the feeling nobody names, love the other never sees, the empty place), 8 suites, 29 proximities and 4 proximity suites, each with its window (data/db-depth-feeling.js)
-- [x] Mindset, groups and character change, deeper (the three thinnest story workspaces): 18 curiosities (the role they cast themself in, all or nothing thinking, a parent's voice in their head, overthinking or acting on instinct, expecting the worst, replaying the moment, the quiet majority, the group's inside joke, earning a place in the group, the leader's right hand, everyone watches and nobody helps, blaming one of their own, the first small step, changing for show, others notice the change, chasing a new goal, a promise to themself, changed but too late), 9 suites, 28 proximities and 4 proximity suites, each with its window (data/db-depth-minds.js)
-- [x] Lines and delivery, deeper: 16 curiosities (said to one but meant for another, answering a question with a question, many words against few, the word they take back, how they talk marks who they are, fighting for the last word, a quiet word in a loud room, changing the subject, saying their name, switching languages, finishing each other's sentences, the practiced line, reading words out loud, talking side by side, the body says the opposite, talking through a door), 8 suites, 24 proximities and 4 proximity suites, each with its window (data/db-depth-lines.js)
-- [x] Color, focus, on-screen words and frame shape, deeper (four thin workspaces): 16 curiosities (colors that clash on purpose, a color saved for big moments, two colors of light on one face, dressed in the colors of the room, the one still thing in a busy frame, finding one face in the crowd, looking the wrong way on purpose, the thing that matters at the edge, words placed into the world, subtitles that play along, the opening credits, their thoughts written on screen, splitting the screen, the picture shrinks or grows, seeing through a keyhole or binoculars, a run of still photos), 8 suites, 24 proximities and 4 proximity suites, each with its window (data/db-depth-frame.js)
+- [x] Audience attention, deeper: 16 curiosities (keeping the eye in place across a cut, everyone looks the same way, something that doesn't belong, how far apart the surprises come, the promise of the opening, a stretch where nothing pulls, leaving at the best part, the answer almost given, the closed box we want opened, one answer opens a bigger question, the clue that points the wrong way, knowing what they want in this scene, a rule we learn early, asking our question for us, time to take in the shot, the moment we're all waiting for), 8 suites, 27 sparks and 4 elixirs, each with its window (data/db-depth-attention.js)
+- [x] Feeling and the emotional road, deeper: 16 curiosities (numb after the shock, taking it out on the wrong thing, playing the big moment small, out of step with the room, comfort taken or pushed away, bracing for it, whose face carries it, keeping busy so as not to feel, the feeling hits later, a thing that holds a feeling, a feeling that grows the whole film, the come-down after a high, trading places in feeling, the feeling nobody names, love the other never sees, the empty place), 8 suites, 29 sparks and 4 elixirs, each with its window (data/db-depth-feeling.js)
+- [x] Mindset, groups and character change, deeper (the three thinnest story workspaces): 18 curiosities (the role they cast themself in, all or nothing thinking, a parent's voice in their head, overthinking or acting on instinct, expecting the worst, replaying the moment, the quiet majority, the group's inside joke, earning a place in the group, the leader's right hand, everyone watches and nobody helps, blaming one of their own, the first small step, changing for show, others notice the change, chasing a new goal, a promise to themself, changed but too late), 9 suites, 28 sparks and 4 elixirs, each with its window (data/db-depth-minds.js)
+- [x] Lines and delivery, deeper: 16 curiosities (said to one but meant for another, answering a question with a question, many words against few, the word they take back, how they talk marks who they are, fighting for the last word, a quiet word in a loud room, changing the subject, saying their name, switching languages, finishing each other's sentences, the practiced line, reading words out loud, talking side by side, the body says the opposite, talking through a door), 8 suites, 24 sparks and 4 elixirs, each with its window (data/db-depth-lines.js)
+- [x] Color, focus, on-screen words and frame shape, deeper (four thin workspaces): 16 curiosities (colors that clash on purpose, a color saved for big moments, two colors of light on one face, dressed in the colors of the room, the one still thing in a busy frame, finding one face in the crowd, looking the wrong way on purpose, the thing that matters at the edge, words placed into the world, subtitles that play along, the opening credits, their thoughts written on screen, splitting the screen, the picture shrinks or grows, seeing through a keyhole or binoculars, a run of still photos), 8 suites, 24 sparks and 4 elixirs, each with its window (data/db-depth-frame.js)
+- [x] The telling, borrowed from writing (Jeremy, 2026-10-05: writing curiosities that apply most to film stay in this app; the rest go to the separate writing app): 12 curiosities (seeing others through their own life, a glimpse of a passing character's whole life, where the audience stands in the telling, story order, a story inside a story, a hint of what's to come, planted early and used later, how we learn the past, the moment that starts it all, a symbol, talking like their Enneagram type, the theme said out loud), 5 suites, 18 sparks and 4 elixirs, each with its window (data/db-depth-telling.js)
+- [x] Belonging and what each character does to the scene (Jeremy, 2026-10-05): 11 per-character curiosities the Character matrix lacked (driven or at peace, a need met or frustrated, a want met or frustrated, moving others and being moved, their pull on the plot, tension and chaos, how much they need the group's approval, the love of the group or of one person, the size of their circle, being in charge, relied on or relying, struggling or thriving past, now and next), 5 suites, 12 sparks and 3 elixirs, each with its window (data/db-depth-belonging.js)
+- [x] Relationship curiosities (Jeremy, 2026-10-05: "untrustful when in the proximity of an authority figure"): who is near and what is near a character, so any "when near X, Y changes" is a spark; plus how they cope with shame, seeking relief from inner pain, attachment style, how they are with authority, with groups, their kind of people, place in society, living situation, their craft, and a change in the world. 12 curiosities, 4 suites, 17 sparks and 4 elixirs (the shame loop, the authority chain, safe harbor, starting over), each with its window (data/db-depth-relations.js). Research list: /mnt/project-files/research/character-curiosities.md
+- [x] The relationship with themselves and the healers (Jeremy, 2026-10-05: "each character's relationship with themselves when they're alone"): inner peace or chaos, self-talk, self-soothing, laughing it off or beating themselves up, being alone, the inner hurdle, taking care of body and mind first; the healer character type, facing feelings, picturing outcomes, welcoming hard feelings, awareness and the healing arc (`data/db-depth-alone.js`). The healing truths are facts that always hold ("that can be hardwired into the app. That those are facts.").
 - [x] Database check for near-duplicates and film jargon (report: /mnt/project-files/database/audit-2026-10-03.md). 104 labels and 200 descriptions rewritten in plain words (data/db-plain.js); nothing merged or deleted yet
 - [x] Film words the first plain pass left bare, explained: 33 more descriptions (decibels, sun flare, low key, smash cut, dissolve, insert shot, gutter, button joke and more) in data/db-plain-2.js. No names or ids changed
 - [ ] Jeremy and Sharani decide the 24 possible merges in the audit (keep, merge or rename), then the database thread merges them
@@ -123,9 +132,10 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 737
 
 ## 4. Automation and performance
 
-- [x] Trigger any item on and off from a key, a button or a MIDI note
+- [x] Switch any item on and off from a key, a button or a MIDI note
+- [x] A pop-up window for each category of suites (◎ Categories on the Screen): a pie of which suites play now, a knob per suite, a slider per curiosity, a radar web and a line graph across the film (Jeremy, 2026-10-05)
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
-- [x] Every database item shows up as automation lanes: all 393 curiosities, 204 suites, 190 proximities and 51 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
+- [x] Every database item shows up as automation lanes: all 393 curiosities, 204 suites, 190 sparks and 51 elixirs (tested). Suites have Blend and a Weight lane per member, with the database's weights
 - [x] Wearable MIDI (straps, gloves) presets for performers: Dancer, Actor and Comedian, with step-by-step learn and undo (PR #4)
 - [x] Pads and keyboards: a ready layout of the most used curiosities (16 pads, 25 keys, 8 knobs, printable cheat sheets, PR #4)
 

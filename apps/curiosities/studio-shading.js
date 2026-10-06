@@ -534,7 +534,7 @@
           <button type="button" data-act="shelf">Keep on Shelf</button>
           <button type="button" data-act="board">Send to board</button>
         </div>
-        <h3>Proximities</h3>
+        <h3>Sparks</h3>
         <ul class="shd-prox" id="shd-prox"></ul>
       </div></div>`;
 

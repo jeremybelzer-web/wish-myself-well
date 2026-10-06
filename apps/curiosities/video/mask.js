@@ -7,8 +7,11 @@
    stronger server AI can take over through CurioAI (family "cutout").
 
    window.CurioMask
-   - configure({ lib, wasm, models: { parts } })  where to load MediaPipe and the model from
+   - configure({ lib, wasm, models: { parts, pose } })  where to load MediaPipe and the models from
    - load() -> Promise<boolean>                  loads the AI once; false when it can't (offline, old browser)
+   - vision() -> Promise<{ MP, files }>          MediaPipe itself, loaded once and shared: the cut-outs use it, and
+                                                 so does the pose trigger (screen/triggers.js), with models().pose
+   - models() -> { parts, pose }                 the model addresses
    - ready() -> boolean
    - cut(image) -> { w, h, labels }              labels per pixel: 0 set, 1 hair, 2 body skin, 3 face skin,
                                                  4 clothes, 5 other (glasses, hats)
@@ -25,7 +28,11 @@
   const cfg = {
     lib: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
     wasm: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm",
-    models: { parts: "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite" },
+    models: {
+      parts: "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite",
+      /* the pose trigger's model (about 5.8 MB), fetched only when someone switches Poses on */
+      pose: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
+    },
   };
   let seg = null,
     loading = null,
@@ -37,19 +44,33 @@
     o = o || {};
     if (o.lib) cfg.lib = o.lib;
     if (o.wasm) cfg.wasm = o.wasm;
+    if (o.lib || o.wasm) visionP = null;
     if (o.models) Object.assign(cfg.models, o.models);
     if (o.steady === false) steady.temporal = steady.clean = false;
     else if (o.steady === true) steady.temporal = steady.clean = true;
     else if (o.steady) Object.assign(steady, o.steady);
     if (o.steady != null) tracks.clear();
   }
+  /* MediaPipe itself (the library and its engine), loaded once for every model that needs it. */
+  let visionP = null;
+  function vision() {
+    if (!visionP)
+      visionP = (async () => {
+        const MP = await import(cfg.lib);
+        const files = await MP.FilesetResolver.forVisionTasks(cfg.wasm);
+        return { MP, files };
+      })().catch((e) => {
+        visionP = null;
+        throw e;
+      });
+    return visionP;
+  }
   function load() {
     if (seg) return Promise.resolve(true);
     if (!loading)
       loading = (async () => {
         try {
-          const MP = await import(cfg.lib);
-          const files = await MP.FilesetResolver.forVisionTasks(cfg.wasm);
+          const { MP, files } = await vision();
           seg = await MP.ImageSegmenter.createFromOptions(files, {
             baseOptions: { modelAssetPath: cfg.models.parts, delegate: "CPU" },
             runningMode: "IMAGE",
@@ -680,5 +701,5 @@
       scan,
     });
 
-  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT, tidy: { cleanLabels, blend, argmax, boxAny, boxAll } };
+  window.CurioMask = { configure, load, vision, models: () => Object.assign({}, cfg.models), ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT, tidy: { cleanLabels, blend, argmax, boxAny, boxAll } };
 })();

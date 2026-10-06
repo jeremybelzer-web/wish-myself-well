@@ -145,7 +145,7 @@ the lane always shows which. **Leading** is who holds attention, read by the app
 (`CurioAttention.read`, the one behind the Screen's Attention band); it holds until something else takes it.
 **With it** is the strongest other curiosity changing in that panel (the one that pushes the story hardest).
 **Suite** shows the suite the leading one or the one with it belongs to, when most of its lenses are on.
-A **⚡** marks a proximity: the one in front was set off by something else a moment before (a rule from
+A **⚡** marks a spark: the one in front was set off by something else a moment before (a rule from
 `PROXIMITIES`, such as "an object enters" setting off a cut to an insert), and the line above the rows says by
 what. Click a block to jump there.
 
@@ -276,3 +276,16 @@ Jeremy, 22:06Z: "we want 3D characters both selectable and draw-able and tweak-a
 - Loads on first use (`CurioRig.load()`, three.js from cdnjs, `rig/GLTFLoader.js`, the Plain figure). Each look is built once; surfaces are simplified (points closer than 4.5 cm merged, small pieces less, at most about 44 faces a piece and 110 for the head) so a scene still plays.
 
 Test: `viewer/tests/rig-actors.js [--three three.min.js]`.
+
+## Bring the scene into focus (`viewer/scene-focus.js`)
+
+After you change a curiosity, a suite or a proximity (in the Viewer or in My film's lanes), a pop-up asks
+whether to change the curiosities around it so the scene's focus comes through stronger (Jeremy,
+2026-10-05). A box at the top to type what you want, a menu of curiosities with the 4 that help most picked
+to start (+ More curiosities adds others), and a scrollable list of options to tick: plain picture phrases
+("Bright blue sky (Setting)", "From below shot (Camera angle)", "“Great to see you again” (Extra
+character)") and the values that scenes like yours used, each saying which scene it is like. The ideas come
+from the scenes in the curiosity database (`CuriosityDB.data.scenes`), worked out on the device with no paid
+AI; as the scene library grows, the ideas grow with it. Change applies the ticked options as one undo step;
+Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
+`window.CurioSceneFocus`. Test: `node viewer/tests/scene-focus.js`.

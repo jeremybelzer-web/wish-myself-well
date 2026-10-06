@@ -4170,7 +4170,7 @@
   {
    "id": "p:trigger-turns",
    "proximity": "trigger-turns",
-   "label": "When a trigger appears, the feeling turns",
+   "label": "When a spark appears, the feeling turns",
    "from": {
     "curiosity": "emoTurn.trigger",
     "track": "master",
@@ -4183,7 +4183,7 @@
    "within": 1,
    "amount": 0.25,
    "does": "rise",
-   "when": "a trigger appears",
+   "when": "a spark appears",
    "then": "the feeling turns"
   },
   {
@@ -22151,6 +22151,1348 @@
    "then": "nostalgia comes in"
   },
   {
+   "id": "p:closer-telling-voiceover",
+   "proximity": "closer-telling-voiceover",
+   "label": "When we are let into one head, the voice-over grows",
+   "from": {
+    "curiosity": "listenerPlace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "voiceover",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we are let into one head",
+   "then": "the voice-over grows"
+  },
+  {
+   "id": "p:addressed-fourth-wall",
+   "proximity": "addressed-fourth-wall",
+   "label": "When the telling talks to us, the character looks at the lens",
+   "from": {
+    "curiosity": "listenerPlace.addressed",
+    "track": "master",
+    "is": "spoken to the whole time",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fourthWall",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the telling talks to us",
+   "then": "the character looks at the lens"
+  },
+  {
+   "id": "p:knows-more-suspense",
+   "proximity": "knows-more-suspense",
+   "label": "When we know more than the hero, suspense builds",
+   "from": {
+    "curiosity": "listenerPlace.knows",
+    "track": "master",
+    "is": "more than the hero",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we know more than the hero",
+   "then": "suspense builds"
+  },
+  {
+   "id": "p:doubt-same-moment",
+   "proximity": "doubt-same-moment",
+   "label": "When the telling can't be trusted, we see the moment again",
+   "from": {
+    "curiosity": "unreliableView",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sameMomentAgain",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the telling can't be trusted",
+   "then": "we see the moment again"
+  },
+  {
+   "id": "p:doubt-subtext",
+   "proximity": "doubt-subtext",
+   "label": "When the teller is lying, said and meant pull apart",
+   "from": {
+    "curiosity": "unreliableView",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the teller is lying",
+   "then": "said and meant pull apart"
+  },
+  {
+   "id": "p:jumps-memory",
+   "proximity": "jumps-memory",
+   "label": "When time jumps more, memories lie over the present",
+   "from": {
+    "curiosity": "storyOrder.jumps",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "memoryOverlay",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "time jumps more",
+   "then": "memories lie over the present"
+  },
+  {
+   "id": "p:ends-first-flash-forward",
+   "proximity": "ends-first-flash-forward",
+   "label": "When the story starts at the end, glimpses of it return",
+   "from": {
+    "curiosity": "storyOrder",
+    "track": "master",
+    "is": "starts at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "flashForward",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the story starts at the end",
+   "then": "glimpses of it return"
+  },
+  {
+   "id": "p:frame-read-aloud",
+   "proximity": "frame-read-aloud",
+   "label": "When the frame is a diary, words are read out loud",
+   "from": {
+    "curiosity": "frameStory.teller",
+    "track": "master",
+    "is": "a diary or letter",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "readAloud",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the frame is a diary",
+   "then": "words are read out loud"
+  },
+  {
+   "id": "p:hint-planted",
+   "proximity": "hint-planted",
+   "label": "When the hints grow clearer, the planted thing matters more",
+   "from": {
+    "curiosity": "foreshadowHint",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plantedThing.payoff",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hints grow clearer",
+   "then": "the planted thing matters more"
+  },
+  {
+   "id": "p:inciting-open-questions",
+   "proximity": "inciting-open-questions",
+   "label": "When the start hits harder, our questions pile up",
+   "from": {
+    "curiosity": "incitingMoment",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the start hits harder",
+   "then": "our questions pile up"
+  },
+  {
+   "id": "p:told-not-shown-flat",
+   "proximity": "told-not-shown-flat",
+   "label": "When the past is shown, not told, we hold more back",
+   "from": {
+    "curiosity": "backstoryDelivery",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "backstoryDelivery.held",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the past is shown",
+   "then": "not told, we hold more back"
+  },
+  {
+   "id": "p:symbol-broken-theme",
+   "proximity": "symbol-broken-theme",
+   "label": "When the symbol is broken, the theme is said again",
+   "from": {
+    "curiosity": "symbolThing.changes",
+    "track": "character",
+    "is": "is broken",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "themeAloud",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the symbol is broken",
+   "then": "the theme is said again"
+  },
+  {
+   "id": "p:stress-type-subtext",
+   "proximity": "stress-type-subtext",
+   "label": "When a character is under stress, what they won't say presses harder",
+   "from": {
+    "curiosity": "typeTalk.health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character is under stress",
+   "then": "what they won't say presses harder"
+  },
+  {
+   "id": "p:type-voice-marks",
+   "proximity": "type-voice-marks",
+   "label": "When the type shows strongly, their way of talking stands out",
+   "from": {
+    "curiosity": "typeTalk",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wayOfTalking",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the type shows strongly",
+   "then": "their way of talking stands out"
+  },
+  {
+   "id": "p:glimpse-echo-theme",
+   "proximity": "glimpse-echo-theme",
+   "label": "When a stranger's life echoes the hero's, the theme sharpens",
+   "from": {
+    "curiosity": "glimpseOfALife.echo",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "themeAloud",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a stranger's life echoes the hero's",
+   "then": "the theme sharpens"
+  },
+  {
+   "id": "p:glimpse-foil",
+   "proximity": "glimpse-foil",
+   "label": "When we glimpse a whole life, a road not taken appears",
+   "from": {
+    "curiosity": "glimpseOfALife",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "foil",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we glimpse a whole life",
+   "then": "a road not taken appears"
+  },
+  {
+   "id": "p:struggle-projection",
+   "proximity": "struggle-projection",
+   "label": "When the hero's life falls, they see the worst in others",
+   "from": {
+    "curiosity": "thriving",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "projection",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero's life falls",
+   "then": "they see the worst in others"
+  },
+  {
+   "id": "p:projection-unreliable",
+   "proximity": "projection-unreliable",
+   "label": "When the view is colored more, the telling can't be trusted",
+   "from": {
+    "curiosity": "projection",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the view is colored more",
+   "then": "the telling can't be trusted"
+  },
+  {
+   "id": "p:approval-copying",
+   "proximity": "approval-copying",
+   "label": "When the need for approval grows, they copy the others",
+   "from": {
+    "curiosity": "needApproval",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "copying",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the need for approval grows",
+   "then": "they copy the others"
+  },
+  {
+   "id": "p:approval-withheld-turns",
+   "proximity": "approval-withheld-turns",
+   "label": "When approval is withheld and they turn, the group pressure rises",
+   "from": {
+    "curiosity": "needApproval.withheld",
+    "track": "master",
+    "is": "turns on the group",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "approval is withheld and they turn",
+   "then": "the group pressure rises"
+  },
+  {
+   "id": "p:love-unmet-loneliness",
+   "proximity": "love-unmet-loneliness",
+   "label": "When they want love but don't get it, loneliness grows",
+   "from": {
+    "curiosity": "loveOrientation.have",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they want love but don't get it",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:circle-shrinks-loneliness",
+   "proximity": "circle-shrinks-loneliness",
+   "label": "When the circle shrinks, loneliness grows",
+   "from": {
+    "curiosity": "circleSize.changes",
+    "track": "master",
+    "is": "shrinking",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the circle shrinks",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:rank-leads-herd",
+   "proximity": "rank-leads-herd",
+   "label": "When they rise to the top, they lead the herd",
+   "from": {
+    "curiosity": "inCharge",
+    "track": "master",
+    "is": "in charge",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "herdLeader",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they rise to the top",
+   "then": "they lead the herd"
+  },
+  {
+   "id": "p:leaned-on-caretaker",
+   "proximity": "leaned-on-caretaker",
+   "label": "When everyone leans on them, they become the caretaker",
+   "from": {
+    "curiosity": "reliance",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "caretaker",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone leans on them",
+   "then": "they become the caretaker"
+  },
+  {
+   "id": "p:falling-health",
+   "proximity": "falling-health",
+   "label": "When life starts falling, emotional health drops",
+   "from": {
+    "curiosity": "thriving",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-health",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "life starts falling",
+   "then": "emotional health drops"
+  },
+  {
+   "id": "p:need-starved-drive",
+   "proximity": "need-starved-drive",
+   "label": "When a need is starved, the drive grows",
+   "from": {
+    "curiosity": "needMet",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a need is starved",
+   "then": "the drive grows"
+  },
+  {
+   "id": "p:want-blocked-tension",
+   "proximity": "want-blocked-tension",
+   "label": "When the want is blocked, the tension rises",
+   "from": {
+    "curiosity": "wantMet",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the want is blocked",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:need-met-peace",
+   "proximity": "need-met-peace",
+   "label": "When a need is met, they find peace",
+   "from": {
+    "curiosity": "needMet.shift",
+    "track": "master",
+    "is": "fulfills it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a need is met",
+   "then": "they find peace"
+  },
+  {
+   "id": "p:drive-pulls-plot",
+   "proximity": "drive-pulls-plot",
+   "label": "When the drive grows, they pull the plot",
+   "from": {
+    "curiosity": "driveOrPeace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotPull",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the drive grows",
+   "then": "they pull the plot"
+  },
+  {
+   "id": "p:influence-chaos",
+   "proximity": "influence-chaos",
+   "label": "When someone moves the room for the worse, chaos follows",
+   "from": {
+    "curiosity": "influence.kind",
+    "track": "master",
+    "is": "for the worse",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotPull.chaos",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone moves the room for the worse",
+   "then": "chaos follows"
+  },
+  {
+   "id": "p:near-authority-distrust",
+   "proximity": "near-authority-distrust",
+   "label": "When an authority figure is near, trust drops",
+   "from": {
+    "curiosity": "whoIsNear.power",
+    "track": "master",
+    "is": "much more",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "authorityStance.trust",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "an authority figure is near",
+   "then": "trust drops"
+  },
+  {
+   "id": "p:near-police-lie",
+   "proximity": "near-police-lie",
+   "label": "When the police are near, the lies start",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "the police",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cm-truth",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the police are near",
+   "then": "the lies start"
+  },
+  {
+   "id": "p:near-parent-voice",
+   "proximity": "near-parent-voice",
+   "label": "When a parent is near, the voice in their head gets louder",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "a parent",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "innerVoice",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a parent is near",
+   "then": "the voice in their head gets louder"
+  },
+  {
+   "id": "p:near-party-uneasy",
+   "proximity": "near-party-uneasy",
+   "label": "When a party of peers is near, comfort drops",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "a party or crowd of peers",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupStance",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a party of peers is near",
+   "then": "comfort drops"
+  },
+  {
+   "id": "p:near-strangers-guarded",
+   "proximity": "near-strangers-guarded",
+   "label": "When strangers are near, they close up",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "strangers",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cm-openness",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "strangers are near",
+   "then": "they close up"
+  },
+  {
+   "id": "p:alone-peace",
+   "proximity": "alone-peace",
+   "label": "When they are alone, they settle",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "nobody, they are alone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they are alone",
+   "then": "they settle"
+  },
+  {
+   "id": "p:near-seekers-open",
+   "proximity": "near-seekers-open",
+   "label": "When spiritual seekers are near, they open up",
+   "from": {
+    "curiosity": "whoIsNear",
+    "track": "master",
+    "is": "spiritual seekers",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "kindredPeople.opens",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "spiritual seekers are near",
+   "then": "they open up"
+  },
+  {
+   "id": "p:ashram-belonging",
+   "proximity": "ashram-belonging",
+   "label": "When they are in the ashram, the need to belong is met",
+   "from": {
+    "curiosity": "whoIsNear.where",
+    "track": "master",
+    "is": "an ashram",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "needMet",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are in the ashram",
+   "then": "the need to belong is met"
+  },
+  {
+   "id": "p:shame-relief",
+   "proximity": "shame-relief",
+   "label": "When shame rises, the urge for relief rises",
+   "from": {
+    "curiosity": "shame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "reliefSeeking",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "shame rises",
+   "then": "the urge for relief rises"
+  },
+  {
+   "id": "p:cabinet-steal",
+   "proximity": "cabinet-steal",
+   "label": "When a medicine cabinet is near, they take the pills",
+   "from": {
+    "curiosity": "whatIsNear.what",
+    "track": "master",
+    "is": "a medicine cabinet",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reliefSeeking.act",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "steal it",
+   "when": "a medicine cabinet is near",
+   "then": "they take the pills"
+  },
+  {
+   "id": "p:someone-elses-house-temptation",
+   "proximity": "someone-elses-house-temptation",
+   "label": "When they are in someone else's house, things pull harder",
+   "from": {
+    "curiosity": "whoIsNear.where",
+    "track": "master",
+    "is": "someone else's house",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "whatIsNear",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are in someone else's house",
+   "then": "things pull harder"
+  },
+  {
+   "id": "p:relief-shame-loop",
+   "proximity": "relief-shame-loop",
+   "label": "When the relief is stolen, the shame comes back",
+   "from": {
+    "curiosity": "reliefSeeking.act",
+    "track": "master",
+    "is": "steal it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the relief is stolen",
+   "then": "the shame comes back"
+  },
+  {
+   "id": "p:anxious-cling",
+   "proximity": "anxious-cling",
+   "label": "When a partner pulls away, the anxious one clings",
+   "from": {
+    "curiosity": "attachment",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a partner pulls away",
+   "then": "the anxious one clings"
+  },
+  {
+   "id": "p:world-easier-thrive",
+   "proximity": "world-easier-thrive",
+   "label": "When the world makes it easier, life starts climbing",
+   "from": {
+    "curiosity": "worldShift",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "thriving",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the world makes it easier",
+   "then": "life starts climbing"
+  },
+  {
+   "id": "p:craft-rank",
+   "proximity": "craft-rank",
+   "label": "When the craft grows, so does their standing",
+   "from": {
+    "curiosity": "craft",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "socialPlace",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the craft grows",
+   "then": "so does their standing"
+  },
+  {
+   "id": "p:home-trapped-drive",
+   "proximity": "home-trapped-drive",
+   "label": "When home feels like a trap, the drive to leave grows",
+   "from": {
+    "curiosity": "livingSituation.feel",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "home feels like a trap",
+   "then": "the drive to leave grows"
+  },
+  {
+   "id": "p:shame-cope-attack",
+   "proximity": "shame-cope-attack",
+   "label": "When shame is turned outward, the group pressure rises",
+   "from": {
+    "curiosity": "copingStyle",
+    "track": "master",
+    "is": "turn on someone else",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "shame is turned outward",
+   "then": "the group pressure rises"
+  },
+  {
+   "id": "p:chaos-cruel-voice",
+   "proximity": "chaos-cruel-voice",
+   "label": "When the chaos inside rises, the inner voice turns cruel",
+   "from": {
+    "curiosity": "innerWeather",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfTalk",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chaos inside rises",
+   "then": "the inner voice turns cruel"
+  },
+  {
+   "id": "p:cruel-voice-beat-up",
+   "proximity": "cruel-voice-beat-up",
+   "label": "When the inner voice is cruel, they beat themselves up",
+   "from": {
+    "curiosity": "selfTalk",
+    "track": "character",
+    "is": "harsh",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughOrBeat.harsh",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the inner voice is cruel",
+   "then": "they beat themselves up"
+  },
+  {
+   "id": "p:laugh-settles",
+   "proximity": "laugh-settles",
+   "label": "When they laugh at themselves, the storm settles",
+   "from": {
+    "curiosity": "laughOrBeat",
+    "track": "character",
+    "is": "laugh it off",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they laugh at themselves",
+   "then": "the storm settles"
+  },
+  {
+   "id": "p:soothe-calms",
+   "proximity": "soothe-calms",
+   "label": "When the soothing works, they come back to calm",
+   "from": {
+    "curiosity": "selfSoothe.works",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the soothing works",
+   "then": "they come back to calm"
+  },
+  {
+   "id": "p:alone-numb",
+   "proximity": "alone-numb",
+   "label": "When they can't bear being alone, they reach for relief",
+   "from": {
+    "curiosity": "aloneComfort",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "reliefSeeking",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they can't bear being alone",
+   "then": "they reach for relief"
+  },
+  {
+   "id": "p:chaos-hurdle",
+   "proximity": "chaos-hurdle",
+   "label": "When the chaos inside rises, the inner hurdle grows",
+   "from": {
+    "curiosity": "innerWeather",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerHurdle",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chaos inside rises",
+   "then": "the inner hurdle grows"
+  },
+  {
+   "id": "p:hurdle-cleared-thrive",
+   "proximity": "hurdle-cleared-thrive",
+   "label": "When the inner hurdle is cleared, life starts climbing",
+   "from": {
+    "curiosity": "innerHurdle",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "thriving",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the inner hurdle is cleared",
+   "then": "life starts climbing"
+  },
+  {
+   "id": "p:healer-near-stay",
+   "proximity": "healer-near-stay",
+   "label": "When a healer is near, they stay with the feeling",
+   "from": {
+    "curiosity": "healerType.skill",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "facingFeelings",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a healer is near",
+   "then": "they stay with the feeling"
+  },
+  {
+   "id": "p:run-bad-choice",
+   "proximity": "run-bad-choice",
+   "label": "When they run from a feeling, the cost climbs",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "is": "runs at once",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "facingFeelings.cost",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they run from a feeling",
+   "then": "the cost climbs"
+  },
+  {
+   "id": "p:picture-both-calmer",
+   "proximity": "picture-both-calmer",
+   "label": "When they picture both outcomes, the fear loosens",
+   "from": {
+    "curiosity": "picturingOutcomes",
+    "track": "character",
+    "is": "both",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they picture both outcomes",
+   "then": "the fear loosens"
+  },
+  {
+   "id": "p:facing-welcome",
+   "proximity": "facing-welcome",
+   "label": "When they stay with the feeling, they start to welcome it",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "welcomingFeelings",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they stay with the feeling",
+   "then": "they start to welcome it"
+  },
+  {
+   "id": "p:welcome-awake",
+   "proximity": "welcome-awake",
+   "label": "When they welcome hard feelings, awareness deepens",
+   "from": {
+    "curiosity": "welcomingFeelings",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they welcome hard feelings",
+   "then": "awareness deepens"
+  },
+  {
+   "id": "p:awake-give",
+   "proximity": "awake-give",
+   "label": "When awareness deepens, they give more",
+   "from": {
+    "curiosity": "awakening",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "awareness deepens",
+   "then": "they give more"
+  },
+  {
+   "id": "p:healing-kind-voice",
+   "proximity": "healing-kind-voice",
+   "label": "When the healing moves forward, the inner voice softens",
+   "from": {
+    "curiosity": "healingArc",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfTalk",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the healing moves forward",
+   "then": "the inner voice softens"
+  },
+  {
+   "id": "p:healed-becomes-healer",
+   "proximity": "healed-becomes-healer",
+   "label": "When they're free, they become the healer",
+   "from": {
+    "curiosity": "healingArc",
+    "track": "character",
+    "is": "free on the other side",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "healingArc.shared",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they're free",
+   "then": "they become the healer"
+  },
+  {
+   "id": "p:facing-shame-cope",
+   "proximity": "facing-shame-cope",
+   "label": "When they face the feeling, the way they cope with shame changes",
+   "from": {
+    "curiosity": "facingFeelings",
+    "track": "character",
+    "is": "stays and feels it all",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "copingStyle",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "face it",
+   "when": "they face the feeling",
+   "then": "the way they cope with shame changes"
+  },
+  {
+   "id": "p:through-to-freedom",
+   "proximity": "through-to-freedom",
+   "label": "When they feel a hard feeling all the way through, freedom is on the other side",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "healingArc",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "free on the other side",
+   "when": "they feel a hard feeling all the way through",
+   "then": "freedom is on the other side"
+  },
+  {
+   "id": "p:through-to-peace",
+   "proximity": "through-to-peace",
+   "label": "When they feel a hard feeling all the way through, the storm inside settles",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "innerWeather",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they feel a hard feeling all the way through",
+   "then": "the storm inside settles"
+  },
+  {
+   "id": "p:through-to-awareness",
+   "proximity": "through-to-awareness",
+   "label": "When they feel a hard feeling all the way through, awareness deepens",
+   "from": {
+    "curiosity": "facingFeelings.through",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they feel a hard feeling all the way through",
+   "then": "awareness deepens"
+  },
+  {
+   "id": "p:care-to-give",
+   "proximity": "care-to-give",
+   "label": "When they take care of their own body and mind, they have more to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they take care of their own body and mind",
+   "then": "they have more to give"
+  },
+  {
+   "id": "p:empty-cup",
+   "proximity": "empty-cup",
+   "label": "When they stop caring for themselves, they have less to give",
+   "from": {
+    "curiosity": "selfCare",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "awakening.give",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they stop caring for themselves",
+   "then": "they have less to give"
+  },
+  {
+   "id": "p:giving-is-meaning",
+   "proximity": "giving-is-meaning",
+   "label": "When they help others, life has meaning",
+   "from": {
+    "curiosity": "awakening.give",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awakening.meaning",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they help others",
+   "then": "life has meaning"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -25071,7 +26413,7 @@
   {
    "id": "ps:the-dam-breaks",
    "label": "The dam breaks",
-   "plain": "A trigger turns the feeling, what was held in comes out, and the character is lighter after.",
+   "plain": "A spark turns the feeling, what was held in comes out, and the character is lighter after.",
    "proximities": [
     "trigger-turns",
     "held-in-release",
@@ -27568,6 +28910,285 @@
     "p:picture-shrinks-loneliness",
     "p:pov-mask-dread",
     "p:stills-nostalgia"
+   ]
+  },
+  {
+   "id": "ps:the-telling-turns",
+   "label": "The telling turns",
+   "plain": "A voice talks to us, then the teller is caught lying, we see the moment again, and what was said and meant come apart.",
+   "proximities": [
+    "addressed-fourth-wall",
+    "doubt-same-moment",
+    "doubt-subtext",
+    "closer-telling-voiceover",
+    "projection-unreliable"
+   ],
+   "links": [
+    "p:addressed-fourth-wall",
+    "p:doubt-same-moment",
+    "p:doubt-subtext",
+    "p:closer-telling-voiceover",
+    "p:projection-unreliable"
+   ]
+  },
+  {
+   "id": "ps:seeds-and-harvest",
+   "label": "Seeds and harvest",
+   "plain": "A hard start raises questions, hints point ahead, the planted thing pays off, and the broken symbol says the theme.",
+   "proximities": [
+    "inciting-open-questions",
+    "hint-planted",
+    "symbol-broken-theme",
+    "knows-more-suspense",
+    "glimpse-echo-theme",
+    "glimpse-foil"
+   ],
+   "links": [
+    "p:inciting-open-questions",
+    "p:hint-planted",
+    "p:symbol-broken-theme",
+    "p:knows-more-suspense",
+    "p:glimpse-echo-theme",
+    "p:glimpse-foil"
+   ]
+  },
+  {
+   "id": "ps:time-out-of-order",
+   "label": "Time out of order",
+   "plain": "The story starts at the end, jumps around, lays memories over the present and reads an old diary aloud.",
+   "proximities": [
+    "ends-first-flash-forward",
+    "jumps-memory",
+    "frame-read-aloud",
+    "told-not-shown-flat"
+   ],
+   "links": [
+    "p:ends-first-flash-forward",
+    "p:jumps-memory",
+    "p:frame-read-aloud",
+    "p:told-not-shown-flat"
+   ]
+  },
+  {
+   "id": "ps:talking-true",
+   "label": "Talking true to type",
+   "plain": "Under stress each character hides more under their words, and their way of talking stands out.",
+   "proximities": [
+    "stress-type-subtext",
+    "type-voice-marks"
+   ],
+   "links": [
+    "p:stress-type-subtext",
+    "p:type-voice-marks"
+   ]
+  },
+  {
+   "id": "ps:losing-their-place",
+   "label": "Losing their place",
+   "plain": "Life starts falling, the circle shrinks, loneliness grows, and emotional health slips toward the stress type.",
+   "proximities": [
+    "falling-health",
+    "circle-shrinks-loneliness",
+    "love-unmet-loneliness",
+    "approval-copying"
+   ],
+   "links": [
+    "p:falling-health",
+    "p:circle-shrinks-loneliness",
+    "p:love-unmet-loneliness",
+    "p:approval-copying"
+   ]
+  },
+  {
+   "id": "ps:the-weight-of-the-crown",
+   "label": "The weight of the crown",
+   "plain": "They rise to the top, everyone leans on them, and when the nod is withheld they turn on the group.",
+   "proximities": [
+    "rank-leads-herd",
+    "leaned-on-caretaker",
+    "approval-withheld-turns"
+   ],
+   "links": [
+    "p:rank-leads-herd",
+    "p:leaned-on-caretaker",
+    "p:approval-withheld-turns"
+   ]
+  },
+  {
+   "id": "ps:needs-wants-and-drive",
+   "label": "Needs, wants and drive",
+   "plain": "A starved need drives them, the blocked want raises the tension, the drive pulls the plot, and a met need finally brings peace.",
+   "proximities": [
+    "need-starved-drive",
+    "want-blocked-tension",
+    "drive-pulls-plot",
+    "need-met-peace",
+    "influence-chaos"
+   ],
+   "links": [
+    "p:need-starved-drive",
+    "p:want-blocked-tension",
+    "p:drive-pulls-plot",
+    "p:need-met-peace",
+    "p:influence-chaos"
+   ]
+  },
+  {
+   "id": "ps:the-shame-loop",
+   "label": "The shame loop",
+   "plain": "Shame rises, the urge for relief rises, in someone else's house the cabinet pulls, the pills are taken, and the shame comes back.",
+   "proximities": [
+    "shame-relief",
+    "someone-elses-house-temptation",
+    "cabinet-steal",
+    "relief-shame-loop"
+   ],
+   "links": [
+    "p:shame-relief",
+    "p:someone-elses-house-temptation",
+    "p:cabinet-steal",
+    "p:relief-shame-loop"
+   ]
+  },
+  {
+   "id": "ps:the-authority-chain",
+   "label": "The authority chain",
+   "plain": "An authority figure comes near, trust drops, a parent's voice gets louder, and the lies start.",
+   "proximities": [
+    "near-authority-distrust",
+    "near-parent-voice",
+    "near-police-lie"
+   ],
+   "links": [
+    "p:near-authority-distrust",
+    "p:near-parent-voice",
+    "p:near-police-lie"
+   ]
+  },
+  {
+   "id": "ps:safe-harbor",
+   "label": "Safe harbor",
+   "plain": "Uneasy at parties and closed with strangers, but among spiritual seekers at the ashram they open up and belong.",
+   "proximities": [
+    "near-party-uneasy",
+    "near-strangers-guarded",
+    "near-seekers-open",
+    "ashram-belonging",
+    "alone-peace"
+   ],
+   "links": [
+    "p:near-party-uneasy",
+    "p:near-strangers-guarded",
+    "p:near-seekers-open",
+    "p:ashram-belonging",
+    "p:alone-peace"
+   ]
+  },
+  {
+   "id": "ps:starting-over",
+   "label": "Starting over",
+   "plain": "Home feels like a trap, the drive to leave grows, the world makes the new craft easier, and their standing rises.",
+   "proximities": [
+    "home-trapped-drive",
+    "world-easier-thrive",
+    "craft-rank"
+   ],
+   "links": [
+    "p:home-trapped-drive",
+    "p:world-easier-thrive",
+    "p:craft-rank"
+   ]
+  },
+  {
+   "id": "ps:the-spiral-alone",
+   "label": "The spiral alone",
+   "plain": "Alone and uneasy, the chaos rises, the voice turns cruel, they beat themselves up, reach for relief, and the inner hurdle grows.",
+   "proximities": [
+    "alone-numb",
+    "chaos-cruel-voice",
+    "cruel-voice-beat-up",
+    "chaos-hurdle"
+   ],
+   "links": [
+    "p:alone-numb",
+    "p:chaos-cruel-voice",
+    "p:cruel-voice-beat-up",
+    "p:chaos-hurdle"
+   ]
+  },
+  {
+   "id": "ps:finding-calm",
+   "label": "Finding calm",
+   "plain": "They laugh at the slip, the soothing works, the storm settles, the inner hurdle shrinks, and life climbs.",
+   "proximities": [
+    "laugh-settles",
+    "soothe-calms",
+    "hurdle-cleared-thrive"
+   ],
+   "links": [
+    "p:laugh-settles",
+    "p:soothe-calms",
+    "p:hurdle-cleared-thrive"
+   ]
+  },
+  {
+   "id": "ps:the-other-side",
+   "label": "The other side",
+   "plain": "The facts of healing, always on: take care of your own body and mind first; feel a hard feeling through and the storm settles, awareness deepens, freedom is on the other side, and the freed give to others, which is the point of life. Run from it and the cost climbs.",
+   "proximities": [
+    "through-to-peace",
+    "through-to-awareness",
+    "through-to-freedom",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healed-becomes-healer",
+    "run-bad-choice",
+    "care-to-give",
+    "empty-cup",
+    "giving-is-meaning"
+   ],
+   "links": [
+    "p:through-to-peace",
+    "p:through-to-awareness",
+    "p:through-to-freedom",
+    "p:facing-welcome",
+    "p:welcome-awake",
+    "p:awake-give",
+    "p:healed-becomes-healer",
+    "p:run-bad-choice",
+    "p:care-to-give",
+    "p:empty-cup",
+    "p:giving-is-meaning"
+   ]
+  },
+  {
+   "id": "ps:the-healing-road",
+   "label": "The healing road",
+   "plain": "A healer comes near, they stay with the feeling instead of running, picture the best and the worst, learn to welcome the hard feelings, wake up, give more, and become a healer themselves.",
+   "proximities": [
+    "healer-near-stay",
+    "picture-both-calmer",
+    "through-to-peace",
+    "through-to-freedom",
+    "through-to-awareness",
+    "facing-welcome",
+    "welcome-awake",
+    "awake-give",
+    "healing-kind-voice",
+    "healed-becomes-healer"
+   ],
+   "links": [
+    "p:healer-near-stay",
+    "p:picture-both-calmer",
+    "p:through-to-peace",
+    "p:through-to-freedom",
+    "p:through-to-awareness",
+    "p:facing-welcome",
+    "p:welcome-awake",
+    "p:awake-give",
+    "p:healing-kind-voice",
+    "p:healed-becomes-healer"
    ]
   },
   {

@@ -154,7 +154,11 @@
       const sliders = [
         slider({ id: "cause", label: "Cause", range: { min: 0, max: 100, unit: "%" }, from: 0, to: 100, plain: "Share of panels where the cause is set." }),
         slider({ id: "delay", label: "Delay", range: { min: 0, max: Math.max(16, within + 8), unit: "beats", step: 1 }, from: within, to: within + 2, plain: "Beats between the cause and the effect." }),
-        slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
+        /* A fact (Jeremy, 2026-10-05: "that can be hardwired into the app. That those are facts.") always follows:
+           its How often is held at 100%. */
+        p.fact
+          ? slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: 100, to: 100, plain: "Always. This is a fact of the app, so the effect always follows the cause." })
+          : slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
       ];
       /* Effect size only means something when the effect is a change (rises, drops); an effect that sets a value or
          plays a suite has no size. Same rule as the app's automation lanes, and the same lane ids (chance, effect). */
@@ -164,7 +168,7 @@
       /* whenText and thenText are the two halves in plain words ("the music is cut dead", "a big line lands"), which
          the app shows as "When ..., ...". A label already written that way is split; others set them (db-proximity-words.js). */
       const split = /^When (.+?), (.+)$/.exec(p.label || "");
-      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, whenText: p.whenText || (split ? split[1] : ""), thenText: p.thenText || (split ? split[2] : ""), within, often: p.often == null ? null : p.often, sliders, source: p.source || "database", tags: p.tags || [] });
+      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, whenText: p.whenText || (split ? split[1] : ""), thenText: p.thenText || (split ? split[2] : ""), within, often: p.fact ? 100 : p.often == null ? null : p.often, fact: !!p.fact, sliders, source: p.source || "database", tags: p.tags || [] });
     },
 
     /* proximitySuite({ id, label, plain, workspace, members: [proximity ids] }) */
@@ -414,6 +418,12 @@
          value, so a suite-to-suite proximity is as many links as the effect suite has members, not the product.
        - groups: each proximity suite, as the link ids of its members, so the engine can add them in one step.
        Curiosity ids are the app's (CURIOSITIES after install), slider rows included ("music.tempo"). */
+    /* The facts of the app: proximities that always hold (fact: true), such as "when they stay with a hard
+       feeling, freedom waits on the other side". The app treats them as truths, never as optional settings. */
+    facts() {
+      return db.proximities.filter((p) => p.fact);
+    },
+
     links() {
       const BASE = 0.25;
       const CHARACTER = ["character-motion", "placement", "lines", "movement-lines", "wardrobe", "arc", "plot", "mindset", "focus", "archetype"];

@@ -313,7 +313,7 @@
       <div class="lv-main">
         <div class="lv-stage"><div id="lv-panel"></div><p class="cap" id="lv-suite"></p></div>
         <div id="lv-chips"></div>
-        <div class="g">Proximities</div>
+        <div class="g">Sparks</div>
         <div id="lv-prox"></div>
         <div class="g">Record (Auto Key)</div>
         <div class="bar-actions lv-rec">

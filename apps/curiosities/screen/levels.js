@@ -54,8 +54,8 @@
   const LEVELS = [
     { id: "curiosity", label: "Curiosity", many: "curiosities" },
     { id: "suite", label: "Suite", many: "suites" },
-    { id: "proximity", label: "Proximity", many: "proximities" },
-    { id: "proximitySuite", label: "Proximity suite", many: "proximitySuites" },
+    { id: "proximity", label: "Spark", many: "proximities" },
+    { id: "proximitySuite", label: "Elixir", many: "proximitySuites" },
   ];
 
   function data() {

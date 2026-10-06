@@ -77,6 +77,9 @@ const ok = (cond, msg) => {
   await page.click('.cv-tabs [data-tab="camera"]');
   await page.waitForTimeout(100);
   const slider = page.locator('.cv-details input[type="range"]').first();
+  /* The voice bar's strip leaves the Viewer a little shorter, so the first slider can sit under the storyboard's edge. */
+  await slider.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(50);
   const sb = await slider.boundingBox();
   t = await rest(sb.x + sb.width / 2, sb.y + sb.height / 2);
   ok(/Slide from/.test(t) && /Camera & lens/.test(t), "a slider: its name, its two ends and the part it is in: " + t);

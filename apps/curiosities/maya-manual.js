@@ -3974,7 +3974,7 @@ window.MAYA_MANUAL = {
    ],
    "weight": "major",
    "fit": "build",
-   "appDoes": "Mark beats where light changes (a lamp turned on, lightning, passing car) and let a pad trigger it.",
+   "appDoes": "Mark beats where light changes (a lamp turned on, lightning, passing car) and let a pad spark it.",
    "curiosities": [
     "lightChange",
     "fireLight"
@@ -5870,7 +5870,7 @@ window.MAYA_MANUAL = {
     "student"
    ],
    "keep": "keep",
-   "reason": "Visualizes proximities and drivers.",
+   "reason": "Visualizes sparks and drivers.",
    "source": "knowledge"
   },
   {
@@ -6346,7 +6346,7 @@ window.MAYA_MANUAL = {
    "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html",
    "tool": "passes",
    "built": "partly",
-   "toolDoes": "Shows which suites and proximities a layer lights up, the way a light group shows its contributions."
+   "toolDoes": "Shows which suites and sparks a layer lights up, the way a light group shows its contributions."
   },
   {
    "id": "arnold-camera-exposure",
@@ -7509,7 +7509,7 @@ window.MAYA_MANUAL = {
    "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html",
    "tool": "passes",
    "built": "partly",
-   "toolDoes": "Shows which suites and proximities a layer lights up, the way a light group shows its contributions."
+   "toolDoes": "Shows which suites and sparks a layer lights up, the way a light group shows its contributions."
   },
   {
    "id": "arnold-light-linking",
@@ -9704,12 +9704,12 @@ window.MAYA_MANUAL = {
     "student"
    ],
    "keep": "keep",
-   "reason": "Proximity rules mirror graph wiring.",
+   "reason": "Spark rules mirror graph wiring.",
    "source": "knowledge",
    "sharani": true,
    "tool": "chain",
    "built": "partly",
-   "toolDoes": "Chain wires triggers to downstream lanes with delays in beats, the same idea as graph nodes; no node editor."
+   "toolDoes": "Chain wires sparks to downstream lanes with delays in beats, the same idea as graph nodes; no node editor."
   },
   {
    "id": "bifrost-meshing",

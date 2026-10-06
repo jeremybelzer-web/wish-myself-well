@@ -452,7 +452,7 @@
     return fromProximities(appProximities(), beats, { source: id.startsWith("study:") ? "study" : "app" });
   }
   function rowHtml(r) {
-    const where = r.source === "engine" ? `A link in My film${r.on ? "" : " (switched off)"}` : r.source === "study" ? "Held in this curated film's moments" : "One of the app's proximities";
+    const where = r.source === "engine" ? `A link in My film${r.on ? "" : " (switched off)"}` : r.source === "study" ? "Held in this curated film's moments" : "One of the app's sparks";
     const times = r.fired === 1 ? "once" : r.fired + " times";
     return `<li class="ho-row ho-${r.kind}">
       <p class="ho-say">When ${esc(r.when)}, ${esc(r.then)}${r.within ? `, within ${r.within} moment${r.within === 1 ? "" : "s"}` : ", at the same moment"}.</p>

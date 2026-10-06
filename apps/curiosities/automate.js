@@ -17,8 +17,8 @@
   const LEVELS = [
     ["curiosity", "Curiosities"],
     ["suite", "Suites"],
-    ["proximity", "Proximities"],
-    ["proximity suite", "Proximity suites"],
+    ["proximity", "Sparks"],
+    ["proximity suite", "Elixirs"],
   ];
   const SHAPES = ["sine", "triangle", "square", "saw", "random"];
 
@@ -1253,7 +1253,7 @@
       </ol>
       <div class="bar-actions"><button type="button" id="au-midi">Connect MIDI</button>
         <select id="au-out"><option value="">MIDI out: none</option>${outs.map((o) => `<option value="${esc(o.id)}"${m.out && m.out.id === o.id ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select>
-        <span class="cap" id="au-midistat">${esc(m.status === "off" ? "MIDI is off. Keys and the trigger button still work." : m.status)}</span></div>
+        <span class="cap" id="au-midistat">${esc(m.status === "off" ? "MIDI is off. Keys and the spark button still work." : m.status)}</span></div>
     </details>`;
   }
 
@@ -1318,7 +1318,7 @@
     }
     const counts = Object.fromEntries(LEVELS.map(([l]) => [l, A().PARAMS.filter((p) => p.level === l).length]));
     root.innerHTML = `<h2>Automate</h2>
-      <p class="cap">Every curiosity, suite, proximity and proximity suite is a module. Its switch (the big button, a MIDI note, a key) turns it on and off. Inside, lanes grade each part between two settings: an angle from low to high, a shot from close to wide. Each lane has its own curve and its own mover (an LFO, a knob, a MIDI control), and plays in the panels you choose. Modules that are on play on the board.</p>
+      <p class="cap">Every curiosity, suite, spark and elixir is a module. Its switch (the big button, a MIDI note, a key) turns it on and off. Inside, lanes grade each part between two settings: an angle from low to high, a shot from close to wide. Each lane has its own curve and its own mover (an LFO, a knob, a MIDI control), and plays in the panels you choose. Modules that are on play on the board.</p>
       <div class="bar-actions au-presets"><button type="button" id="au-perf" class="au-perf-btn ${view.perf ? "on" : ""}">${view.perf ? "Back to the modules" : "Performer view"}</button><span class="au-lab">Patches</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.name)}</button>`).join("")}</div>
       ${rigsHtml()}
       <div class="g au-g">Patch bay</div>
@@ -1512,7 +1512,7 @@
       });
       if (fired) rows.push(`<div><span class="chip${held ? " lit" : ""}">${held ? "holds" : "doesn’t hold"}</span> When ${esc(p.when)}, ${esc(p.then)}.</div>`);
     });
-    return rows.length ? rows.join("") : `<p class="cap">No proximity's cause happens in these panels yet.</p>`;
+    return rows.length ? rows.join("") : `<p class="cap">No spark's cause happens in these panels yet.</p>`;
   }
 
   function drawPanels(panels) {

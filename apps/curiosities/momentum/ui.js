@@ -672,7 +672,7 @@
       <div class="mo-scroll"><table class="mo-lanes"><thead><tr><th></th>${head}</tr></thead><tbody><tr><th>Attention</th>${att}</tr><tr><th>Cue</th>${cue}</tr></tbody></table></div>
       <h3>Suggestions</h3>${
         sg.length
-          ? `<ul class="mo-sugg">${sg.map((x, i) => `<li><span>${esc(x.text)}</span><button type="button" data-sugg="${i}">Add this link to the engine</button></li>`).join("")}</ul><p class="mo-small">A link is a proximity: when the leader changes, the follower moves with it. It acts only over the long stretch, and the engine's Undo takes it back.</p>`
+          ? `<ul class="mo-sugg">${sg.map((x, i) => `<li><span>${esc(x.text)}</span><button type="button" data-sugg="${i}">Add this link to the engine</button></li>`).join("")}</ul><p class="mo-small">A link is a spark: when the leader changes, the follower moves with it. It acts only over the long stretch, and the engine's Undo takes it back.</p>`
           : `<p class="mo-small"><span class="mo-status mo-good">●</span> No family holds attention past the limit, so there is nothing to suggest.</p>`
       }
       ${window.CurioEngineUI ? `<button type="button" data-m="open-engine">Open the engine</button>` : ""}`;

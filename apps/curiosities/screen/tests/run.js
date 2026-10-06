@@ -652,6 +652,13 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
     ok(sheet.includes("&lt;b&gt;bold&lt;/b&gt; &amp; more") && !sheet.includes("<b>bold</b>") && sheet.includes("the joke lands, &quot;big&quot;") && sheet.includes("&lt;Mine&gt;"), "marker notes and the title are escaped");
     ok(sheet.includes("background:#b197fc") && sheet.includes("--per:4") && /data-per="4" class="on"/.test(sheet) && sheet.includes("data-print") && sheet.includes("aspect-ratio: 180 / 180"), "the marker's color, 4 frames per row picked, a Print button, the square shape");
     ok(X.sheetHtml({ moments: sm, perRow: 7 }).includes("--per:3"), "frames per row is 2, 3 or 4 (3 otherwise)");
+    /* Sections, the Opening among them, in the Export once the film has markers. */
+    const ss = sm.map((m, i) => Object.assign({}, m, { section: i < 2 ? "Opening" : "Act 2" }));
+    const scsv = X.csv(ss, { keys: [], label: (k) => k }).replace(/^\uFEFF/, "").split("\r\n");
+    ok(/^Moment,Time,Marker note,Section,/.test(scsv[0]) && /^1,[^\n]*,Opening,/.test(scsv[1]) && /^2,[^\n]*,Opening,/.test(scsv[2]) && /,Act 2,/.test(scsv[3]), "the settings list has a Section column, the Opening's moments named like any other section's (" + scsv[0].slice(0, 40) + ")");
+    ok(!X.csv(sm, { keys: [], label: (k) => k }).includes("Section"), "and none when the film has no markers");
+    const ssheet = X.sheetHtml({ moments: ss, perRow: 3 });
+    ok((ssheet.match(/<p class="sec">/g) || []).length === 2 && ssheet.includes("Section: Opening") && ssheet.includes("Section: Act 2"), "the storyboard sheet names each section on its first frame, the Opening too");
     ok(X.fileName("My Film: Take #2", "moment 3", "png") === "curiomatic-my-film-take-2-moment-3.png" && X.fileName("", "settings", "csv") === "curiomatic-settings.csv", "file names start with curiomatic- and use plain letters and dashes");
   }
 }
@@ -1275,6 +1282,75 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
     ok(C.limitsPass(lim, base) && !C.limitsPass(lim, Object.assign({}, base, { playing: false })) && !C.limitsPass(lim, Object.assign({}, base, { value: 0.9 })) && !C.limitsPass(lim, Object.assign({}, base, { j: 2 })) && C.limitsPass(lim, Object.assign({}, base, { j: 5 })) && !C.limitsPass(lim, Object.assign({}, base, { sections: ["s2"] })), "limits: only while playing, between two values, several ranges, never in a section");
     ok([1, 2, 3, 4].map((n) => C.countPass({ count: "first", n: 2 }, n)).join() === "true,true,false,false" && [1, 2, 3, 4].map((n) => C.countPass({ count: "nth", n: 2 }, n)).join() === "false,true,false,true", "first N times and every Nth time");
     ok(JSON.stringify(C.effectFor({ act: "onoff" }, null, true)) === '{"on":false}' && C.effectFor({ act: "follow", value: 50 }, 0.25).set === 0.25 && C.effectFor({ act: "set", value: 40 }).set === 0.4 && C.nodeEffect({ act: "off" }).off === true, "what each action does to a lane and to a node");
+
+    /* The Opening is a section like every other (Jeremy, 2026-10-05: "it is part of the film"). */
+    const op = secs[0];
+    ok(op.id === "opening" && op.from === 0 && op.to === 1 && C.sectionIdsAt(secs, 0).join() === "opening" && C.sectionIdsAt(secs, 1).join() === "opening" && C.sectionIdsAt(secs, 2).join() === "r3", "the Opening covers every moment before the first marker, and only those");
+    const allFilm = C.sectionsOf([], rows);
+    ok(allFilm.length === 1 && allFilm[0].id === "opening" && allFilm[0].from === 0 && allFilm[0].to === 5, "with no markers the whole film is the Opening");
+    ok(C.sectionsOf([{ row: "r4", note: "Act 2" }], rows).map((x) => `${x.id}:${x.from}-${x.to}`).join() === "opening:0-2,r4:3-5", "every moment of the film is in exactly one section, the Opening included");
+    const opOnly = C.cleanOne({ target: { kind: "master", id: "m" }, limits: { sections: { mode: "only", list: ["opening"] } } }, 0).limits;
+    const opNever = C.cleanOne({ target: { kind: "master", id: "m" }, limits: { sections: { mode: "never", list: ["opening"] } } }, 0).limits;
+    const at = (j) => ({ j, playing: true, value: 1, sections: C.sectionIdsAt(secs, j) });
+    ok([0, 1, 2, 4].map((j) => (C.limitsPass(opOnly, at(j)) ? 1 : 0)).join("") === "1100" && [0, 1, 2, 4].map((j) => (C.limitsPass(opNever, at(j)) ? 1 : 0)).join("") === "0011", "only in the Opening and never in the Opening work like any other section's limits");
+    ok(C.cleanOne({ target: { kind: "master", id: "m" }, when: { kind: "section", section: "opening" } }, 0).when.section === "opening", "a trigger keeps the Opening as its section");
+
+    /* Poses: a pure reading of a body's 33 points (made-up bodies here; the real model is never downloaded in tests). */
+    ok(C.WHEN.some((x) => x[0] === "pose") && C.WHEN.some((x) => x[0] === "body"), "the camera has both sources: movement and a pose");
+    ok(C.POSES.map((p) => p[0]).join() === "hands_up,hand_left,hand_right,arms_out,crouch,lean_left,lean_right,jump,face,away", "the poses: hands up, a hand raised (left or right), arms out, crouch, lean left or right, jump, facing the camera, turned away");
+    const pw = C.cleanOne({ target: { kind: "master", id: "m" }, when: { kind: "pose", pose: "nope", sens: 400 } }, 0).when;
+    ok(pw.pose === "hands_up" && pw.sens === 100 && C.cleanOne({ target: { kind: "master", id: "m" }, when: { kind: "pose", pose: "crouch" } }, 0).when.sens === 50, "a pose trigger is cleaned: an unknown pose goes back to Both hands up, sensitivity kept from 0 to 100 (50 by default)");
+    ok(C.poseThreshold(50) === 0.5 && C.poseThreshold(100) < C.poseThreshold(50) && C.poseThreshold(0) > C.poseThreshold(50), "higher sensitivity fires on less of the pose");
+    ok(C.POSES.every((p) => ["any", "high", "left", "right"].includes(C.POSE_FALLBACK[p[0]])) && C.POSE_FALLBACK.hands_up === "high" && C.POSE_FALLBACK.crouch === "any", "every pose has a movement zone to fall back to");
+    /* A person facing the camera, standing, arms down. The picture is not mirrored: their left is on its right. */
+    const body = (o) => {
+      const p = [];
+      for (let i = 0; i < 33; i++) p.push({ x: 0.5, y: 0.2, z: 0, visibility: 0.9 });
+      const put = (i, x, y, v) => (p[i] = { x, y, z: 0, visibility: v == null ? 0.9 : v });
+      put(0, 0.5, 0.2);
+      put(7, 0.53, 0.2);
+      put(8, 0.47, 0.2);
+      put(11, 0.58, 0.3);
+      put(12, 0.42, 0.3);
+      put(13, 0.6, 0.42);
+      put(14, 0.4, 0.42);
+      put(15, 0.6, 0.53);
+      put(16, 0.4, 0.53);
+      put(23, 0.55, 0.55);
+      put(24, 0.45, 0.55);
+      put(25, 0.55, 0.72);
+      put(26, 0.45, 0.72);
+      put(27, 0.55, 0.9);
+      put(28, 0.45, 0.9);
+      Object.keys(o || {}).forEach((i) => put(Number(i), o[i][0], o[i][1], o[i][2]));
+      return p;
+    };
+    const fired = (lm, memo, sens) => {
+      const r = C.poseOf(lm, memo);
+      return Object.keys(r.amounts).filter((k) => r.amounts[k] >= C.poseThreshold(sens == null ? 50 : sens)).sort().join(",");
+    };
+    ok(fired(body()) === "face", "standing, arms down, facing the camera: only Facing the camera (" + fired(body()) + ")");
+    ok(fired(body({ 15: [0.6, 0.08], 16: [0.4, 0.08], 13: [0.6, 0.18], 14: [0.4, 0.18] })) === "face,hand_left,hand_right,hands_up", "both wrists above the head: Both hands up (each hand counts as raised too)");
+    ok(fired(body({ 15: [0.6, 0.12], 13: [0.6, 0.2] })) === "face,hand_left", "their own left wrist up (on the picture's right): Left hand raised, not Both hands up");
+    ok(fired(body({ 16: [0.4, 0.12], 14: [0.4, 0.2] })) === "face,hand_right", "their right wrist up: Right hand raised");
+    ok(fired(body({ 15: [0.85, 0.3], 16: [0.15, 0.3], 13: [0.72, 0.3], 14: [0.28, 0.3] })) === "arms_out,face", "both arms straight out at shoulder height: Arms out wide");
+    const down = 0.2;
+    const crouched = body({ 0: [0.5, 0.2 + down], 7: [0.53, 0.2 + down], 8: [0.47, 0.2 + down], 11: [0.58, 0.3 + down], 12: [0.42, 0.3 + down], 13: [0.6, 0.42 + down], 14: [0.4, 0.42 + down], 15: [0.6, 0.53 + down], 16: [0.4, 0.53 + down], 23: [0.55, 0.55 + down], 24: [0.45, 0.55 + down], 25: [0.58, 0.82], 26: [0.42, 0.82] });
+    ok(fired(crouched) === "crouch,face", "hips dropped toward the ankles: Crouching (" + fired(crouched) + ")");
+    const tip = (dx) => body({ 0: [0.5 + dx * 1.4, 0.2], 7: [0.53 + dx * 1.4, 0.2], 8: [0.47 + dx * 1.4, 0.2], 11: [0.58 + dx, 0.3], 12: [0.42 + dx, 0.3], 13: [0.6 + dx, 0.42], 14: [0.4 + dx, 0.42], 15: [0.6 + dx * 0.6, 0.53], 16: [0.4 + dx * 0.6, 0.53] });
+    ok(fired(tip(0.08)) === "face,lean_left" && fired(tip(-0.08)) === "face,lean_right", "upper body tipped toward their own left (the picture's right): Leaning to their left; the other way, to their right");
+    const backTurned = body({ 0: [0.5, 0.2, 0.1], 7: [0.53, 0.2, 0.1], 8: [0.47, 0.2, 0.1], 11: [0.42, 0.3], 12: [0.58, 0.3], 13: [0.4, 0.42], 14: [0.6, 0.42], 15: [0.4, 0.53], 16: [0.6, 0.53], 23: [0.45, 0.55], 24: [0.55, 0.55], 25: [0.45, 0.72], 26: [0.55, 0.72], 27: [0.45, 0.9], 28: [0.55, 0.9] });
+    ok(fired(backTurned) === "away", "their left shoulder on the picture's left and no face seen: Turned away (" + fired(backTurned) + ")");
+    const backLean = backTurned.map((p, i) => ([0, 7, 8, 11, 12, 13, 14].includes(i) ? Object.assign({}, p, { x: p.x - 0.08 }) : p));
+    ok(fired(backLean) === "away,lean_left", "with their back turned, a lean toward the picture's left is toward their own left: still Leaning to their left (" + fired(backLean) + ")");
+    let memo = {};
+    for (let k = 0; k < 5; k++) memo = C.poseOf(body(), memo).memo;
+    const up = body(Object.fromEntries([0, 7, 8, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].map((i) => [i, [body()[i].x, body()[i].y - 0.1]])));
+    ok(fired(up, memo) === "face,jump" && fired(body(), memo) === "face", "the whole body rising above its usual height: A jump; back down, no jump");
+    ok(fired(up, {}) === "face", "with no usual height yet, rising can't be told from standing (no jump on the first look)");
+    ok(fired(tip(0.035), {}, 50) === "face" && fired(tip(0.035), {}, 100) === "face,lean_left", "sensitivity: a slight lean fires only when sensitivity is high");
+    const none = C.poseOf(null, {});
+    ok(Object.values(none.amounts).every((a) => a === 0) && Object.values(C.poseOf(body().slice(0, 10), {}).amounts).every((a) => a === 0), "no body, or a body without shoulders and hips, is no pose at all");
   }
 }
 

@@ -9,10 +9,14 @@
      when    a MIDI note or CC (Learn); any slider, knob, fader, button or drop-down in the app (Map… then click it;
              every control is registered through one call, mappable(id, label)); a track reaching an event (a cut,
              a line of dialogue, a character entering frame, a panel turn), or one chosen event ("that line, at
-             moment 5"); the film reaching a section (sections are the timeline's markers: each runs to the next);
+             moment 5"); the film reaching a section (sections are the timeline's markers: each runs to the next,
+             and the stretch before the first marker is the Opening, a section like every other);
              an oscillator in moments (switches every 1, 2 or 4 moments); speech (the browser's own free speech
              recognition where there is one, typed words where there isn't); the camera watching the performer
-             (movement in part of the picture, worked out in the browser, never uploaded, off until switched on)
+             (movement in part of the picture, worked out in the browser, never uploaded, off until switched on);
+             a pose (hands up, a hand raised, arms out, a crouch, a lean, a jump, facing the camera or turned away),
+             from MediaPipe's free pose model, downloaded only when Poses is switched on (it says so first), run in
+             the browser; until it is there, or when it can't load, a pose trigger listens to movement instead
      does    on · off · on/off · scale by % · set a value · follow a value continuously · press; each can latch,
              act only while held, or toggle
      limits  between two values; every time, the first N times or every Nth time; several separate ranges of
@@ -38,6 +42,8 @@
      forTarget(targetId)        the triggers aimed at "master:<id>", "mnode:<id>" or a bare id, for the master
                                 nodes' Suite / Proximity view: [{ id, label, source: { kind, id, lk?, row? } }]
      sections(), eventsAt(j), performing(), camera { on, start(), stop() }, speech { supported, on, start(), stop() }
+     pose { state, now, ask(), start(), stop(), feed(landmarks) }   the pose model: ask() explains the download and
+                                waits for a yes (start()); feed() is one look at a body's points (tests use it)
      core                       the pure part (no page), for tests */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -65,7 +71,8 @@
     ["section", "The film reaching a section"],
     ["lfo", "An oscillator"],
     ["speech", "Speech"],
-    ["body", "The camera (your body)"],
+    ["body", "The camera: movement"],
+    ["pose", "The camera: a pose"],
   ];
   const EVENTS = [
     ["cut", "A cut", "The film cuts into this moment (its join is a Cut)."],
@@ -99,6 +106,25 @@
     ["high", "Movement up high (a raised hand)"],
   ];
   const LFO_EVERY = [1, 2, 4];
+  /* Poses, in the performer's own left and right (their left hand, as they would say it). Worked out from the 33
+     body points of MediaPipe's free pose model, in the browser, only after Poses is switched on. */
+  const POSES = [
+    ["hands_up", "Both hands up", "Both wrists above the head."],
+    ["hand_left", "Left hand raised", "The performer's own left wrist above their shoulder."],
+    ["hand_right", "Right hand raised", "The performer's own right wrist above their shoulder."],
+    ["arms_out", "Arms out wide", "Both arms stretched out to the sides, about shoulder high."],
+    ["crouch", "Crouching", "Knees bent deep (the legs must be in the picture)."],
+    ["lean_left", "Leaning to their left", "The upper body tipped toward the performer's own left."],
+    ["lean_right", "Leaning to their right", "The upper body tipped toward the performer's own right."],
+    ["jump", "A jump", "The hips rise quickly above where they usually are."],
+    ["face", "Facing the camera", "The chest turned toward the camera."],
+    ["away", "Turned away", "The back turned to the camera."],
+  ];
+  /* Until the pose model is there (switched off, still loading, or it couldn't load), a pose trigger listens to
+     the camera's movement instead: a raised hand or a jump to movement up high, the others to any movement. */
+  const POSE_FALLBACK = { hands_up: "high", hand_left: "high", hand_right: "high", jump: "high", arms_out: "any", crouch: "any", lean_left: "any", lean_right: "any", face: "any", away: "any" };
+  /* Sensitivity 0..100 -> how strong a pose must be (0..1) to fire: 50 needs half, 100 a hint, 0 the full pose. */
+  const poseThreshold = (sens) => 0.8 - (0.6 * clamp(sens, 0, 100, 50)) / 100;
   const pick = (list, v, d) => (list.some((x) => x[0] === v) ? v : d);
 
   function cleanTarget(t) {
@@ -118,6 +144,7 @@
     if (kind === "section") return { kind, section: txt(w.section, 80) };
     if (kind === "lfo") return { kind, every: LFO_EVERY.includes(Number(w.every)) ? Number(w.every) : 1 };
     if (kind === "speech") return { kind, words: txt(w.words, 80) };
+    if (kind === "pose") return { kind, pose: pick(POSES, w.pose, "hands_up"), sens: Math.round(clamp(w.sens, 0, 100, 50)) };
     return { kind, zone: pick(ZONES, w.zone, "any") };
   }
   function cleanDoes(d) {
@@ -248,6 +275,83 @@
   }
   const MOVE_AT = 0.06; /* a part of the picture counts as moving once this share of it changes */
 
+  /* Poses from one person's body points (MediaPipe's 33: { x, y } from 0 to 1 across and down the camera picture,
+     not mirrored, with visibility). Pure, so tests can feed made-up bodies. memo carries the usual hip height from
+     one look to the next (for a jump); pass back what it returns.
+     -> { amounts: { hands_up, hand_left, ... } each 0..1, memo } */
+  const POSE_IDS = POSES.map((p) => p[0]);
+  const ramp = (x, lo, hi) => Math.max(0, Math.min(1, (x - lo) / (hi - lo)));
+  function poseOf(lm, memo) {
+    const amounts = {};
+    POSE_IDS.forEach((id) => (amounts[id] = 0));
+    memo = isObj(memo) ? Object.assign({}, memo) : {};
+    const P = (i) => (Array.isArray(lm) && lm[i] && isFinite(lm[i].x) && isFinite(lm[i].y) ? lm[i] : null);
+    const seen = (p) => !!p && (p.visibility == null || p.visibility >= 0.5);
+    const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const [nose, lSh, rSh, lWr, rWr, lHip, rHip] = [0, 11, 12, 15, 16, 23, 24].map(P);
+    if (!lSh || !rSh || !lHip || !rHip) return { amounts, memo };
+    const sh = mid(lSh, rSh);
+    const hip = mid(lHip, rHip);
+    const torso = dist(sh, hip);
+    if (!(torso > 0.02)) return { amounts, memo };
+    /* hands: how far each wrist is above its shoulder, and both above the head */
+    const upL = seen(lWr) ? (lSh.y - lWr.y) / torso : -1;
+    const upR = seen(rWr) ? (rSh.y - rWr.y) / torso : -1;
+    amounts.hand_left = ramp(upL, 0, 0.6);
+    amounts.hand_right = ramp(upR, 0, 0.6);
+    const head = nose ? nose.y : sh.y - torso * 0.45;
+    if (seen(lWr) && seen(rWr)) {
+      amounts.hands_up = ramp(Math.min(head - lWr.y, head - rWr.y) / torso, -0.1, 0.3);
+      /* arms out: both wrists well out to the side, near shoulder height */
+      const out = Math.min(Math.abs(lWr.x - lSh.x), Math.abs(rWr.x - rSh.x)) / torso;
+      const off = Math.max(Math.abs(lWr.y - lSh.y), Math.abs(rWr.y - rSh.y)) / torso;
+      const wide = Math.abs(lWr.x - rWr.x) > Math.abs(lSh.x - rSh.x);
+      amounts.arms_out = wide ? ramp(out, 0.3, 0.9) * (1 - ramp(off, 0.35, 0.7)) : 0;
+    }
+    /* crouch: the hips dropped toward the ankles (standing, the legs are about 1.4 torsos long; a deep crouch
+       about half that), or the knees bent (180° is a straight leg; in depth too when the points have it) */
+    const lAnk = P(27);
+    const rAnk = P(28);
+    const anks = [lAnk, rAnk].filter(seen);
+    let crouch = 0;
+    if (anks.length) crouch = ramp(1.2 - (anks.reduce((a, p) => a + p.y, 0) / anks.length - hip.y) / torso, 0, 0.6);
+    const bend = (h, k, a) => {
+      if (!seen(h) || !seen(k) || !seen(a)) return null;
+      const z = (p) => (isFinite(p.z) ? p.z : 0);
+      const v1 = [h.x - k.x, h.y - k.y, z(h) - z(k)];
+      const v2 = [a.x - k.x, a.y - k.y, z(a) - z(k)];
+      const c = (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) / (Math.hypot(...v1) * Math.hypot(...v2) || 1);
+      return (Math.acos(Math.max(-1, Math.min(1, c))) * 180) / Math.PI;
+    };
+    const knees = [bend(lHip, P(25), lAnk), bend(rHip, P(26), rAnk)].filter((x) => x != null);
+    if (knees.length) crouch = Math.max(crouch, ramp(170 - knees.reduce((a, b) => a + b, 0) / knees.length, 0, 80));
+    amounts.crouch = crouch;
+    /* facing: the camera sees the performer's left shoulder on its right when they face it (the picture is not
+       mirrored), on its left when their back is turned; a face it can't see means turned away too */
+    const facing = (lSh.x - rSh.x) / torso;
+    /* lean: the body tipped sideways from the hips (the sine of its tilt), toward the performer's own left or
+       right (which side of the picture that is depends on which way they face; side-on, it can't be told) */
+    if (Math.abs(facing) > 0.15) {
+      const side = ((sh.x - hip.x) / torso) * Math.sign(facing);
+      amounts.lean_left = ramp(side, 0.05, 0.35);
+      amounts.lean_right = ramp(-side, 0.05, 0.35);
+    }
+    amounts.face = ramp(facing, 0.1, 0.5);
+    amounts.away = ramp(-facing, 0.1, 0.5);
+    const faceHidden = [0, 7, 8].every((i) => !P(i) || (P(i).visibility != null && P(i).visibility < 0.3));
+    if (faceHidden) (amounts.away = Math.max(amounts.away, 0.7)), (amounts.face = 0);
+    /* jump: the hips above their usual height; the usual height follows slowly while no jump is on */
+    if (memo.hipY == null || !isFinite(memo.hipY)) memo.hipY = hip.y;
+    const rise = (memo.hipY - hip.y) / torso;
+    amounts.jump = ramp(rise, 0.05, 0.35);
+    memo.up = rise > 0.1 ? (memo.up || 0) + 1 : 0;
+    if (rise <= 0.1 || memo.up > 15) memo.hipY = memo.hipY * 0.8 + hip.y * 0.2;
+    if (memo.up > 15) memo.up = 0;
+    POSE_IDS.forEach((id) => (amounts[id] = Math.round(amounts[id] * 1000) / 1000));
+    return { amounts, memo };
+  }
+
   /* What a trigger does to its target's lanes while it acts: the engine's perform layer for one lane. */
   function effectFor(does, live, drawnOn) {
     switch (does.act) {
@@ -285,7 +389,7 @@
     return {};
   }
 
-  const core = { WHEN, EVENTS, DOES, MODES, COUNTS, ZONES, LFO_EVERY, MOVE_AT, clean, cleanOne, sectionsOf, sectionIdsAt, eventsAt, eventHits, lfoAt, limitsPass, countPass, motion, effectFor, nodeEffect };
+  const core = { WHEN, EVENTS, DOES, MODES, COUNTS, ZONES, LFO_EVERY, MOVE_AT, POSES, POSE_FALLBACK, poseOf, poseThreshold, clean, cleanOne, sectionsOf, sectionIdsAt, eventsAt, eventHits, lfoAt, limitsPass, countPass, motion, effectFor, nodeEffect };
 
   /* ---------- the saved triggers: a part of the app-wide store (one undo step per change) ---------- */
   let part = null;
@@ -347,15 +451,15 @@
   const get = (id) => list().find((t) => t.id === id) || null;
   function add(t) {
     const before = new Set(list().map((x) => x.id));
-    const r = store().send({ type: "add", trigger: t, label: `Assign On Trigger: ${t && t.name ? t.name : "a trigger"}` });
+    const r = store().send({ type: "add", trigger: t, label: `Assign On Spark: ${t && t.name ? t.name : "a spark"}` });
     const made = list().find((x) => !before.has(x.id));
     return Object.assign({}, r, { id: made ? made.id : null });
   }
-  const set = (id, patch) => store().send({ type: "set", id, patch, label: `Change a trigger: ${(get(id) || {}).name || id}` });
+  const set = (id, patch) => store().send({ type: "set", id, patch, label: `Change a spark: ${(get(id) || {}).name || id}` });
   function remove(id) {
     const name = (get(id) || {}).name || id;
     release(id);
-    return store().send({ type: "remove", id, label: `Remove a trigger: ${name}` });
+    return store().send({ type: "remove", id, label: `Remove a spark: ${name}` });
   }
 
   /* ---------- names in plain words ---------- */
@@ -393,6 +497,7 @@
     }
     if (w.kind === "lfo") return `an oscillator, every ${w.every} moment${w.every === 1 ? "" : "s"}`;
     if (w.kind === "speech") return w.words ? `the words "${w.words}"` : "speech (no words yet)";
+    if (w.kind === "pose") return `the pose "${(POSES.find((p) => p[0] === w.pose) || POSES[0])[1].toLowerCase()}" (camera)`;
     return (ZONES.find((z) => z[0] === w.zone) || ZONES[0])[1].toLowerCase() + " (camera)";
   }
   function doesName(d) {
@@ -727,11 +832,19 @@
     if (playingNow && !playing) {
       playingNow = false;
       lastRow = -1;
-      return putBack("Playback stopped: everything the triggers did is put back.");
+      return putBack("Playback stopped: everything the sparks did is put back.");
     }
     if (!playingNow && playing) {
       playingNow = true;
       list().forEach((t) => live[t.id] && (live[t.id].count = 0));
+      /* Playback starting looks at the moment it starts on afresh, as any other: playing from moment 1 is the
+         film reaching its Opening, even when the playhead was already parked there (and a section, event or
+         oscillator held there while stopped, but kept out by "only while playing", gets its press now). */
+      lastRow = -1;
+      list().forEach((t) => {
+        const x = live[t.id];
+        if (x && x.held && !x.active && ["section", "event", "lfo"].includes(t.when.kind)) x.held = false;
+      });
     }
     const j = ev && ev.row != null ? ev.row : rowNow();
     if (j === lastRow) return;
@@ -780,7 +893,7 @@
     heard: "",
     start() {
       const R = root.SpeechRecognition || root.webkitSpeechRecognition;
-      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Curiosity Proximity window instead."), false;
+      if (!R) return toast("This browser has no free speech recognition (Chrome, Edge and Safari do). Type the words in the Live inputs window instead."), false;
       if (speech.on) return true;
       const rec = new R();
       rec.lang = (root.navigator && navigator.language) || "en-US";
@@ -792,7 +905,7 @@
       rec.onerror = (e) => {
         if (e && (e.error === "not-allowed" || e.error === "service-not-allowed")) {
           speech.on = false;
-          toast("The microphone was refused, so speech can't fire triggers. Type the words instead.");
+          toast("The microphone was refused, so speech can't fire sparks. Type the words instead.");
           drawProx();
         }
       };
@@ -846,10 +959,10 @@
     now: { any: 0, left: 0, right: 0, high: 0 },
     start() {
       const md = root.navigator && navigator.mediaDevices;
-      if (!md || !md.getUserMedia) return toast("This browser can't use a camera here. The camera trigger stays off."), Promise.resolve(false);
+      if (!md || !md.getUserMedia) return toast("This browser can't use a camera here. The camera spark stays off."), Promise.resolve(false);
       if (camera.on) return Promise.resolve(true);
       return md
-        .getUserMedia({ video: { width: 160, height: 120 }, audio: false })
+        .getUserMedia({ video: { width: 320, height: 240 }, audio: false })
         .then((s) => {
           camera.stream = s;
           const v = (camera.video = document.createElement("video"));
@@ -862,10 +975,10 @@
           camera.canvas.height = 24;
           camera.on = true;
           camera.timer = setInterval(cameraTick, 100);
-          drawProx();
+          drawProx(true);
           return true;
         })
-        .catch(() => (toast("The camera was refused or isn't there. The camera trigger stays off."), false));
+        .catch(() => (toast("The camera was refused or isn't there. The camera spark stays off."), false));
     },
     stop() {
       clearInterval(camera.timer);
@@ -876,7 +989,9 @@
       camera.prev = null;
       camera.on = false;
       ZONES.forEach(([z]) => input("body:" + z, false, 0));
-      drawProx();
+      /* poses need the camera: they go off with it */
+      if (pose.state !== "off") pose.stop();
+      drawProx(true);
     },
   };
   function cameraTick() {
@@ -890,6 +1005,15 @@
     for (let i = 0; i < grey.length; i++) grey[i] = (px[i * 4] * 3 + px[i * 4 + 1] * 4 + px[i * 4 + 2]) >> 3;
     if (camera.prev) body(motion(camera.prev, grey, c.width, c.height));
     camera.prev = grey;
+    if (pose.state === "on" && pose.model) {
+      let r = null;
+      try {
+        r = pose.model.detectForVideo(v, typeof performance !== "undefined" ? performance.now() : Date.now());
+      } catch (e) {
+        return poseFailed(e);
+      }
+      pose.feed(r && r.landmarks && r.landmarks[0] ? r.landmarks[0] : null);
+    }
   }
   /* Movement amounts (0..1 per part of the picture) fire the body triggers; tests feed this directly. */
   function body(m) {
@@ -898,7 +1022,125 @@
       const a = m[z] || 0;
       input("body:" + z, a >= MOVE_AT, Math.min(1, a * 4));
     });
+    /* No pose model (off, loading, or it couldn't load): pose triggers listen to movement instead. */
+    if (pose.state !== "on")
+      poseTriggers((t) => {
+        const a = m[POSE_FALLBACK[t.when.pose]] || 0;
+        return [a >= MOVE_AT, Math.min(1, a * 4)];
+      });
   }
+
+  /* ---------- poses: MediaPipe's free pose model (Apache 2.0), downloaded only when switched on ----------
+     Loaded through the same MediaPipe the AI cut-outs use (video/mask.js: CurioMask.vision(), same CDN and
+     version), with the pose model from Google's model store. Runs in this browser; nothing is uploaded. */
+  const POSE_MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
+  const POSE_WAIT = 90000; /* a download that hasn't finished in this long counts as blocked */
+  const POSE_FAILED = "The pose model couldn't load (you may be offline, or the download was blocked). The camera's movement zones still work, and pose sparks listen for movement instead.";
+  /* Every pose trigger, fed: fn(t) -> [down, value]. */
+  function poseTriggers(fn) {
+    let n = 0;
+    list().forEach((t) => {
+      if (t.when.kind !== "pose") return;
+      const [down, value] = fn(t);
+      const x = st(t.id);
+      if (down && !x.held) n += press(t, value) ? 1 : 0;
+      else if (down) moved(t, value);
+      else if (!down && x.held) letGo(t);
+    });
+    drawProx();
+    return n;
+  }
+  function loadPoseModel() {
+    if (pose.model) return Promise.resolve(pose.model);
+    const M = root.CurioMask;
+    if (!M || typeof M.vision !== "function") return Promise.reject(new Error("MediaPipe is not on this page"));
+    const url = (M.models && M.models().pose) || POSE_MODEL;
+    const go = M.vision().then(({ MP, files }) => MP.PoseLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: url, delegate: "CPU" }, runningMode: "VIDEO", numPoses: 1 }));
+    let timer = null;
+    const wait = new Promise((_, no) => (timer = setTimeout(() => no(new Error("the download took too long")), POSE_WAIT)));
+    return Promise.race([go, wait]).finally(() => clearTimeout(timer));
+  }
+  function poseFailed(e) {
+    pose.state = "failed";
+    pose.message = POSE_FAILED;
+    pose.error = (e && e.message) || String(e || "");
+    pose.now = {};
+    pose.points = null;
+    toast(POSE_FAILED);
+    drawProx(true);
+    return false;
+  }
+  const pose = {
+    state: "off" /* off · asking (the download explained, waiting for a yes) · loading · on · failed */,
+    message: "",
+    error: "",
+    now: {} /* each pose's strength now, 0..1 */,
+    points: null /* the body points last seen */,
+    memo: {},
+    model: null,
+    /* Switching Poses on first says what it downloads, in plain words, and waits for a yes. */
+    ask() {
+      if (pose.state === "on" || pose.state === "loading") return false;
+      pose.state = "asking";
+      if (hasDoc && !document.querySelector('.ctr-win[data-ctr="prox"]')) openProximity();
+      drawProx(true);
+      return true;
+    },
+    cancel() {
+      if (pose.state === "asking") pose.state = "off";
+      drawProx(true);
+    },
+    /* The yes: the camera goes on, then the pose model downloads (once; the browser keeps it). */
+    start() {
+      if (pose.state === "on") return Promise.resolve(true);
+      if (pose.state === "loading" && pose.loading) return pose.loading;
+      pose.state = "loading";
+      pose.message = "";
+      drawProx(true);
+      pose.loading = camera
+        .start()
+        .then((camOn) => {
+          if (!camOn) {
+            pose.state = "off";
+            drawProx(true);
+            return false;
+          }
+          return loadPoseModel().then(
+            (m) => {
+              pose.model = m;
+              if (pose.state !== "loading" || !camera.on) return false; /* switched off while it downloaded */
+              pose.state = "on";
+              pose.memo = {};
+              toast("Poses are on. They are read in this browser only; nothing is recorded or uploaded.");
+              drawProx(true);
+              return true;
+            },
+            (e) => (pose.state === "loading" ? poseFailed(e) : false)
+          );
+        })
+        .finally(() => (pose.loading = null));
+      return pose.loading;
+    },
+    stop() {
+      pose.state = "off";
+      pose.now = {};
+      pose.points = null;
+      pose.memo = {};
+      poseTriggers(() => [false, 0]);
+      drawProx(true);
+    },
+    /* One look at the performer's body points (null: no one in the picture); tests feed made-up ones. */
+    feed(lm) {
+      const r = lm ? poseOf(lm, pose.memo) : { amounts: {}, memo: pose.memo };
+      pose.memo = r.memo;
+      pose.now = r.amounts;
+      pose.points = lm || null;
+      return poseTriggers((t) => {
+        const a = r.amounts[t.when.pose] || 0;
+        return [a >= poseThreshold(t.when.sens), a];
+      });
+    },
+  };
 
   /* ---------- the page ---------- */
   let toastTimer = null;
@@ -943,7 +1185,7 @@
   let draft = null;
   function assign(target, at) {
     const tg = cleanTarget(target);
-    if (!tg) return toast("That can't take a trigger."), null;
+    if (!tg) return toast("That can't take a spark."), null;
     if (tg.kind === "node" && locked(tg.lk)) return toast(`${label(tg.lk.slice(tg.lk.indexOf("|") + 1))} is locked (🔒 by its name), so its nodes stay as they are. Click the 🔒 to unlock it.`), null;
     draft = cleanOne({ id: "new", target: tg, when: { kind: "midi" }, does: {}, limits: {} }, 0);
     draft.id = "";
@@ -973,10 +1215,13 @@
           if (eventHits(Object.assign({}, w, { row: "" }), eventsNow(j), r.id)) evRows.push([r.id, `moment ${j + 1}`]);
         });
       whenBody = `<label>Event <select data-f="when.event">${EVENTS.map((e) => opt(e[0], e[1], w.event)).join("")}</select></label><label>On <select data-f="when.track">${opt("", "Any track", w.track)}${s.tracks.map((tr) => opt(tr.id, tr.label, w.track)).join("")}</select></label><label title="Pick one: only that one event, not every one like it (the music app's 'that note, at bar 23')">Which <select data-f="when.row">${opt("", "Every one", w.row)}${evRows.map(([id, l]) => opt(id, "Only the one at " + l, w.row)).join("")}${w.row && !evRows.some((x) => x[0] === w.row) ? opt(w.row, `Only the one at moment ${rowNum(w.row)} (not there now)`, w.row) : ""}</select></label><p class="ctr-k">${esc((EVENTS.find((e) => e[0] === w.event) || EVENTS[0])[2])}</p>`;
-    } else if (w.kind === "section") whenBody = secs.length ? `<label>Section <select data-f="when.section">${opt("", "Pick one", w.section)}${secs.map((x) => opt(x.id, `${x.label} (moments ${x.from + 1}–${x.to + 1})`, w.section)).join("")}</select></label><p class="ctr-k">Sections are your markers on the timeline: each one runs to the next. Write "Act 2" in a marker's note to name it.</p>` : `<p class="ctr-k">Your film has no sections yet. Add a marker (M) on the timeline: each marker starts a section that runs to the next.</p>`;
+    } else if (w.kind === "section") whenBody = secs.length ? `<label>Section <select data-f="when.section">${opt("", "Pick one", w.section)}${secs.map((x) => opt(x.id, `${x.label} (moments ${x.from + 1}–${x.to + 1})`, w.section)).join("")}</select></label><p class="ctr-k">Sections are your markers on the timeline: each one runs to the next. The stretch before your first marker is the Opening, a section like any other. Write "Act 2" in a marker's note to name it.</p>` : `<p class="ctr-k">Your film has no sections yet. Add a marker (M) on the timeline: each marker starts a section that runs to the next, and the stretch before the first is the Opening.</p>`;
     else if (w.kind === "lfo") whenBody = `<label>Switches every <select data-f="when.every">${LFO_EVERY.map((n) => opt(n, `${n} moment${n === 1 ? "" : "s"}`, w.every)).join("")}</select></label>`;
-    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Curiosity Proximity window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Curiosity Proximity window instead, and they fire the same way."}</p>`;
-    else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Curiosity Proximity window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
+    else if (w.kind === "speech") whenBody = `<label>Words <input type="text" data-f="when.words" value="${esc(w.words)}" placeholder='e.g. "action"'></label><p class="ctr-k">${speech.supported ? "Uses your browser's own free speech recognition. Switch Listen on in the Live inputs window." : "This browser has no free speech recognition (Chrome, Edge and Safari do). You can type the words in the Live inputs window instead, and they fire the same way."}</p>`;
+    else if (w.kind === "pose") {
+      const fb = (ZONES.find((z) => z[0] === POSE_FALLBACK[w.pose]) || ZONES[0])[1].toLowerCase();
+      whenBody = `<label>Pose <select data-f="when.pose">${POSES.map((p) => opt(p[0], p[1], w.pose)).join("")}</select></label><label title="How strong the pose must be to fire: higher fires on a hint of it, lower needs the full pose">Sensitivity <input type="range" min="0" max="100" step="5" data-f="when.sens" value="${w.sens}" aria-label="Sensitivity"> <output>${w.sens}%</output></label><p class="ctr-k">${esc((POSES.find((p) => p[0] === w.pose) || POSES[0])[2])} Poses stay off until you switch them on in the Live inputs window: a one-time download of about 6 MB (Google's free pose model) that stays in this browser. The camera picture is read here only; nothing is recorded or uploaded. Until then this spark listens for ${esc(fb)} instead.</p>`;
+    } else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Live inputs window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
     const d = t.does;
     const l = t.limits;
     const doesBody = `<label>Does <select data-f="does.act">${DOES.map((x) => opt(x[0], x[1], d.act)).join("")}</select></label>${d.act === "scale" ? `<label>By <input type="number" min="0" max="100" step="5" data-f="does.amount" value="${d.amount}">%</label>` : ""}${d.act === "set" ? `<label>To <input type="number" min="0" max="100" step="5" data-f="does.value" value="${d.value}">% of its scale</label>` : ""}${d.act === "press" ? `<p class="ctr-k">A press acts for one moment, then lets go.</p>` : `<span class="ctr-seg" role="group" aria-label="How it acts">${MODES.map((m) => `<button type="button" data-ctr-mode="${m[0]}" class="${d.mode === m[0] ? "on" : ""}" aria-pressed="${d.mode === m[0]}" title="${esc(m[2])}">${esc(m[1])}</button>`).join("")}</span>`}`;
@@ -991,11 +1236,11 @@
       <fieldset><legend>When</legend><label>Source <select data-f="when.kind">${WHEN.map((x) => opt(x[0], x[1], w.kind)).join("")}</select></label>${whenBody}</fieldset>
       <fieldset><legend>Does</legend>${doesBody}</fieldset>
       <fieldset><legend>Limits</legend>${limBody}</fieldset>
-      <p class="ctr-acts"><button type="button" class="on" data-ctr-save>${t.id ? "Save" : "Assign"}</button>${t.id ? '<button type="button" data-ctr-del>Remove this trigger</button>' : ""}<button type="button" data-ctr-close>Cancel</button></p>`;
+      <p class="ctr-acts"><button type="button" class="on" data-ctr-save>${t.id ? "Save" : "Assign"}</button>${t.id ? '<button type="button" data-ctr-del>Remove this spark</button>' : ""}<button type="button" data-ctr-close>Cancel</button></p>`;
   }
   function drawEditor() {
     if (!hasDoc || !draft) return;
-    const w = win("edit", draft.id ? "Trigger" : "Assign On Trigger", "when + does + limits");
+    const w = win("edit", draft.id ? "Spark" : "Assign On Spark", "when + does + limits");
     w.querySelector(".ctr-b").innerHTML = editorHtml();
   }
   function setPath(o, path, v) {
@@ -1024,6 +1269,12 @@
     const keepId = draft.id;
     draft = cleanOne(Object.assign({}, draft, { id: keepId || "new" }), 0);
     draft.id = keepId;
+    if (el.type === "range") {
+      /* a slider keeps its place while dragged: only its number changes */
+      const out = el.parentNode && el.parentNode.querySelector("output");
+      if (out) out.textContent = el.value + "%";
+      return;
+    }
     if (el.type !== "text" && el.type !== "number") drawEditor();
   }
   function saveDraft() {
@@ -1036,7 +1287,7 @@
     if (draft.id) {
       release(draft.id);
       r = set(draft.id, { name: t.name, on: t.on, target: t.target, when: t.when, does: t.does, limits: t.limits });
-      toast(`Trigger saved: ${nameOf(t)}. Undo takes it back.`);
+      toast(`Spark saved: ${nameOf(t)}. Undo takes it back.`);
     } else {
       delete t.id;
       r = add(t);
@@ -1056,17 +1307,17 @@
   /* The Triggers window: every trigger, switched on or off, edited or removed. */
   function listHtml() {
     const ts = list();
-    if (!ts.length) return `<p class="ctr-k">No triggers yet. Right-click (or control-click) a node, a lane's name (its curiosity suite), a suite card or a master node, then Assign On Trigger….</p>`;
+    if (!ts.length) return `<p class="ctr-k">No sparks yet. Right-click (or control-click) a node, a lane's name (its curiosity suite), a suite card or a master node, then Assign On Spark….</p>`;
     return `<ul class="ctr-list">${ts
       .map((t) => {
         const x = live[t.id] || {};
-        return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-trig="${esc(t.id)}"><button type="button" class="ctr-sw${t.on ? " on" : ""}" data-ctr-onoff="${esc(t.id)}" aria-pressed="${t.on}" title="${t.on ? "On: click to switch this trigger off" : "Off: click to switch it on"}">${t.on ? "ON" : "OFF"}</button><span><b>${esc(nameOf(t))}</b><br><small>When ${esc(whenName(t.when))} · ${esc(doesName(t.does))} · on ${esc(targetName(t.target))}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span><button type="button" data-ctr-edit="${esc(t.id)}">Edit</button><button type="button" data-ctr-rm="${esc(t.id)}" aria-label="Remove">×</button></li>`;
+        return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-trig="${esc(t.id)}"><button type="button" class="ctr-sw${t.on ? " on" : ""}" data-ctr-onoff="${esc(t.id)}" aria-pressed="${t.on}" title="${t.on ? "On: click to switch this spark off" : "Off: click to switch it on"}">${t.on ? "ON" : "OFF"}</button><span><b>${esc(nameOf(t))}</b><br><small>When ${esc(whenName(t.when))} · ${esc(doesName(t.does))} · on ${esc(targetName(t.target))}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span><button type="button" data-ctr-edit="${esc(t.id)}">Edit</button><button type="button" data-ctr-rm="${esc(t.id)}" aria-label="Remove">×</button></li>`;
       })
       .join("")}</ul>`;
   }
   function openList() {
     if (!hasDoc) return;
-    const w = win("list", "Triggers", "curiosity proximity: when + does + limits");
+    const w = win("list", "Sparks", "when + does + limits");
     w.querySelector(".ctr-b").innerHTML = listHtml();
     return w;
   }
@@ -1097,38 +1348,93 @@
       const a = camera.now[w.zone] || 0;
       return [camera.on ? `${Math.round(Math.min(1, a / MOVE_AT) * 100)}% of the way` : "camera off", camera.on ? Math.min(1, a / MOVE_AT) : 0];
     }
+    if (w.kind === "pose") {
+      const a = pose.now[w.pose] || 0;
+      const th = poseThreshold(w.sens);
+      if (pose.state === "on") return [`${Math.round(Math.min(1, a / th) * 100)}% of the way`, Math.min(1, a / th)];
+      const z = POSE_FALLBACK[w.pose];
+      const m = camera.now[z] || 0;
+      return [camera.on ? `poses off: listening for movement (${Math.round(Math.min(1, m / MOVE_AT) * 100)}%)` : "camera off", camera.on ? Math.min(1, m / MOVE_AT) : 0];
+    }
     if (w.kind === "speech") return [speech.on ? "listening" : "not listening", 0];
     return [x.held ? "held" : x.value != null ? `last ${Math.round(x.value * 100)}%` : "waiting", x.value || 0];
   }
   function proxHtml() {
     const ts = list();
     const perf = E() && E().performing ? E().performing() : [];
-    const zones = ZONES.map(([z, l]) => `<span class="ctr-meter" title="${esc(l)}"><i style="width:${Math.round(Math.min(1, (camera.now[z] || 0) / MOVE_AT) * 100)}%"></i>${esc(z)}</span>`).join("");
     return `<div class="ctr-inputs">
       <p><b>MIDI</b> <span class="ctr-k">${esc(midiStatus())}</span> <button type="button" data-ctr-midi>Connect</button></p>
-      <p><b>Speech</b> ${speech.supported ? `<button type="button" data-ctr-listen class="${speech.on ? "on" : ""}" aria-pressed="${speech.on}">${speech.on ? "Listening (click to stop)" : "Listen"}</button>` : `<span class="ctr-k">This browser has no free speech recognition. Type instead:</span>`} <input type="text" data-ctr-type placeholder="Type words and press Enter" aria-label="Type words for the speech triggers">${speech.heard ? ` <span class="ctr-k">Heard: "${esc(speech.heard)}"</span>` : ""}</p>
-      <p><b>Camera</b> <button type="button" data-ctr-cam class="${camera.on ? "on" : ""}" aria-pressed="${camera.on}">${camera.on ? "On (click to switch off)" : "Off: switch on"}</button> <span class="ctr-k">In this browser only; nothing is recorded or uploaded.</span> ${camera.on ? zones : ""}</p>
+      <p><b>Speech</b> ${speech.supported ? `<button type="button" data-ctr-listen class="${speech.on ? "on" : ""}" aria-pressed="${speech.on}">${speech.on ? "Listening (click to stop)" : "Listen"}</button>` : `<span class="ctr-k">This browser has no free speech recognition. Type instead:</span>`} <input type="text" data-ctr-type placeholder="Type words and press Enter" aria-label="Type words for the speech sparks">${speech.heard ? ` <span class="ctr-k">Heard: "${esc(speech.heard)}"</span>` : ""}</p>
+      <p><b>Camera</b> <button type="button" data-ctr-cam class="${camera.on ? "on" : ""}" aria-pressed="${camera.on}">${camera.on ? "On (click to switch off)" : "Off: switch on"}</button> <span class="ctr-k">In this browser only; nothing is recorded or uploaded.</span></p>
+      ${poseHtml()}
+      <div class="ctr-live">${liveHtml()}</div>
     </div>
-    <p class="ctr-perf">${perf.length ? `<b>Performing</b> (not saved, not an undo step) <button type="button" data-ctr-putback>Put everything back</button>` : `<span class="ctr-k">Nothing is performing. Triggers that fire during playback are put back when it stops.</span>`}</p>
+    <p class="ctr-perf">${perf.length ? `<b>Performing</b> (not saved, not an undo step) <button type="button" data-ctr-putback>Put everything back</button>` : `<span class="ctr-k">Nothing is performing. Sparks that fire during playback are put back when it stops.</span>`}</p>
     ${ts.length ? `<ul class="ctr-list ctr-near">${ts
       .map((t) => {
         const [words, p] = nearness(t);
         const x = live[t.id] || {};
         return `<li class="${x.active ? "acting" : ""}${t.on ? "" : " off"}" data-near="${esc(t.id)}"><span class="ctr-meter"><i style="width:${Math.round(p * 100)}%"></i></span><span><b>${esc(nameOf(t))}</b> <small>${esc(words)}${x.fired ? ` · fired ${x.fired}×` : ""}</small></span></li>`;
       })
-      .join("")}</ul>` : `<p class="ctr-k">No triggers yet.</p>`}`;
+      .join("")}</ul>` : `<p class="ctr-k">No sparks yet.</p>`}`;
+  }
+  /* Poses in the Proximity window: off, the plain-words question before the download, loading, on, or failed. */
+  function poseHtml() {
+    const st0 = pose.state;
+    if (st0 === "asking")
+      return `<div class="ctr-pose ctr-ask" role="group" aria-label="Switch poses on"><p><b>Poses</b> need a one-time download of about 6 MB: Google's free pose model (MediaPipe, free to use), plus MediaPipe's own engine if the AI cut-outs haven't fetched it already. It comes once from Google's servers, and your browser keeps it.</p><p>It runs in this browser only: the camera picture and your poses stay here, and nothing is recorded or uploaded.</p><p class="ctr-acts"><button type="button" class="on" data-ctr-pose-yes>Download and switch on</button><button type="button" data-ctr-pose-no>Not now</button></p></div>`;
+    if (st0 === "loading") return `<p class="ctr-pose"><b>Poses</b> <span class="ctr-k">Downloading the pose model (about 6 MB)… The movement zones work meanwhile.</span> <button type="button" data-ctr-pose>Stop</button></p>`;
+    if (st0 === "on") return `<p class="ctr-pose"><b>Poses</b> <button type="button" class="on" data-ctr-pose aria-pressed="true">On (click to switch off)</button> <span class="ctr-k">Read in this browser only.</span></p>`;
+    if (st0 === "failed") return `<p class="ctr-pose ctr-fail" role="status"><b>Poses</b> <span>${esc(pose.message)}</span> <button type="button" data-ctr-pose-yes>Try again</button></p>`;
+    return `<p class="ctr-pose"><b>Poses</b> <button type="button" data-ctr-pose aria-pressed="false">Off: switch on…</button> <span class="ctr-k">Hands up, a crouch, a lean, a jump… Needs a one-time download (about 6 MB).</span></p>`;
+  }
+  /* The parts that move with the camera: the movement meters and, with poses on, the skeleton and pose meters. */
+  const BONES = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
+  function skeletonSvg(lm) {
+    /* shown as a mirror, as people expect to see themselves */
+    const at = (i) => (lm && lm[i] && isFinite(lm[i].x) && isFinite(lm[i].y) ? [Math.round((1 - lm[i].x) * 1000) / 10, Math.round(lm[i].y * 750) / 10] : null);
+    const lines = lm
+      ? BONES.map(([a, b]) => {
+          const p = at(a);
+          const q = at(b);
+          return p && q ? `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"/>` : "";
+        }).join("")
+      : "";
+    const head = at(0);
+    return `<svg class="ctr-skel" viewBox="0 0 100 75" role="img" aria-label="${lm ? "The body the camera sees, as a stick figure" : "No one in the picture"}">${lines}${head ? `<circle cx="${head[0]}" cy="${head[1]}" r="4"/>` : ""}${lm ? "" : '<text x="50" y="40">no one in the picture</text>'}</svg>`;
+  }
+  function liveHtml() {
+    if (!camera.on) return "";
+    const zones = ZONES.map(([z, l]) => `<span class="ctr-meter" title="${esc(l)}"><i style="width:${Math.round(Math.min(1, (camera.now[z] || 0) / MOVE_AT) * 100)}%"></i>${esc(z)}</span>`).join("");
+    if (pose.state !== "on") return `<p class="ctr-zones">${zones}</p>`;
+    const meters = POSES.map(([id, l]) => `<span class="ctr-pmeter" data-pose-now="${id}"><span class="ctr-meter"><i style="width:${Math.round((pose.now[id] || 0) * 100)}%"></i></span> ${esc(l)}</span>`).join("");
+    return `<p class="ctr-zones">${zones}</p><div class="ctr-posebox">${skeletonSvg(pose.points)}<div class="ctr-pmeters">${meters}</div></div>`;
   }
   function openProximity() {
     if (!hasDoc) return;
     hookMidi();
-    const w = win("prox", "Curiosity Proximity", "what is close to firing, live");
+    const w = win("prox", "Live inputs", "MIDI, speech and the camera: what is close to firing");
     w.querySelector(".ctr-b").innerHTML = proxHtml();
     return w;
   }
-  function drawProx() {
+  /* While you are using something in the window (it has the focus), only its live meters change, so a click is
+     never lost to a redraw; force (a switch went on or off) redraws it all and keeps the focus on its button. */
+  function drawProx(force) {
     if (!hasDoc) return;
     const w = document.querySelector('.ctr-win[data-ctr="prox"] .ctr-b');
-    if (w && !w.contains(document.activeElement)) w.innerHTML = proxHtml();
+    if (w) {
+      const ae = document.activeElement;
+      if (!w.contains(ae)) w.innerHTML = proxHtml();
+      else if (force === true && !(ae.matches && ae.matches("input, select, textarea"))) {
+        const key = ae.attributes ? [...ae.attributes].find((a) => a.name.startsWith("data-ctr")) : null;
+        w.innerHTML = proxHtml();
+        const back = key && w.querySelector(`[${key.name}]`);
+        if (back) back.focus();
+      } else {
+        const live = w.querySelector(".ctr-live");
+        if (live) live.innerHTML = liveHtml();
+      }
+    }
     drawList();
   }
 
@@ -1140,10 +1446,10 @@
     const same = (t) => JSON.stringify(t) === k || (c.from === "curiosity" && t.from === "curiosity" && t.cur === c.cur && (!t.track || !c.track || t.track === c.track));
     return list().filter((t) => same(t.target));
   }
-  const ASSIGN_LABEL = "Assign On Trigger…";
+  const ASSIGN_LABEL = "Assign On Spark…";
   function menuButtons(tg) {
     return `<button type="button" data-ctr-assign>${ASSIGN_LABEL}</button>${existingFor(tg)
-      .map((t) => `<button type="button" data-ctr-edit="${esc(t.id)}">Trigger: ${esc(nameOf(t))}</button>`)
+      .map((t) => `<button type="button" data-ctr-edit="${esc(t.id)}">Spark: ${esc(nameOf(t))}</button>`)
       .join("")}`;
   }
   function wireButtons(box, tg, after) {
@@ -1266,7 +1572,7 @@
       const id = draft && draft.id;
       draft = null;
       closeWin("edit");
-      if (id) remove(id), toast("Trigger removed. Undo brings it back.");
+      if (id) remove(id), toast("Spark removed. Undo brings it back.");
       return drawList();
     }
     if (d.ctrMode) return draft && ((draft.does.mode = d.ctrMode), drawEditor());
@@ -1302,7 +1608,7 @@
     }
     if (d.rangeDel != null) return draft.limits.ranges.splice(Number(d.rangeDel), 1), drawEditor();
     if (d.ctrEdit) return edit(d.ctrEdit);
-    if (d.ctrRm) return remove(d.ctrRm), toast("Trigger removed. Undo brings it back."), drawList();
+    if (d.ctrRm) return remove(d.ctrRm), toast("Spark removed. Undo brings it back."), drawList();
     if (d.ctrOnoff) {
       const tr = get(d.ctrOnoff);
       if (tr) {
@@ -1314,6 +1620,9 @@
     if (d.ctrMidi != null) return connectMidi();
     if (d.ctrListen != null) return speech.on ? speech.stop() : speech.start();
     if (d.ctrCam != null) return camera.on ? camera.stop() : camera.start();
+    if (d.ctrPose != null) return pose.state === "on" || pose.state === "loading" ? pose.stop() : pose.ask();
+    if (d.ctrPoseYes != null) return pose.start();
+    if (d.ctrPoseNo != null) return pose.cancel();
     if (d.ctrPutback != null) return putBack("Put back: everything plays as drawn again.");
   }
   /* Map…: the next control clicked becomes the source (not pressed). Capture phase, so it never acts. */
@@ -1397,7 +1706,7 @@
   }
 
   /* The bar's two buttons (screen/ui.js asks for them). */
-  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Triggers: every trigger (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Triggers${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Curiosity Proximity: MIDI, speech and the camera, and how close each trigger is to firing, live">Proximity</button></span>`;
+  const barHtml = () => `<span class="ctr-bar"><button type="button" data-ctr-open="list" title="Sparks: every spark (when + does + limits). Right-click a node, a lane's name, a suite or a master node to assign one.">Sparks${list().length ? " · " + list().length : ""}</button><button type="button" data-ctr-open="prox" title="Live inputs: MIDI, speech and the camera, and how close each spark is to firing">Live</button><button type="button" data-cat-open title="Catalyst: make and play Sparks (one thing sets many off) and Elixirs (every ingredient must line up)">⚗ Catalyst</button></span>`;
 
   function forTarget(targetId) {
     const id = String(targetId || "");
@@ -1413,7 +1722,7 @@
           const cur = w.event === "line" ? "eyeline.speaking" : w.event === "enter" ? "bodyEnter" : null;
           if (tr && cur && tr.curiosities.includes(cur)) (lk = tr.id + "|" + cur), (row = w.row);
         }
-        return { id: t.id, label: nameOf(t), source: Object.assign({ kind: w.kind, id: w.kind === "control" ? w.id : w.kind === "midi" ? `${w.type}:${w.num == null ? "any" : w.num}` : w.kind === "event" ? w.event : w.kind === "section" ? w.section : w.kind === "lfo" ? String(w.every) : w.kind === "speech" ? w.words : w.zone }, lk ? { lk, row } : {}) };
+        return { id: t.id, label: nameOf(t), source: Object.assign({ kind: w.kind, id: w.kind === "control" ? w.id : w.kind === "midi" ? `${w.type}:${w.num == null ? "any" : w.num}` : w.kind === "event" ? w.event : w.kind === "section" ? w.section : w.kind === "lfo" ? String(w.every) : w.kind === "speech" ? w.words : w.kind === "pose" ? w.pose : w.zone }, lk ? { lk, row } : {}) };
       });
   }
 
@@ -1458,7 +1767,7 @@
       apply();
       drawList();
       const bar = document.querySelector(".ctr-bar [data-ctr-open='list']");
-      if (bar) bar.textContent = "Triggers" + (list().length ? " · " + list().length : "");
+      if (bar) bar.textContent = "Sparks" + (list().length ? " · " + list().length : "");
     });
     store();
     const st2 = document.createElement("style");
@@ -1494,6 +1803,17 @@
 .ctr-meter { display: inline-block; position: relative; width: 56px; height: 8px; border-radius: 4px; background: var(--cc-line, #2e2e33); overflow: hidden; font-size: 0; vertical-align: middle; }
 .ctr-inputs .ctr-meter { font-size: 9px; height: 12px; width: 60px; text-align: center; line-height: 12px; }
 .ctr-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cc-warm, #ff9f43); opacity: 0.8; }
+.ctr-pose { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.ctr-ask { display: grid; gap: 6px; padding: 8px; border: 1px solid var(--cc-accent, #22d3ee); border-radius: 8px; }
+.ctr-fail span { color: var(--cc-warm, #ff9f43); }
+.ctr-live { display: grid; gap: 6px; }
+.ctr-zones { display: flex; flex-wrap: wrap; gap: 4px; }
+.ctr-posebox { display: flex; gap: 8px; align-items: flex-start; }
+.ctr-skel { flex: 0 0 120px; width: 120px; height: 90px; background: var(--cc-raised, #2a2a2d); border-radius: 6px; stroke: var(--cc-accent, #22d3ee); stroke-width: 2; stroke-linecap: round; fill: var(--cc-accent, #22d3ee); }
+.ctr-skel text { stroke: none; fill: var(--cc-dim, #9b9ba3); font-size: 7px; text-anchor: middle; }
+.ctr-pmeters { display: grid; gap: 2px; font-size: 11px; min-width: 0; }
+.ctr-pmeter { display: flex; gap: 4px; align-items: center; }
+.ctr-pmeter .ctr-meter { width: 40px; height: 6px; }
 .ctr-menu { position: fixed; z-index: 95; display: grid; gap: 4px; padding: 8px; min-width: 200px; background: var(--cc-raised, #2a2a2d); border: 1px solid var(--cc-line, #2e2e33); border-radius: 8px; color: var(--cc-text, #ececee); font: 12px -apple-system, "Segoe UI", system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
 .ctr-menu p { margin: 0 0 2px; }
 .ctr-menu button { text-align: left; }
@@ -1537,6 +1857,7 @@ html.ctr-mapping .sc-page input, html.ctr-mapping .sc-page select, html.ctr-mapp
     barHtml,
     speech,
     camera,
+    pose,
     names: { target: targetName, when: whenName, does: doesName, of: nameOf },
   };
   root.CurioMappable = mappable;
