@@ -1,7 +1,7 @@
 /* Scenes, scene colors, picking several storyboards and the zoom (Jeremy, 2026-10-06):
    node apps/curiosities/viewer/tests/scenes.js (needs Playwright and Chromium; set NODE_PATH if not local).
 
-   The sample is one scene. "✂ New scene here" splits it, the storyboards of each scene get their own color and
+   The sample is one scene. "✂ New scene" splits it, the storyboards of each scene get their own color and
    the first one its name; the zoom at the top of Front and center shows This scene (following the playhead),
    Whole film, or a span set with the slider; Shift+click on the storyboards picks several panels, which fills the
    lanes with just those and turns the pie into the attention across them; ✕ Unpick goes back; undo takes the
@@ -58,17 +58,24 @@ const ok = (cond, msg) => {
 
   ok((await L(() => CurioScenes.list().length)) === 1, "the sample film is one scene");
   ok(await page.isVisible(".cv-strip-head .cs-tools"), "the storyboard's top row has the scene tools");
+  const oneLine = await L(() => {
+    const h = document.querySelector(".cv-strip-head");
+    const kids = [...h.children].filter((el) => el.offsetParent);
+    const tops = kids.map((el) => Math.round(el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2));
+    return { rows: new Set(tops.map((t) => Math.round(t / 6))).size, h: h.getBoundingClientRect().height };
+  });
+  ok(oneLine.rows === 1 && oneLine.h < 40, `the storyboard's top bar is one line (${oneLine.h}px tall)`);
 
   /* split at panel 6 */
   await L(() => CurioViewer.select(5));
   await page.click('.cv-strip-head [data-cs="split"]');
   await page.waitForTimeout(200);
   const sc = await L(() => CurioScenes.list());
-  ok(sc.length === 2 && sc[1].first === 5 && sc[0].last === 4, `✂ New scene here starts scene 2 at panel 6 (${sc.map((s) => s.first + "-" + s.last).join(", ")})`);
+  ok(sc.length === 2 && sc[1].first === 5 && sc[0].last === 4, `✂ New scene starts scene 2 at panel 6 (${sc.map((s) => s.first + "-" + s.last).join(", ")})`);
   const colors = await L(() => [0, 4, 5, 9].map((i) => getComputedStyle(document.querySelector(`.cv-card[data-i="${i}"]`)).borderTopColor));
   ok(colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2], `each scene's storyboards have their own color (${colors.join(" / ")})`);
   ok((await L(() => (document.querySelector('.cv-card[data-i="5"] .cs-tag') || {}).textContent || "")).startsWith("Scene 2"), "the first storyboard of scene 2 carries its name");
-  ok(await page.isVisible('.cv-strip-head [data-cs="join"]'), "on a scene's first panel the button offers Join the scene before");
+  ok(await page.isVisible('.cv-strip-head [data-cs="join"]'), "on a scene's first panel the button offers Join scene");
   page.on("dialog", (d) => {
     errors.push("a pop-up question opened: " + d.message());
     d.dismiss();

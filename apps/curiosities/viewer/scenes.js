@@ -2,8 +2,8 @@
 
    - A scene is a run of storyboard panels. A panel that carries panel.scene (a name) starts a new scene there;
      every panel after it belongs to that scene until the next one that starts a scene. The first scene is named
-     after the film when its first panel has no name. "✂ New scene here" in the storyboard's top row starts a
-     scene at the selected panel (and "Join the scene before" undoes it); "Rename scene" names it. One undo step
+     after the film when its first panel has no name. "✂ New scene" in the storyboard's top row starts a
+     scene at the selected panel (and "Join scene" undoes it); "Rename scene" names it. One undo step
      each.
    - Each scene's storyboards get their own color: a colored frame, the scene's name on its first panel, and a
      little gap between one scene and the next. Front and center (focus-lane.js) uses the same colors.
@@ -166,7 +166,13 @@
 .cv-root .cv-card[data-cs-n] .cv-force { background: var(--cs-c); color: #111; }
 .cv-root .cv-card .cs-tag { position: absolute; left: 0; top: 21px; z-index: 1; max-width: calc(100% - 12px); padding: 1px 7px 2px; border-radius: 0 0 4px 0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); background: var(--cs-c); color: #111; font: 700 10.5px/1.35 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .cv-root .cv-card.cs-picked { outline: 3px dashed #fff; outline-offset: 2px; box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.14); }
-.cv-root .cs-tools { display: inline-flex; gap: 4px; align-items: center; }
+.cv-root .cs-tools { display: inline-flex; gap: 4px; align-items: center; flex: none; }
+/* the storyboard's top bar is one line (Jeremy 2026-10-07): the count shrinks first, the rest scrolls sideways */
+.cv-root:not(.cv-comic) .cv-strip-head { flex-wrap: nowrap; gap: 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; white-space: nowrap; }
+.cv-root:not(.cv-comic) .cv-strip-head::-webkit-scrollbar { display: none; }
+.cv-root:not(.cv-comic) .cv-strip-head > * { flex: none; }
+.cv-root:not(.cv-comic) .cv-strip-head .cv-k { flex: 1 1 0; min-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-root:not(.cv-comic) .cv-strip-head button { padding: 3px 8px; white-space: nowrap; }
 .cv-root .cs-hint { color: var(--c-dim, #9b9ba3); font-size: 11px; }
 .cv-root .cs-hint b { color: #fff; font-weight: 600; }
 .cv-root .cs-name { width: 180px; font: inherit; font-size: 12px; padding: 3px 6px; border-radius: 5px; border: 1px solid #fde68a; background: #1d1d21; color: #fff; }
@@ -238,12 +244,13 @@
     const pk = picked();
     box.innerHTML =
       (pk
-        ? `<span class="cs-hint"><b>Panels ${pk.first + 1} to ${pk.last + 1} picked</b> (${pk.panels.length})</span><button type="button" data-cs="clear" title="Back to one panel">✕ Unpick</button>`
-        : `<span class="cs-hint" title="Shift+click a storyboard to pick every panel up to it; ${ADD} to add or take out one; ${MENU} for the menu">Shift+click to pick several</span>`) +
+        ? `<span class="cs-hint"><b>${pk.panels.length} picked</b></span><button type="button" data-cs="clear" title="Back to one panel">✕ Unpick</button>`
+        : "") +
       (starts
-        ? `<button type="button" data-cs="join" title="This panel starts a scene: make it part of the scene before">Join the scene before</button>`
-        : `<button type="button" data-cs="split" title="Start a new scene at this panel"${cur > 0 ? "" : " disabled"}>✂ New scene here</button>`) +
+        ? `<button type="button" data-cs="join" title="This panel starts a scene: make it part of the scene before">Join scene</button>`
+        : `<button type="button" data-cs="split" title="Start a new scene at this panel"${cur > 0 ? "" : " disabled"}>✂ New scene</button>`) +
       `<button type="button" data-cs="rename" title="Give this panel's scene a name">Rename scene</button>`;
+    box.title = `Shift+click a storyboard to pick every panel up to it; ${ADD} to add or take out one; ${MENU} for the menu`;
   }
   function onToolClick(e) {
     const b = e.target.closest && e.target.closest(".cv-root [data-cs]");
