@@ -1181,3 +1181,12 @@ html[data-sc-splitting="xy"], html[data-sc-splitting="xy"] * { cursor: nwse-resi
 .sc-page[data-layout="big"][data-big-at="below"] .sc-main > .sc-overview .sc-ov-strip { height: 40px; }
 .sc-page[data-layout="big"][data-view="screen"][data-big-at="right"] .sc-viewer { flex: 0 1 auto; }
 .sc-page[data-layout="big"][data-view="screen"][data-big-at="right"] .sc-viewer .sc-frame { width: calc((100cqh - 64px) * var(--sc-ar, 1.7778)); max-width: 100%; }
+
+/* A narrow window (the app link in the side panel next to the chat): the top bar is one row that scrolls sideways
+   and the Player with its viewers comes first, so the picture is on screen at once (Jeremy 2026-10-07: "I can't see
+   the top of the window I can't see the viewer at all"). Moved here from the app link's wrapper. */
+@media (max-width: 900px) {
+  .sc-page > .sc-bar { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .sc-page > .sc-bar > * { flex: none; }
+  .sc-page > .sc-main > .sc-player { order: -1; }
+}

@@ -144,6 +144,20 @@ const ok = (cond, msg) => {
   await page.waitForTimeout(150);
   ok((await L(() => CurioScenes.list().length)) === 1, "undo takes the new scene out again");
 
+  /* Rename scene asks in the page (the browser's prompt box is blocked inside the app link) */
+  await page.click('[data-cs="rename"]');
+  await page.waitForTimeout(150);
+  ok(await page.isVisible(".cs-ask input"), "Rename scene opens a box to type the name in");
+  await page.fill(".cs-ask input", "The diner");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(250);
+  ok((await L(() => CurioScenes.list()[0].name)) === "The diner", "Enter names the scene");
+  await page.click('[data-cs="rename"]');
+  await page.fill(".cs-ask input", "Nope");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  ok(!(await page.isVisible(".cs-ask")) && (await L(() => CurioScenes.list()[0].name)) === "The diner", "Esc leaves the name as it was");
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();
   server.close();

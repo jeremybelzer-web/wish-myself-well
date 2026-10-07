@@ -153,6 +153,11 @@
 
   /* ---------- drawing on the storyboard ---------- */
   const CSS = `
+.cs-ask { position: fixed; z-index: 2147483000; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; background: #1b1b1f; color: #e6e6ea; border: 1px solid #22d3ee; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); font: 13px/1.3 system-ui, sans-serif; }
+.cs-ask label { display: flex; align-items: center; gap: 6px; }
+.cs-ask input { font: inherit; width: 220px; padding: 5px 7px; border-radius: 5px; border: 1px solid #3a3a42; background: #111114; color: #fff; }
+.cs-ask button { font: inherit; padding: 5px 10px; border-radius: 5px; border: 1px solid #3a3a42; background: #26262b; color: #e6e6ea; cursor: pointer; }
+.cs-ask button[type="submit"] { background: #22d3ee; color: #062a31; border-color: #22d3ee; font-weight: 600; }
 .cv-root .cv-card[data-cs-n] { border-color: var(--cs-c); border-width: 4px; }
 .cv-root .cv-card[data-cs-n] .cv-num { background: var(--cs-c); color: #111; font-weight: 600; }
 .cv-root .cv-card.cs-first:not(:first-child) { margin-left: 14px; }
@@ -235,9 +240,39 @@
     if (b.dataset.cs === "rename") {
       const sc = ofPanel(cur);
       if (!sc) return;
-      const name = window.prompt("Name this scene", sc.name);
-      if (name != null) rename(sc.n, name);
+      askName(b, sc);
     }
+  }
+  /* Rename scene asks in the page itself: the browser's own prompt box is blocked inside the app link (Jeremy
+     2026-10-07: "The rename scene button doesn't seem to be working"). Enter or Save names it, Esc or Cancel leaves it. */
+  function askName(btn, sc) {
+    document.querySelectorAll(".cs-ask").forEach((x) => x.remove());
+    const f = document.createElement("form");
+    f.className = "cs-ask";
+    f.innerHTML = `<label>Name this scene <input type="text" maxlength="80"></label><button type="submit">Save</button><button type="button" data-cs-cancel>Cancel</button>`;
+    const inp = f.querySelector("input");
+    inp.value = sc.name || "";
+    document.body.appendChild(f);
+    const r = btn.getBoundingClientRect();
+    f.style.left = Math.max(6, Math.min(innerWidth - f.offsetWidth - 6, r.left)) + "px";
+    f.style.top = (r.bottom + f.offsetHeight + 6 < innerHeight ? r.bottom + 4 : Math.max(6, r.top - f.offsetHeight - 4)) + "px";
+    const done = () => {
+      f.remove();
+      btn.focus();
+    };
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = inp.value.trim();
+      done();
+      if (name) rename(sc.n, name);
+    });
+    f.querySelector("[data-cs-cancel]").addEventListener("click", done);
+    f.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Escape") done();
+    });
+    inp.focus();
+    inp.select();
   }
 
   function wire() {
