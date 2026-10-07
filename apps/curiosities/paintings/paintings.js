@@ -23,6 +23,8 @@
   const LIST = DATA.list;
   const N = LIST.length;
   const PREF = "curio-paintings-default-v1";
+  /* the app wearing the painting's colours: on unless turned off on this device */
+  const APP = "curio-paintings-app-v1";
   const V = () => window.CurioViewer;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const valid = (i) => Number.isInteger(i) && i >= 0 && i < N;
@@ -50,6 +52,42 @@
       else localStorage.setItem(PREF, String(i));
     } catch (e) {}
   }
+  function appOn() {
+    try {
+      return localStorage.getItem(APP) !== "0";
+    } catch (e) {
+      return true;
+    }
+  }
+  function setApp(on) {
+    try {
+      localStorage.setItem(APP, on ? "1" : "0");
+    } catch (e) {}
+    say(on ? "the app wears the painting's colours" : "the app's own colours");
+    render();
+  }
+  /* section 4: the Viewer, the Screen and these menus take the five, made readable first (paintings/theme.js) */
+  let themed = "";
+  function applyTheme() {
+    const T = window.CurioPaintTheme;
+    const key = T && appOn() ? String(inForce().i) : "";
+    if (key === themed) return;
+    themed = key;
+    let st = document.getElementById("cvp-theme");
+    if (!key) {
+      if (st) st.remove();
+      document.documentElement.removeAttribute("data-painting");
+      return;
+    }
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "cvp-theme";
+      (document.head || document.documentElement).appendChild(st);
+    }
+    st.textContent = T.css(T.palette(LIST[+key].colors));
+    document.documentElement.dataset.painting = key;
+  }
+
   /* the painting in force and where it comes from: "project", "now" (another random), "default", "opening" */
   function inForce() {
     const f = film();
@@ -141,6 +179,7 @@
     else h += `<button type="button" data-cvp="default" title="Open on this painting every time, in every project that has none of its own">Keep these colours as the default</button>`;
     h += `<button type="button" data-cvp="random" title="Jump to a different random painting now">Another random painting</button>`;
     if (isRandom(s)) h += `<button type="button" data-cvp="keep" title="Save this painting with the project, so it opens on it">Keep it with this project</button>`;
+    if (window.CurioPaintTheme) h += `<button type="button" data-cvp="app" aria-pressed="${appOn()}" title="Colour the Viewer, the Screen and these menus with the painting's five colours (kept readable)">The app wears it: ${appOn() ? "on" : "off"}</button>`;
     return h;
   }
   function act(what) {
@@ -149,6 +188,7 @@
     else if (what === "random") anotherRandom();
     else if (what === "keep") keepWithProject();
     else if (what === "forget") forget();
+    else if (what === "app") setApp(!appOn());
     else if (what === "close") closeWindow();
     else if (what === "strip-close") strip(false);
   }
@@ -395,6 +435,7 @@
   }
 
   function render() {
+    applyTheme();
     renderWindow();
     renderStrip();
   }
@@ -422,7 +463,7 @@
 .cvp-sw i { flex: 1; }
 .cvp-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
 .cvp-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: var(--p-dim); }
-.cvp-strip { position: absolute; left: 0; right: 0; z-index: 6; max-height: 62%; overflow: auto; box-sizing: border-box; padding: 4px 6px; background: rgba(15,15,16,0.94); font-size: 12px; display: grid; gap: 4px; }
+.cvp-strip { position: absolute; left: 0; right: 0; z-index: 6; max-height: 62%; overflow: auto; box-sizing: border-box; padding: 4px 6px; background: color-mix(in srgb, var(--p-bg) 94%, transparent); font-size: 12px; display: grid; gap: 4px; }
 .cvp-strip[data-side="top"] { top: 0; border-bottom: 1px solid var(--p-line); }
 .cvp-strip[data-side="bottom"] { bottom: 0; border-top: 1px solid var(--p-line); }
 .cvp-head { font-size: 12px; line-height: 1.4; }
@@ -462,6 +503,7 @@
       const f = film();
       if (f && f.paintingNow !== undefined) delete f.paintingNow;
       v.onChange(render);
+      applyTheme();
       const tryBtn = () => ensureButton() || setTimeout(tryBtn, 400);
       tryBtn();
     };
@@ -498,5 +540,8 @@
     paint,
     forget,
     key: PREF,
+    appKey: APP,
+    appOn,
+    setApp,
   };
 })();

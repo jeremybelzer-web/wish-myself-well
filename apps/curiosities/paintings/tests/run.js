@@ -38,5 +38,26 @@ ok(!off.length, "every painting matches the spec, in order (name, artist, tags, 
 ok(P.defaultIndex === 6 && L[P.defaultIndex].name === "The Great Wave Off Kanagawa", "the default is 7, The Great Wave Off Kanagawa");
 ok(P.credit === "All color palettes compiled by: https://colorlisa.com/", "the credit line is kept in the data file");
 
+/* section 4: the app wearing the five, readable for every painting */
+require(path.join(__dirname, "..", "theme.js"));
+const T = globalThis.CurioPaintTheme;
+const C = T.contrast;
+const unread = [];
+L.forEach((p) => {
+  const q = T.palette(p.colors);
+  const layers = [q.panel, q.raised, q.hover];
+  const why = [];
+  if (T.lum(q.bg) > 0.025) why.push("background luminance " + T.lum(q.bg).toFixed(3));
+  if (C(q.text, q.bg) < 7) why.push("text " + C(q.text, q.bg).toFixed(2) + ":1");
+  [["dimmed text", q.dim], ["accent", q.accent]].forEach(([n, c]) => C(c, q.bg) < 5.5 && why.push(n + " " + C(c, q.bg).toFixed(2) + ":1"));
+  [["text", q.text], ["dimmed text", q.dim], ["accent", q.accent]].forEach(([n, c]) => layers.forEach((l) => C(c, l) < 4.5 && why.push(n + " on a panel " + C(c, l).toFixed(2) + ":1")));
+  if (C(q.ink, q.accent) < 4.5) why.push("words on the accent " + C(q.ink, q.accent).toFixed(2) + ":1");
+  if (why.length) unread.push(p.name + " (" + why.join(", ") + ")");
+});
+ok(!unread.length, "for all 62 paintings the app's colours are readable: background luminance 0.025 or less, text 7:1, dimmed text and accent 5.5:1, and 4.5:1 on every panel layer and on the accent" + (unread.length ? ": " + unread.join("; ") : ""));
+const flowers = T.palette(L[0].colors);
+ok(flowers.text !== flowers.dim && !/^#f[0-9a-f]f[0-9a-f]f[0-9a-f]$/i.test(flowers.accent), "Flowers, 1964 keeps a coloured accent instead of washing everything out: " + JSON.stringify(flowers));
+ok(rows.every(([, , , , cols], k) => L[k].colors.join(" ") === cols), "making them readable never changes a painting's own swatch");
+
 console.log(fails ? `\n${fails} failed` : "\nall passed");
 process.exit(fails ? 1 : 0);

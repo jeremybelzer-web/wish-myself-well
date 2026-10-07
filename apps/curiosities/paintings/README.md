@@ -14,9 +14,13 @@ paintings as five-colour swatches, so things in the film can take colours a grea
   it and it saves with the project); "Another random painting" is `film.paintingNow`, cleared at every opening;
   the default is `localStorage` `curio-paintings-default-v1` (this device's preference, outside the
   `curiosities-*` project keys). A painted thing keeps its own colour in `o.paintWas` for Forget the colours.
-- Hooks only: two `<script>` tags in index.html. No change to the Viewer's files.
-- Left out for now: the spec's optional section 4 (the whole app wearing the five colours). The recolouring
-  doesn't depend on it.
+- Hooks only: three `<script>` tags in index.html. No change to the Viewer's files.
+- `theme.js` (`window.CurioPaintTheme`): the app wears the painting in force (section 4 of the spec). The Viewer,
+  the Screen and these menus take the five as their colour tokens (`--c-*`, `--cc-*`), ranked by lightness, after
+  the readability guard moves each 6 % at a time toward white or black (background luminance at most 0.025, text
+  7:1, dimmed text and accent 5.5:1, 4.5:1 on every panel layer). The menus' swatches are never changed. "The app
+  wears it: on/off" in the window and the strip, per device in `curio-paintings-app-v1` (on unless turned off).
+  The older full-editor pages (styles.css, a light paper look with fixed colours) keep their own colours.
 
-Tests: `node paintings/tests/run.js` (the data against `tests/expected.txt`, the spec's table) and
+Tests: `node paintings/tests/run.js` (the data against `tests/expected.txt`, the spec's table, and the readability rules for all 62) and
 `node paintings/tests/browser.js` (in `tests/run-all.js --browser`).
