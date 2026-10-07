@@ -10,6 +10,27 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <!-- While the Screen (the main layout) is on its way, the page under it stays hidden behind a plain dark
+         cover, so the first thing seen is the Screen itself, not the older page flashing by (Jeremy, 2026-10-06).
+         screen/ui.js takes the cover off when the Screen opens, or when it will not open; the cover also lifts
+         on its own after 12 seconds in case something fails to load. -->
+    <style id="sc-boot-style">
+      html.sc-boot, html.sc-boot body { background: #0f0f10; }
+      html.sc-boot body > :not(.sc-page) { visibility: hidden; }
+    </style>
+    <script>
+      (function () {
+        try {
+          var q = location.search;
+          if (/[?&]screen=0\b/.test(q) || (navigator.webdriver && !/[?&]screen=1\b/.test(q))) return;
+          var p = JSON.parse(localStorage.getItem("curiosities-screen-v1") || "null");
+          if (p && p.open === false) return;
+        } catch (e) {}
+        var h = document.documentElement;
+        h.classList.add("sc-boot");
+        setTimeout(function () { h.classList.remove("sc-boot"); }, 12000);
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -34,8 +55,20 @@
       .tabs .lib-menu button:last-child { border-bottom: 0; }
       .tabs .lib-menu button:hover, .tabs .lib-menu button:focus-visible { background: var(--ink); color: var(--paper); }
       .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
-      /* The phone bar's "Workspaces" button and its sheet: shown only on narrow screens. */
-      .ws-pick, .ws-sheet-head { display: none; }
+      /* The workspaces live in a pop-up window, the Curiosity Browser, opened by its button in the top row (Jeremy,
+         2026-10-06: the many-column list of words should not sit on the page; it is a pop-up like a search
+         window). It has a search box; on a phone it is a sheet from the bottom instead. */
+      .ws-pick { display: inline-flex; align-items: center; gap: 2px; }
+      .ws-sheet-head { display: none; }
+      .tabs .tabs-ws { display: none; }
+      .tabs.ws-sheet-open .tabs-ws { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); align-items: start; gap: 8px 10px; position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 70; width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 96px); overflow-y: auto; margin: 0; padding: 0 16px 16px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 6px 6px 0 rgba(28, 23, 18, 0.25); }
+      .tabs.ws-sheet-open .tabs-ws .ws-sheet-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 1; background: var(--paper); padding: 12px 0 10px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: 17px; }
+      .tabs.ws-sheet-open .tabs-ws .ws-sec { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+      .tabs.ws-sheet-open .tabs-ws .ws-sec button { white-space: normal; text-align: left; }
+      .ws-find { flex: 1 1 auto; width: 0; min-width: 0; font: inherit; font-family: var(--sans); font-size: 14px; padding: 6px 10px; border: 2px solid var(--ink); background: #fff; }
+      .ws-none { grid-column: 1 / -1; margin: 6px 0; font-family: var(--mono); font-size: 12px; color: #7a6f63; }
+      .ws-sec[hidden], .tabs-ws button[hidden], .ws-none[hidden] { display: none !important; }
+      .ws-sheet-back { position: fixed; inset: 0; z-index: 69; background: rgba(28, 23, 18, 0.35); }
       /* Viewer and Help ▸ App Walkthrough: buttons in the top row, moved into Library on phones so the row fits. */
       .tabs .lib-menu button.phone-only { display: none; }
       .ws-sheet-back[hidden] { display: none; }
@@ -46,12 +79,12 @@
         .tabs-top > button, .tabs-top .lib > button { font-size: 10px; letter-spacing: 0.04em; padding: 6px 7px; }
         .tabs .tabs-top .proj-ind { flex: none; font-size: 0; padding: 4px 6px; }
         .tabs .tabs-top .proj-ind::before { font-size: 12px; content: "●"; }
-        .ws-pick { display: inline-flex; align-items: center; gap: 2px; flex: 1 1 auto; min-width: 0; justify-content: center; }
+        .tabs .tabs-top .ws-pick { flex: 1 1 auto; min-width: 0; justify-content: center; }
         .ws-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-        .tabs .tabs-ws { display: none; }
-        .tabs.ws-sheet-open .tabs-ws { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 6px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; max-height: min(78vh, 640px); overflow-y: auto; margin: 0; padding: 0 16px 18px; background: var(--paper); border-top: 3px solid var(--ink); box-shadow: 0 -6px 0 rgba(28, 23, 18, 0.18); }
-        .ws-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: sticky; top: 0; background: var(--paper); padding: 12px 0 8px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: 17px; }
-        .ws-sheet-back { position: fixed; inset: 0; z-index: 59; background: rgba(28, 23, 18, 0.35); }
+        .tabs.ws-sheet-open .tabs-ws { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 6px; top: auto; left: 0; right: 0; bottom: 0; transform: none; width: auto; max-height: min(78vh, 640px); padding: 0 16px 18px; border: 0; border-top: 3px solid var(--ink); box-shadow: 0 -6px 0 rgba(28, 23, 18, 0.18); }
+        .tabs.ws-sheet-open .tabs-ws .ws-sheet-head { padding: 12px 0 8px; gap: 8px; }
+        .tabs.ws-sheet-open .tabs-ws .ws-sheet-head strong { display: none; }
+        .tabs.ws-sheet-open .tabs-ws .ws-sec { flex-direction: row; flex-wrap: wrap; align-items: center; }
         .ws-sec { flex: none; padding: 3px 4px 3px 6px; gap: 5px; }
         .ws-group { width: 100%; }
         .tabs-ws .ws-sec button { font-size: 11px; letter-spacing: 0.04em; padding: 8px 9px; }
@@ -425,5 +458,6 @@
     <script src="viewer/hoverhelp.js"></script>
     <script src="viewer/walkthrough.js"></script>
     <script src="voice/load.js"></script>
+    <script src="relations/load.js"></script>
   </body>
 </html>

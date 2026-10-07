@@ -167,6 +167,7 @@
     const t = e.target;
     if (!t.closest) return;
     wake();
+    if (t.closest(".cv-root .cv-scrub")) held = true;
     if (t.closest(".cvc-ruler") || t.closest(".cvc-line")) {
       e.preventDefault();
       if (V().playing()) V().play(false);
@@ -189,6 +190,8 @@
   }
   function onUp() {
     scrub = null;
+    held = false;
+    if (ac && rain) rain.gain.setTargetAtTime(0, ac.currentTime, 0.03);
   }
   /* a click inside a panel jumps to that moment in it (the Viewer has already picked the panel) */
   function onClick(e) {
@@ -250,18 +253,44 @@
     for (const c of String(who || "x")) h = (h * 31 + c.charCodeAt(0)) % 997;
     return 170 + (h % 160);
   };
-  function blip(freq, when, vol, type) {
+  /* every sound still to come, so stopping can silence them at once */
+  const live = new Set();
+  function blip(freq, when, vol, type, back) {
     if (!ac) return;
     const o = ac.createOscillator();
     const g = ac.createGain();
     o.type = type || "triangle";
-    o.frequency.setValueAtTime(freq * (0.92 + Math.random() * 0.16), when);
+    const f = freq * (0.92 + Math.random() * 0.16);
     g.gain.setValueAtTime(0, when);
-    g.gain.linearRampToValueAtTime(vol, when + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0008, when + 0.07);
+    if (back) {
+      /* played backwards: the blip swells and cuts off, and its pitch slides up instead of down */
+      o.frequency.setValueAtTime(f * 0.94, when);
+      o.frequency.linearRampToValueAtTime(f, when + 0.07);
+      g.gain.linearRampToValueAtTime(vol * 0.15, when + 0.03);
+      g.gain.exponentialRampToValueAtTime(vol, when + 0.07);
+      g.gain.linearRampToValueAtTime(0, when + 0.078);
+    } else {
+      o.frequency.setValueAtTime(f, when);
+      o.frequency.linearRampToValueAtTime(f * 0.94, when + 0.07);
+      g.gain.linearRampToValueAtTime(vol, when + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0008, when + 0.07);
+    }
     o.connect(g).connect(ac.destination);
     o.start(when);
     o.stop(when + 0.09);
+    live.add(o);
+    o.onended = () => live.delete(o);
+  }
+  /* Stop (the space bar or ❚❚): every sound stops now, nothing scheduled is left to play */
+  function hush() {
+    if (!ac) return;
+    live.forEach((o) => {
+      try {
+        o.stop();
+      } catch (e) {}
+    });
+    live.clear();
+    if (rain) rain.gain.cancelScheduledValues(ac.currentTime), rain.gain.setValueAtTime(0, ac.currentTime);
   }
   /* the syllables of a panel's balloons, as times into the panel */
   function syllableTimes(p) {
@@ -277,30 +306,116 @@
     });
     return out;
   }
+
+  /* Scrubbing (Jeremy 2026-10-06): holding the playhead (the ▼ on the strip's ruler, or the slider under the
+     picture) and moving it plays the sound at the speed of the hand: dragged right it plays forwards, as fast
+     as the drag; dragged left it plays backwards. The picture already follows the playhead, so movement runs
+     backwards too. Sound only comes from playing or from a drag, never from a jump (a click, or Stop going
+     back to where Play was pressed). */
+  let held = false;
+  let lastWall = 0;
+  let still = 0;
+  const scrubbed = { dir: 0, rate: 0, blips: [] };
+  function holding() {
+    return held || !!scrub;
+  }
   function listen(T) {
     const prev = lastT;
     lastT = T;
-    const moving = prev != null && Math.abs(T - prev) > 1e-4;
+    const wall = performance.now();
+    const dWall = clamp((wall - lastWall) / 1000, 0.008, 0.25);
+    lastWall = wall;
+    const dT = prev == null ? 0 : T - prev;
+    const moving = Math.abs(dT) > 1e-4;
+    const playing = V().playing();
+    const drag = !playing && holding();
     const P = film().panels;
     const s = V().starts();
     const { i } = cardSpot(T);
-    if (rain) rain.gain.setTargetAtTime(sound && moving && P[i] && P[i].rain === "fall" ? 0.035 : 0, ac.currentTime, 0.05);
-    if (!sound || !ac || !moving || Math.abs(T - prev) > 1.5) return;
+    const loud = sound && ac && moving && (playing || drag);
+    if (rain) rain.gain.setTargetAtTime(loud && P[i] && P[i].rain === "fall" ? 0.035 * (drag ? clamp(Math.sqrt(Math.abs(dT) / dWall), 0.4, 1.6) : 1) : 0, ac.currentTime, 0.03);
+    if (drag && rain) {
+      /* the hand stopped but still holds the playhead: the hiss stops too */
+      clearTimeout(still);
+      still = setTimeout(() => ac && rain.gain.setTargetAtTime(0, ac.currentTime, 0.03), 140);
+    }
+    if (!loud || (playing && Math.abs(dT) > 1.5)) return;
+    const back = dT < 0;
+    const rate = Math.abs(dT) / dWall;
+    if (drag) Object.assign(scrubbed, { dir: back ? -1 : 1, rate, blips: [] });
+    /* the pitch rises with the speed, like a tape pulled faster */
+    const tape = drag ? clamp(Math.pow(rate, 0.35), 0.6, 1.8) : 1;
     const a = Math.min(prev, T);
     const b = Math.max(prev, T);
     const now = ac.currentTime;
-    let n = 0;
+    const hits = [];
     for (let k = 0; k < P.length; k++) {
       if (s[k] > b || s[k] + P[k].sec < a) continue;
       syllableTimes(P[k]).forEach((q) => {
         const at = s[k] + q.t;
-        if (at > a && at <= b && n < 6) {
-          blip(pitchOf(q.who), now + 0.005 * n, 0.09, "triangle");
-          n++;
-          heard++;
-        }
+        if (at > a && at <= b) hits.push({ at, who: q.who });
       });
     }
+    /* in the order the playhead crosses them, each when the hand gets there */
+    hits.sort((x, y) => (back ? y.at - x.at : x.at - y.at));
+    hits.slice(0, 12).forEach((q) => {
+      const when = now + 0.005 + (Math.abs(q.at - prev) / Math.abs(dT)) * dWall;
+      blip(pitchOf(q.who) * tape, when, 0.09, "triangle", back);
+      if (drag) scrubbed.blips.push(q.at);
+      heard++;
+    });
+    if (drag) grains(prev, T, dWall);
+  }
+
+  /* Your own videos in a Viewer window: their real sound, scrubbed. The sound track is read once per video
+     (kept forwards and backwards), and each move of the hand plays the stretch it crossed, backwards when
+     dragged left, sped up or slowed down to the hand's speed. */
+  const tracks = new Map();
+  function track(src) {
+    if (!tracks.has(src)) {
+      tracks.set(src, null);
+      fetch(src)
+        .then((r) => r.arrayBuffer())
+        .then((data) => new Promise((ok, no) => ac.decodeAudioData(data, ok, no)))
+        .then((fwd) => {
+          if (fwd.duration > 20 * 60) return;
+          const rev = ac.createBuffer(fwd.numberOfChannels, fwd.length, fwd.sampleRate);
+          for (let c = 0; c < fwd.numberOfChannels; c++) rev.getChannelData(c).set(fwd.getChannelData(c).slice().reverse());
+          tracks.set(src, { fwd, rev });
+        })
+        .catch(() => {});
+    }
+    return tracks.get(src);
+  }
+  function grains(prev, T, dWall) {
+    const root = rootEl();
+    if (!root) return;
+    root.querySelectorAll("video").forEach((v) => {
+      if (v.hidden || !v.dataset.src) return;
+      const t = track(v.dataset.src);
+      if (!t) return;
+      const d = t.fwd.duration;
+      const p0 = prev % d;
+      const p1 = T % d;
+      const back = T < prev;
+      if (back ? p1 > p0 : p1 < p0) return; /* wrapped round the end of the video */
+      const len = Math.abs(p1 - p0);
+      if (len < 0.002) return;
+      const src = ac.createBufferSource();
+      src.buffer = back ? t.rev : t.fwd;
+      src.playbackRate.value = clamp(len / dWall, 0.0625, 8);
+      const g = ac.createGain();
+      const now = ac.currentTime;
+      const out = len / src.playbackRate.value;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.9, now + Math.min(0.006, out / 3));
+      g.gain.setValueAtTime(0.9, now + Math.max(0, out - 0.006));
+      g.gain.linearRampToValueAtTime(0, now + out);
+      src.connect(g).connect(ac.destination);
+      src.start(now, back ? d - p0 : p0, len);
+      live.add(src);
+      src.onended = () => live.delete(src);
+    });
   }
 
   /* ---------- Read as a comic: modern and zine layouts ---------- */
@@ -439,10 +554,11 @@
       if (rootEl() && rootEl().classList.contains("cv-comic")) lay();
       else if (laidOut && !laidOut.startsWith("simple")) lay();
     });
-    v.onPlay((on) => on && wake());
+    v.onPlay((on) => (on ? wake() : hush()));
     document.addEventListener("pointerdown", onDown, true);
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
     document.addEventListener("click", onClick);
     document.addEventListener("change", onChange);
     window.addEventListener("resize", () => {
@@ -453,5 +569,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioComic = { frameFor, tiers, timeAtX, heard: () => heard, layout: () => layout, place };
+  window.CurioComic = { frameFor, tiers, timeAtX, heard: () => heard, scrubbed: () => scrubbed, sounding: () => live.size, hush, layout: () => layout, place };
 })();
