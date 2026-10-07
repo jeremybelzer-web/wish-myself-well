@@ -373,7 +373,10 @@
       skip = /[?&](walkthrough|viewer)=0\b/.test(q) || (!!navigator.webdriver && !/[?&]walkthrough=1\b/.test(q));
       seen = localStorage.getItem(SEEN) === "1";
     } catch (e) {}
-    if (!skip && !seen) setTimeout(() => start(0), 900);
+    /* the Screen's files load after the page (screen/load.js): wait for it (up to 5 s), so the tour remembers it as
+       open and puts it back at the end, however slowly the page loads */
+    const go = (n) => (window.CurioScreen || n >= 50 ? setTimeout(() => start(0), 900) : setTimeout(() => go(n + 1), 100));
+    if (!skip && !seen) go(0);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
