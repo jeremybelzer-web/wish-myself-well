@@ -183,8 +183,12 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       set("wsRail", on && ws.rail !== "left" ? ws.rail : "");
       /* following the window, the pictures keep their own width and the lanes take the rest */
       if (player) {
-        if (lanes === "beside" && fit && fit.picsW) player.style.setProperty("--ws-stage-w", fit.picsW + "px");
-        else player.style.removeProperty("--ws-stage-w");
+        /* only a real change moves it: the pictures' measured shape shifts a pixel or two with the room they get, and
+           following every pixel made the layout flip back and forth each frame (the flashing, 2026-10-07) */
+        const cur = parseFloat(player.style.getPropertyValue("--ws-stage-w")) || 0;
+        if (lanes === "beside" && fit && fit.picsW) {
+          if (Math.abs(fit.picsW - cur) > 16) player.style.setProperty("--ws-stage-w", fit.picsW + "px");
+        } else if (cur) player.style.removeProperty("--ws-stage-w");
       }
       toggle(root);
       /* under the storyboards it leaves the Player for the end of the page; anywhere else it goes back */

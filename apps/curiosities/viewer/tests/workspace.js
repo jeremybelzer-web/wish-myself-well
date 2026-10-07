@@ -55,6 +55,18 @@ server.listen(0, "127.0.0.1", async () => {
   ok(heads === 1, `the playhead shows in just the row it has reached (${heads})`);
   await page.screenshot({ path: path.join(SHOTS, "viewer-workspace-beside.png") });
 
+  /* steady at every storyboard height: nothing flips back and forth each frame (the flashing, 2026-10-07) */
+  const restless = [];
+  for (let sh = 120; sh <= 400; sh += 8) {
+    await page.evaluate((sh) => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: sh }; CurioBorders.apply(); }, sh);
+    await page.waitForTimeout(250);
+    const n = await page.evaluate(() => new Promise((res) => { let n = 0; const ro = new ResizeObserver((es) => (n += es.length)); document.querySelectorAll(".cv-under, .cv-stage, .cv-cards, .cv-strip").forEach((e) => ro.observe(e)); setTimeout(() => (ro.disconnect(), res(n)), 500); }));
+    if (n > 6) restless.push(sh + "px");
+  }
+  ok(!restless.length, "the layout holds still at every storyboard height" + (restless.length ? " (moving at " + restless.join(", ") + ")" : ""));
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 0 }; CurioBorders.apply(); });
+  await page.waitForTimeout(400);
+
   /* drag the storyboard by its corner to the right of the picture */
   const grip = await box('.cv-strip > .ws-grip[data-ws-grip="strip"]');
   ok(!!grip, "the storyboard has a handle at its top-left corner");

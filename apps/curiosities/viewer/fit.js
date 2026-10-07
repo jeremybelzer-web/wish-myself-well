@@ -109,8 +109,10 @@
       if (c !== cards && c.offsetParent && p !== "absolute" && p !== "fixed") R -= c.offsetHeight + gap;
     });
     const cc = getComputedStyle(cards);
-    const scroll = cards.offsetHeight - cards.clientHeight;
-    R -= parseFloat(cc.paddingTop) + parseFloat(cc.paddingBottom) + Math.max(0, scroll) + 2;
+    /* Room for the sideways scrollbar is always kept, whether it shows or not: counting it only when it showed made
+       the cards flip between two sizes every frame at some heights, since each size turned the scrollbar on or off
+       (Jeremy 2026-10-07: "the storyboards ... seem to be flashing, vibrating off and on"). */
+    R -= parseFloat(cc.paddingTop) + parseFloat(cc.paddingBottom) + scrollbar() + 2;
     const tallest = () => Math.max(1, ...[...cards.querySelectorAll(".cv-card")].map((c) => c.offsetHeight));
     st.style.setProperty("--cv-fit", "1");
     /* measured at their own full height, not squeezed into the strip */
@@ -134,6 +136,18 @@
         }
       }
     }
+  }
+
+  /* how thick a sideways scrollbar is here (0 where scrollbars float over the page) */
+  let sb = null;
+  function scrollbar() {
+    if (sb != null) return sb;
+    const d = document.createElement("div");
+    d.style.cssText = "position:absolute;top:-999px;width:100px;height:100px;overflow:scroll";
+    document.body.appendChild(d);
+    sb = d.offsetHeight - d.clientHeight;
+    d.remove();
+    return sb;
   }
 
   let queued = false;
