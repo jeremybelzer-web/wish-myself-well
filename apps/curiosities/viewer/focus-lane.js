@@ -1501,6 +1501,129 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     V().redraw();
   }
 
+
+  /* ---------- the lane menu: right-click a lane (Ctrl+click on a Mac, the menu key or Shift+F10 on a PC) ----------
+     Jeremy 2026-10-07: the same kind of menu as the storyboards (window.CurioMenu, viewer/strip-drag.js). It
+     works on the panel under the pointer, or on every picked panel when that panel is one of them. */
+  let laneClip = null;
+  /* the lane and panel under the pointer, from a dot, a line, a lane's track or its name */
+  function laneHit(e) {
+    const t = e.target.closest ? e.target : null;
+    if (!t || !t.closest(".cv-under")) return null;
+    const r = read();
+    if (!r) return null;
+    const own = t.closest("[data-ln]");
+    let id = own ? own.dataset.ln : null;
+    if (!id) {
+      const g = t.closest(".cf-graph");
+      if (!g) return null;
+      const ids = laneIds(r);
+      id = (picked && ids.find((x) => base(x) === picked)) || ids[0];
+    }
+    if (!id || t.closest(".cf-ln-scenes")) return null;
+    let i = t.dataset.lnI != null ? +t.dataset.lnI : t.dataset.seg != null ? +t.dataset.seg : null;
+    if (i == null) {
+      const track = (t.closest(".cf-ln") || t.closest(".cf-graph") || t).querySelector(".cf-ln-in") || t.closest(".cf-ln-in");
+      const tr = track ? track.getBoundingClientRect() : null;
+      const at = tr && (e.clientX || e.clientY) ? view.from + ((e.clientX - tr.left) / Math.max(1, tr.width)) * view.span : V().time();
+      i = r.panels.findIndex((p) => at >= p.at - 1e-6 && at < p.at + p.sec);
+      if (i < 0) i = at < 0 ? 0 : r.panels.length - 1;
+    }
+    return { id, i, seg: t.closest(".cf-seg") };
+  }
+  function laneMenu(hit, e) {
+    const Menu = window.CurioMenu;
+    const r = read();
+    if (!Menu || !r) return;
+    const { id, i } = hit;
+    const pk = window.CurioScenes && CurioScenes.picked();
+    const list = pk && pk.panels.includes(i) ? pk.panels.slice() : [i];
+    const n = M().note(base(id));
+    const vals = r.K.map((k) => k[id]);
+    const sc = scaleOf(id, vals);
+    const where = READ_FROM_PICTURE[id];
+    const edit = !where && !sc.loose;
+    const why = where ? `Read from the picture: change it in ${where}` : sc.loose ? "Set in the panels themselves" : "";
+    /* write values panel by panel, one undo step */
+    const write = (tag, fn) => () => {
+      V().remember("lane-menu-" + tag + "-" + id);
+      const film = V().live().film;
+      list.forEach((k, at) => {
+        const p = film.panels[k];
+        const v = fn(k, at);
+        if (v === undefined) return;
+        const story = Object.assign({}, storyOf(p));
+        if (v === null) delete story[id];
+        else story[id] = typeof v === "number" ? Number(v.toFixed(2)) : v;
+        p.v = story;
+      });
+      cache = null;
+      V().changed(true);
+    };
+    const steps = sc.list ? sc.list : null;
+    const idx = (v) => (steps ? steps.map(String).indexOf(String(v)) : v == null || v === "" ? null : Number(v));
+    const at = (u) => (steps ? steps[Math.round(u * (steps.length - 1))] : sc.lo + u * (sc.hi - sc.lo));
+    const nudge = (d) => (k) => {
+      const v = vals[k];
+      if (steps) {
+        const q = idx(v);
+        return q < 0 || q == null ? undefined : steps[Math.max(0, Math.min(steps.length - 1, q + d))];
+      }
+      return v == null || v === "" ? undefined : Math.max(sc.lo, Math.min(sc.hi, Number(v) + d * sc.step));
+    };
+    const first = list[0];
+    const last = list[list.length - 1];
+    const ramp = (k) => {
+      const a = idx(vals[first]);
+      const b = idx(vals[last]);
+      if (a == null || b == null || a < 0 || b < 0) return undefined;
+      const u = list.length > 1 ? list.indexOf(k) / (list.length - 1) : 0;
+      const x = a + (b - a) * u;
+      return steps ? steps[Math.round(x)] : x;
+    };
+    const seg = hit.seg || (box && box.querySelector(`.cf-seg[data-ln="${window.CSS.escape(id)}"][data-seg="${i}"]`));
+    const hasCurve = list.some((k) => r.curves && r.curves[k] && r.curves[k][id]);
+    const [x, y] = Menu.spot(e, e.target);
+    const label = laneName(id, n);
+    Menu.open(x, y, `${label} · ${list.length > 1 ? list.length + " panels" : "panel " + (i + 1)}`, [
+      { label: "Go to this panel", run: () => V().seek(r.panels[i].at) },
+      { label: `Open the ${n.label || label} window`, run: () => openWin(id, box && box.querySelector(`[data-cwin="${window.CSS.escape(id)}"]`)) },
+      { label: "Curve to the next panel…", run: () => seg && openCurve(seg, e), off: !seg, hint: "How the value moves from this panel to the next" },
+      { label: "Straight steps again", run: () => {
+          V().remember("lane-menu-flat-" + id);
+          const film = V().live().film;
+          list.forEach((k) => {
+            const p = film.panels[k];
+            if (p.curves && p.curves[id]) {
+              const c = Object.assign({}, p.curves);
+              delete c[id];
+              p.curves = c;
+            }
+          });
+          cache = null;
+          V().changed(true);
+        }, off: !hasCurve },
+      "-",
+      { label: "Copy the value", run: () => (laneClip = { id, v: vals[i] }), off: vals[i] == null || vals[i] === "" },
+      { label: laneClip && laneClip.id === id ? `Paste ${laneClip.v}` : "Paste the value", run: write("paste", () => laneClip.v), off: !edit || !laneClip || laneClip.id !== id, hint: why },
+      { label: "Hold the value before", run: write("hold", () => vals[first - 1]), off: !edit || first === 0 || vals[first - 1] == null, hint: why || "Each panel keeps the value of the panel before them" },
+      { label: "Ramp from first to last", run: write("ramp", ramp), off: !edit || list.length < 3, hint: why || "Pick 3 or more storyboards: the ones between go evenly from the first value to the last" },
+      { label: "Set to", row: [
+          { label: "Lowest", run: write("low", () => at(0)), off: !edit, hint: why || String(at(0)) },
+          { label: "Middle", run: write("mid", () => at(0.5)), off: !edit, hint: why || String(at(0.5)) },
+          { label: "Highest", run: write("high", () => at(1)), off: !edit, hint: why || String(at(1)) },
+        ] },
+      { label: "Step", row: [
+          { label: "Down", run: write("down", nudge(-1)), off: !edit, hint: why || "One step down its scale" },
+          { label: "Up", run: write("up", nudge(1)), off: !edit, hint: why || "One step up its scale" },
+        ] },
+      { label: "Clear this panel's own value", run: write("clear", () => null), off: !edit || !list.some((k) => { const p = V().live().film.panels[k]; return p && p.v && p.v[id] != null; }), hint: why || "Back to what comes before it" },
+      "-",
+      { label: picked === base(id) ? "Stop picking this lane" : "Pick this lane in the graph", run: () => pick(base(id)) },
+      { label: "Show this scene", run: () => setZoom("scene") },
+      { label: "Show the whole film", run: () => setZoom("film") },
+    ]);
+  }
   /* ---------- the tabs ---------- */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
@@ -1750,10 +1873,11 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (sc) closeSearch();
     });
     document.addEventListener("contextmenu", (e) => {
-      const sg = segAt(e);
-      if (!sg) return;
+      const hit = laneHit(e);
+      if (!hit) return;
       e.preventDefault();
-      openCurve(sg, e);
+      e.stopPropagation();
+      laneMenu(hit, e);
     });
     document.addEventListener("pointerdown", (e) => {
       if (cpop && !cpop.contains(e.target) && !segAt(e)) closeCurve();
@@ -1780,7 +1904,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     });
     document.addEventListener("pointerdown", (e) => {
       const d = e.target.closest && e.target.closest(".cv-under .cf-ln-dot");
-      if (d) return laneDrag(e, d);
+      if (d && e.button === 0) return laneDrag(e, d);
       const g = e.target.closest && e.target.closest(".cv-under [data-cf-grip]");
       if (g) gripDrag(e, g);
     });

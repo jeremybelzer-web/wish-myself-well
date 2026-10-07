@@ -7,7 +7,7 @@
      panel last longer or shorter, in quarter seconds (0.25 s to 30 s); a label says how long it is. One undo step.
    - Panels picked together (Shift+click, ⌘ or Alt+click: viewer/scenes.js) drag together and stretch together:
      grab any one of them. The copy under the pointer says how many.
-   - Right-click or Ctrl+click a storyboard: a menu of CapCut's and Maya's everyday clip commands (Play from
+   - Right-click a storyboard (Ctrl+click on a Mac, the menu key or Shift+F10 on a PC): a menu of CapCut's and Maya's everyday clip commands (Play from
      here, Copy, Cut, Paste after, Duplicate, Split in two, Join into one panel, Freeze frame after, Reverse their
      order, Length, Twice as fast, Half speed, Move to the start or end, Pick the whole scene, New scene here,
      Delete) for that panel, or for every picked panel when it is one of them. One undo step each.
@@ -321,7 +321,6 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
      or every picked panel when it is one of them. Each one is one undo step. */
   let clip = [];
   let menuEl = null;
-  let menuAt = 0;
   const newId = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const copyOf = (p) => Object.assign(JSON.parse(JSON.stringify(p)), { id: newId() });
   function change(tag, fn, pickAfter) {
@@ -433,72 +432,94 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
     V().changed(true);
   }
   const LENGTHS = [0.5, 1, 2, 3, 5];
+
+  /* ---------- one menu for the storyboards and the automation lanes (window.CurioMenu) ----------
+     open(x, y, title, items): items are { label, run, off, hint } or "-" (a line) or { label, row: [{ label,
+     run, hint }] } (small buttons on one line). Right-click opens it everywhere; on a Mac Ctrl+click is a
+     right-click; on a PC the menu key or Shift+F10 opens it for the storyboard or lane that has the focus.
+     Arrow keys move through it, Enter picks, Escape closes. */
   function closeMenu() {
     if (menuEl) menuEl.remove();
     menuEl = null;
   }
-  function openMenu(i, x, y) {
+  function showMenu(x, y, title, items) {
+    style();
     closeMenu();
-    menuAt = Date.now();
-    const list = groupOf(i);
-    const n = list.length;
-    const what = n > 1 ? `${n} panels` : `panel ${i + 1}`;
-    const P = live().film.panels;
-    const sc = Sc() && Sc().ofPanel(i);
-    const item = (cmd, label, key, off) => `<button type="button" role="menuitem" data-csm="${cmd}"${off ? " disabled" : ""}><span>${label}</span>${key ? `<kbd>${key}</kbd>` : ""}</button>`;
-    const sep = `<hr>`;
     const m = document.createElement("div");
     m.className = "csd-menu";
     m.setAttribute("role", "menu");
-    m.dataset.i = i;
+    const runs = [];
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const btn = (it) => (runs.push(it.run), runs.length - 1);
     m.innerHTML =
-      `<header>${what}</header>` +
-      item("play", "Play from here", "") +
-      sep +
-      item("copy", "Copy", "") +
-      item("cut", "Cut", "", n >= P.length) +
-      item("paste", clip.length ? `Paste ${clip.length > 1 ? clip.length + " panels" : "panel"} after` : "Paste after", "", !clip.length) +
-      item("duplicate", "Duplicate", "") +
-      sep +
-      item("split", "Split in two", "", list.some((k) => P[k].sec < MIN * 2)) +
-      item("join", "Join into one panel", "", n < 2) +
-      item("freeze", "Freeze frame after", "") +
-      item("reverse", "Reverse their order", "", n < 2) +
-      sep +
-      `<div class="csd-len-row"><span>Length</span>${LENGTHS.map((l) => `<button type="button" data-csm="len" data-len="${l}" title="${l} seconds each">${l} s</button>`).join("")}</div>` +
-      item("faster", "Twice as fast", "") +
-      item("slower", "Half speed", "") +
-      sep +
-      item("first", "Move to the start", "") +
-      item("last", "Move to the end", "") +
-      sep +
-      item("scene", sc ? `Pick all of ${Sc().label ? Sc().label(sc) : sc.name}` : "Pick the whole scene", "", !sc) +
-      item("newscene", "✂ New scene here", "", list[0] === 0 || (sc && sc.first === list[0])) +
-      sep +
-      item("del", "Delete", "", n >= P.length);
+      `<header>${esc(title)}</header>` +
+      items
+        .map((it) => {
+          if (it === "-") return "<hr>";
+          if (it.row) return `<div class="csd-len-row"><span>${esc(it.label)}</span>${it.row.map((q) => `<button type="button" data-csm="${btn(q)}"${q.hint ? ` title="${esc(q.hint)}"` : ""}${q.off ? " disabled" : ""}>${esc(q.label)}</button>`).join("")}</div>`;
+          return `<button type="button" role="menuitem" data-csm="${btn(it)}"${it.off ? " disabled" : ""}${it.hint ? ` title="${esc(it.hint)}"` : ""}><span>${esc(it.label)}</span></button>`;
+        })
+        .join("");
     document.body.appendChild(m);
     const r = m.getBoundingClientRect();
     m.style.left = clamp(x, 4, innerWidth - r.width - 4) + "px";
     m.style.top = clamp(y, 4, innerHeight - r.height - 4) + "px";
+    m.runs = runs;
     menuEl = m;
-    m.list = list;
     const first = m.querySelector("button:not([disabled])");
     if (first) first.focus();
+    return m;
+  }
+  /* where a menu opened from the keyboard goes: under the thing that has the focus */
+  function spot(e, el) {
+    if (e.clientX || e.clientY) return [e.clientX, e.clientY];
+    const r = el.getBoundingClientRect();
+    return [r.left + 12, r.top + Math.min(r.height, 40)];
+  }
+  function openMenu(i, x, y) {
+    const list = groupOf(i);
+    const n = list.length;
+    const P = live().film.panels;
+    const sc = Sc() && Sc().ofPanel(i);
+    const run = (cmd) => () => COMMANDS[cmd](list);
+    const setLen = (l) => () => {
+      V().edit("panel-length");
+      list.forEach((k) => (live().film.panels[k].sec = snap(l)));
+      V().changed(true);
+    };
+    return showMenu(x, y, n > 1 ? `${n} panels` : `Panel ${i + 1}`, [
+      { label: "Play from here", run: run("play") },
+      "-",
+      { label: "Copy", run: run("copy") },
+      { label: "Cut", run: run("cut"), off: n >= P.length },
+      { label: clip.length ? `Paste ${clip.length > 1 ? clip.length + " panels" : "panel"} after` : "Paste after", run: run("paste"), off: !clip.length },
+      { label: "Duplicate", run: run("duplicate") },
+      "-",
+      { label: "Split in two", run: run("split"), off: list.some((k) => P[k].sec < MIN * 2) },
+      { label: "Join into one panel", run: run("join"), off: n < 2 },
+      { label: "Freeze frame after", run: run("freeze") },
+      { label: "Reverse their order", run: run("reverse"), off: n < 2 },
+      "-",
+      { label: "Length", row: LENGTHS.map((l) => ({ label: l + " s", run: setLen(l), hint: `${l} seconds each` })) },
+      { label: "Twice as fast", run: run("faster") },
+      { label: "Half speed", run: run("slower") },
+      "-",
+      { label: "Move to the start", run: run("first") },
+      { label: "Move to the end", run: run("last") },
+      "-",
+      { label: sc ? `Pick all of ${Sc().label ? Sc().label(sc) : sc.name}` : "Pick the whole scene", run: run("scene"), off: !sc },
+      { label: "✂ New scene here", run: run("newscene"), off: list[0] === 0 || (sc && sc.first === list[0]) },
+      "-",
+      { label: "Delete", run: run("del"), off: n >= P.length },
+    ]);
   }
   function onMenuClick(e) {
     const b = e.target.closest && e.target.closest(".csd-menu [data-csm]");
     if (!b || b.disabled) return;
     e.stopPropagation();
-    const list = menuEl.list;
-    const cmd = b.dataset.csm;
+    const fn = menuEl && menuEl.runs[+b.dataset.csm];
     closeMenu();
-    if (cmd === "len") {
-      V().edit("panel-length");
-      list.forEach((i) => (live().film.panels[i].sec = snap(+b.dataset.len)));
-      V().changed(true);
-      return;
-    }
-    if (COMMANDS[cmd]) COMMANDS[cmd](list);
+    if (fn) fn();
   }
   function onContext(e) {
     if (comic()) return;
@@ -506,16 +527,8 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
     if (!c) return;
     e.preventDefault();
     e.stopPropagation();
-    openMenu(+c.dataset.i, e.clientX, e.clientY);
-  }
-  /* Ctrl+click: the menu too (on a Mac the browser sends it as a right-click already) */
-  function onCtrlClick(e) {
-    if (!e.ctrlKey || comic()) return;
-    const c = cardOf(e);
-    if (!c) return;
-    e.preventDefault();
-    e.stopPropagation();
-    if (Date.now() - menuAt > 400) openMenu(+c.dataset.i, e.clientX, e.clientY);
+    const [x, y] = spot(e, c);
+    openMenu(+c.dataset.i, x, y);
   }
 
   function wire() {
@@ -529,7 +542,6 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
     document.addEventListener("pointerup", onUp, true);
     document.addEventListener("pointercancel", onUp, true);
     window.addEventListener("click", onClick, true);
-    window.addEventListener("click", onCtrlClick, true);
     window.addEventListener("click", onMenuClick, true);
     document.addEventListener("contextmenu", onContext, true);
     document.addEventListener(
@@ -547,6 +559,10 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
           e.preventDefault();
           e.stopPropagation();
           closeMenu();
+        } else if (e.key === "Enter" && document.activeElement && menuEl.contains(document.activeElement)) {
+          e.preventDefault();
+          e.stopPropagation();
+          document.activeElement.click();
         } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           e.preventDefault();
           e.stopPropagation();
@@ -572,5 +588,6 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
+  window.CurioMenu = { open: showMenu, close: closeMenu, spot, isOpen: () => !!menuEl };
   window.CurioStripDrag = { relative: () => rel, setRelative, move, moveGroup, stretch, stretchGroup, openMenu, closeMenu, run: (cmd, list) => COMMANDS[cmd] && COMMANDS[cmd](list) };
 })();

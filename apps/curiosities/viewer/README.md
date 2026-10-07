@@ -312,5 +312,10 @@ panel longer or shorter in quarter seconds. "One size" in the storyboard's top r
 where longer panels are wider (kept per device in `curio-strip-size-v1`). Picked panels drag and stretch
 together. Right-click or Ctrl+click a storyboard for its menu: Play from here, Copy, Cut, Paste after, Duplicate,
 Split in two, Join into one panel, Freeze frame after, Reverse their order, Length, Twice as fast, Half speed,
-Move to the start or end, Pick the whole scene, New scene here, Delete. ⌘+click (Alt+click) picks one more. API `window.CurioStripDrag`. Test:
+Move to the start or end, Pick the whole scene, New scene here, Delete. Ctrl+click (⌘+click on a Mac) picks
+one more; on a Mac Ctrl+click is a right-click; on a PC the menu key or Shift+F10 opens it too. Right-clicking an
+automation lane in Front and center opens the same kind of menu (`window.CurioMenu`): go to the panel, the
+curiosity's window, the curve, copy and paste the value, hold the value before, ramp from first to last, set to
+lowest, middle or highest, step up or down, clear the panel's own value, pick the lane, show this scene or the
+whole film; it works on every picked panel. Test: `node viewer/tests/lane-menu.js`. API `window.CurioStripDrag`. Test:
 `node viewer/tests/strip-drag.js`.

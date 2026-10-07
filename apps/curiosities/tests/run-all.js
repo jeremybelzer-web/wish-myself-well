@@ -100,6 +100,7 @@ const suites = [
   { name: "front and center lane", browser: true, secs: 10, ...node("viewer/tests/focus-lane.js") },
   { name: "scenes, picking storyboards and zoom", browser: true, secs: 12, ...node("viewer/tests/scenes.js") },
   { name: "dragging and stretching storyboards", browser: true, secs: 12, ...node("viewer/tests/strip-drag.js") },
+  { name: "automation lane menu", browser: true, secs: 10, ...node("viewer/tests/lane-menu.js") },
   { name: "scene focus pop-up", browser: true, secs: 15, ...node("viewer/tests/scene-focus.js") },
   { name: "viewer camera and windows", browser: true, secs: 12, ...node("viewer/tests/camera.js") },
   { name: "curve window", browser: true, secs: 12, ...node("viewer/tests/curve.js") },
