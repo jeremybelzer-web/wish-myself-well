@@ -43,7 +43,7 @@ const ok = (cond, msg) => {
 
 (async () => {
   const server = await serve();
-  const base = `http://127.0.0.1:${server.address().port}/index.html?viewer=1&paint=1`;
+  const base = `http://127.0.0.1:${server.address().port}/index.html?viewer=1`;
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];
@@ -226,32 +226,46 @@ const ok = (cond, msg) => {
   await undo();
   ok((await L((id) => CurioViewer.film().objects.find((o) => o.id === id).color, spots.thing.id)) === hex, "one Undo takes Forget back");
 
-  /* the app wears the painting's colours */
+  /* Recolor the app: its own tab, its own painting */
   const themeNow = () =>
     L(() => {
       const v = getComputedStyle(document.querySelector(".cv-root.cv-viewer"));
-      const p = CurioPaintTheme.palette(CurioPaintings.inForce().colors);
-      return { ground: v.getPropertyValue("--c-ground").trim(), accent: v.getPropertyValue("--c-accent").trim(), want: p, on: CurioPaintings.appOn(), tag: document.documentElement.dataset.painting };
+      const a = CurioPaintings.appPainting();
+      return { ground: v.getPropertyValue("--c-ground").trim(), accent: v.getPropertyValue("--c-accent").trim(), a, want: a == null ? null : CurioPaintTheme.palette(CurioPaintings.list()[a].colors), sheet: !!document.getElementById("cvp-theme") };
     });
   let th = await themeNow();
-  ok(th.on && th.ground === th.want.bg && th.accent === th.want.accent, `the Viewer wears the painting in force: background ${th.ground}, accent ${th.accent}`);
-  await L(() => CurioPaintings.choose(13));
+  ok(th.a === null && !th.sheet && th.ground === "#0f0f10", "the app starts in its own colours");
+  await L(() => CurioPaintings.open());
+  const tabs = await L(() => [...document.querySelectorAll(".cvp-tabs button")].map((b) => b.textContent));
+  ok(tabs.join("|") === "Recolor project elements|Recolor the app", "the window has two tabs: " + tabs.join(", "));
+  await page.click('.cvp-win [data-cvp="tab-app"]');
+  ok((await L(() => document.querySelectorAll(".cvp-win .cvp-row").length)) === 62 && !(await L(() => !!document.querySelector(".cvp-win .cvp-row.on"))), "Recolor the app lists all 62, none lit yet");
+  const proj = (await L(() => CurioPaintings.inForce())).i;
+  const appPick = proj === 13 ? 14 : 13;
+  await page.click(`.cvp-win .cvp-row[data-pick="${appPick}"]`);
   await settle();
   th = await themeNow();
-  ok(th.ground === th.want.bg && th.tag === "13", "choosing another painting recolours the app: " + th.ground);
-  await undo();
-  th = await themeNow();
-  ok(th.ground === th.want.bg && th.tag !== "13", "Undo puts the app's colours back too");
-  await L(() => CurioPaintings.open());
-  await page.click('.cvp-win [data-cvp="app"]');
-  th = await themeNow();
-  ok(!th.on && th.ground === "#0f0f10" && !(await L(() => !!document.getElementById("cvp-theme"))), "The app wears it: off gives the app its own colours back: " + th.ground);
+  ok(th.a === appPick && th.ground === th.want.bg && th.accent === th.want.accent, `a click there recolours the app: background ${th.ground}, accent ${th.accent}`);
+  ok((await L(() => CurioPaintings.inForce())).i === proj, "and leaves the project's painting alone");
+  ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(appPick), "the app's painting is lit in that tab");
+  await page.click('.cvp-win [data-cvp="tab-project"]');
+  ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(proj), "Recolor project elements still lights the project's painting");
+  const other = proj === 20 ? 21 : 20;
+  await page.click(`.cvp-win .cvp-row[data-pick="${other}"]`);
+  await settle();
+  ok((await L(() => CurioPaintings.inForce())).i === other && (await themeNow()).a === appPick, "choosing for the project doesn't change the app's colours");
+  if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "paintings-app.png") });
   await page.reload();
   await ready();
-  ok(!(await L(() => CurioPaintings.appOn())) && !(await L(() => !!document.getElementById("cvp-theme"))), "off is remembered on this device");
-  await L(() => CurioPaintings.setApp(true));
-  ok(await L(() => !!document.getElementById("cvp-theme")), "and on again");
-  if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "paintings-app.png") });
+  th = await themeNow();
+  ok(th.a === appPick && th.ground === th.want.bg, "the app's colours are remembered on this device");
+  await L(() => {
+    CurioPaintings.open();
+    CurioPaintings.tab("app");
+  });
+  await page.click('.cvp-win [data-cvp="app-own"]');
+  th = await themeNow();
+  ok(th.a === null && !th.sheet && th.ground === "#0f0f10", "The app's own colours puts the usual look back");
 
   /* a phone */
   await page.setViewportSize({ width: 390, height: 844 });

@@ -23,8 +23,8 @@
   const LIST = DATA.list;
   const N = LIST.length;
   const PREF = "curio-paintings-default-v1";
-  /* the app wearing the painting's colours: on unless turned off on this device */
-  const APP = "curio-paintings-app-v1";
+  /* the painting the app wears (Recolor the app), per device; none = the app's own colours */
+  const APP = "curio-paintings-app-v2";
   const V = () => window.CurioViewer;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const valid = (i) => Number.isInteger(i) && i >= 0 && i < N;
@@ -52,31 +52,31 @@
       else localStorage.setItem(PREF, String(i));
     } catch (e) {}
   }
-  /* automated test runs keep the app's own colours (so other parts' tests see the usual look) unless ?paint=1 */
-  let testRun = false;
-  try {
-    testRun = !!navigator.webdriver && !/[?&]paint=1\b/.test(location.search);
-  } catch (e) {}
-  function appOn() {
+  function appPainting() {
     try {
-      const v = localStorage.getItem(APP);
-      return v == null ? !testRun : v !== "0";
+      const raw = localStorage.getItem(APP);
+      const i = raw == null ? NaN : Number(raw);
+      return valid(i) ? i : null;
     } catch (e) {
-      return !testRun;
+      return null;
     }
   }
-  function setApp(on) {
+  function setAppPainting(i) {
+    if (i != null && !valid(i)) return false;
     try {
-      localStorage.setItem(APP, on ? "1" : "0");
+      if (i == null) localStorage.removeItem(APP);
+      else localStorage.setItem(APP, String(i));
     } catch (e) {}
-    say(on ? "the app wears the painting's colours" : "the app's own colours");
+    say(i == null ? "the app's own colours" : "app colours: " + label(i));
     render();
+    return true;
   }
   /* section 4: the Viewer, the Screen and these menus take the five, made readable first (paintings/theme.js) */
   let themed = "";
   function applyTheme() {
     const T = window.CurioPaintTheme;
-    const key = T && appOn() ? String(inForce().i) : "";
+    const a = appPainting();
+    const key = T && a != null ? String(a) : "";
     if (key === themed) return;
     themed = key;
     let st = document.getElementById("cvp-theme");
@@ -185,7 +185,6 @@
     else h += `<button type="button" data-cvp="default" title="Open on this painting every time, in every project that has none of its own">Keep these colours as the default</button>`;
     h += `<button type="button" data-cvp="random" title="Jump to a different random painting now">Another random painting</button>`;
     if (isRandom(s)) h += `<button type="button" data-cvp="keep" title="Save this painting with the project, so it opens on it">Keep it with this project</button>`;
-    if (window.CurioPaintTheme) h += `<button type="button" data-cvp="app" aria-pressed="${appOn()}" title="Colour the Viewer, the Screen and these menus with the painting's five colours (kept readable)">The app wears it: ${appOn() ? "on" : "off"}</button>`;
     return h;
   }
   function act(what) {
@@ -194,7 +193,13 @@
     else if (what === "random") anotherRandom();
     else if (what === "keep") keepWithProject();
     else if (what === "forget") forget();
-    else if (what === "app") setApp(!appOn());
+    else if (what === "app-own") setAppPainting(null);
+    else if (what === "tab-app" || what === "tab-project") {
+      tab = what.slice(4);
+      renderWindow();
+      const lit = win && win.querySelector(".cvp-row.on");
+      if (lit && lit.scrollIntoView) lit.scrollIntoView({ block: "nearest" });
+    }
     else if (what === "close") closeWindow();
     else if (what === "strip-close") strip(false);
   }
@@ -211,7 +216,7 @@
       win.setAttribute("aria-label", "Paintings");
       win.addEventListener("click", (e) => {
         const r = e.target.closest("[data-pick]");
-        if (r) return choose(+r.dataset.pick);
+        if (r) return tab === "app" ? setAppPainting(+r.dataset.pick) : choose(+r.dataset.pick);
         const b = e.target.closest("[data-cvp]");
         if (b) act(b.dataset.cvp);
       });
@@ -230,17 +235,28 @@
   function closeWindow() {
     if (win) win.hidden = true;
   }
+  /* two tabs: Recolor project elements (the paint strip's painting, kept with the project) and Recolor the app */
+  let tab = "project";
   function renderWindow() {
     if (!win || win.hidden) return;
     const s = inForce();
+    const a = appPainting();
     const list = win.querySelector(".cvp-list");
     const top = list ? list.scrollTop : 0;
-    win.innerHTML = `<header><b>Paintings</b><button type="button" data-cvp="close" aria-label="Close">×</button></header>
-      <p class="cvp-dim">The painting's five colours are what the paint strip offers: pick one, then click things in the picture to give them that colour.</p>
+    const lit = tab === "app" ? a : s.i;
+    const tabs = `<nav class="cvp-tabs" role="tablist"><button type="button" role="tab" data-cvp="tab-project" aria-selected="${tab === "project"}" class="${tab === "project" ? "on" : ""}">Recolor project elements</button><button type="button" role="tab" data-cvp="tab-app" aria-selected="${tab === "app"}" class="${tab === "app" ? "on" : ""}">Recolor the app</button></nav>`;
+    const top3 =
+      tab === "app"
+        ? `<p class="cvp-dim">The app takes the painting's five colours: the Viewer, the Screen and these menus. Each colour is made lighter or darker where needed so the words stay easy to read. Kept on this device.</p>
+      <div class="cvp-defaults"><span class="cvp-dim">The app wears: ${a == null ? "its own colours" : esc(LIST[a].name)}</span>${a == null ? "" : `<button type="button" data-cvp="app-own" title="Back to the app's usual dark colours">The app's own colours</button>`}</div>
+      <p class="cvp-hint">${a == null ? "Click a painting to give the app its colours." : `The app's colours: <b>${esc(label(a))}</b>.`}</p>`
+        : `<p class="cvp-dim">The painting's five colours are what the paint strip offers: pick one, then click things in the picture to give them that colour.</p>
       <div class="cvp-defaults">${defaultRow()}</div>
-      <p class="cvp-hint">The painting in force: <b>${esc(label(s.i))}</b> (${FROM[s.from]}). Control-click empty space in the picture for the paint strip, pick a colour, then click anything.</p>
-      <div class="cvp-list">${LIST.map((p, i) => `<button type="button" class="cvp-row${i === s.i ? " on" : ""}" data-pick="${i}" title="${esc(label(i))}"><span class="cvp-sw">${swatch(i)}</span><span class="cvp-name">${esc(p.name)}</span><span class="cvp-artist">${esc(p.artist)}</span></button>`).join("")}</div>`;
-    win.querySelector(".cvp-list").scrollTop = top;
+      <p class="cvp-hint">The painting in force: <b>${esc(label(s.i))}</b> (${FROM[s.from]}). Control-click empty space in the picture for the paint strip, pick a colour, then click anything.</p>`;
+    win.innerHTML = `<header><b>Paintings</b><button type="button" data-cvp="close" aria-label="Close">×</button></header>${tabs}${top3}
+      <div class="cvp-list" data-tab="${tab}">${LIST.map((p, i) => `<button type="button" class="cvp-row${i === lit ? " on" : ""}" data-pick="${i}" title="${esc(label(i))}"><span class="cvp-sw">${swatch(i)}</span><span class="cvp-name">${esc(p.name)}</span><span class="cvp-artist">${esc(p.artist)}</span></button>`).join("")}</div>`;
+    const nl = win.querySelector(".cvp-list");
+    if (list && list.dataset.tab === tab) nl.scrollTop = top;
   }
 
   /* ---------- the paint strip ---------- */
@@ -450,10 +466,13 @@
 .cvp-win, .cvp-strip, .cvp-menu { --p-bg:#0f0f10; --p-panel:#1c1c1e; --p-line:#2e2e33; --p-text:#ececee; --p-dim:#9b9ba3; --p-acc:#22d3ee; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--p-text); }
 .cvp-win[hidden], .cvp-strip[hidden], .cvp-menu[hidden], .cvp-status[hidden] { display: none !important; }
 .cvp-win button, .cvp-strip button, .cvp-menu button { font: inherit; color: inherit; cursor: pointer; }
-.cvp-win { position: fixed; z-index: 95; width: 460px; height: 520px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); box-sizing: border-box; display: grid; grid-template-rows: auto auto auto auto minmax(0, 1fr); gap: 6px; padding: 8px 10px 10px; background: var(--p-bg); border: 1px solid var(--p-line); border-radius: 10px; box-shadow: 0 14px 44px rgba(0,0,0,0.6); font-size: 13px; }
+.cvp-win { position: fixed; z-index: 95; width: 460px; height: 520px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); box-sizing: border-box; display: grid; grid-template-rows: auto auto auto auto auto minmax(0, 1fr); gap: 6px; padding: 8px 10px 10px; background: var(--p-bg); border: 1px solid var(--p-line); border-radius: 10px; box-shadow: 0 14px 44px rgba(0,0,0,0.6); font-size: 13px; }
 .cvp-win header { display: flex; justify-content: space-between; align-items: center; }
 .cvp-win header button { all: unset; cursor: pointer; font-size: 18px; padding: 0 4px; color: var(--p-dim); }
 .cvp-win p { margin: 0; }
+.cvp-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--p-line); }
+.cvp-tabs button { border: 0; border-bottom: 2px solid transparent; background: none; padding: 4px 8px; font-size: 12px; color: var(--p-dim); }
+.cvp-tabs button.on { color: var(--p-text); border-bottom-color: var(--p-acc); }
 .cvp-dim { color: var(--p-dim); font-size: 12px; }
 .cvp-hint { font-size: 12px; color: var(--p-dim); }
 .cvp-hint b { color: var(--p-text); font-weight: 600; }
@@ -547,7 +566,14 @@
     forget,
     key: PREF,
     appKey: APP,
-    appOn,
-    setApp,
+    appPainting,
+    setAppPainting,
+    tab: (t) => {
+      if (t === "app" || t === "project") {
+        tab = t;
+        renderWindow();
+      }
+      return tab;
+    },
   };
 })();

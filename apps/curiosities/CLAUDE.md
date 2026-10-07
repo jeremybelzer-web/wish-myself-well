@@ -117,7 +117,7 @@ Keep the static files and the look of this folder. Do not add a second git repo 
 
 ## Paintings (paintings/)
 
-**Paint ▾** in the Viewer's bar: the Paintings window (62 famous paintings as five-colour swatches, from Jeremy's music app) and the paint strip (Control-click empty space in the picture), which gives things in the picture a painting's colours, one undo step each. The project's painting is `film.painting`; the default is per device in `curio-paintings-default-v1`. The Viewer, the Screen and the menus also wear the painting's five colours, made readable first (`paintings/theme.js`; on/off per device in `curio-paintings-app-v1`). Read `paintings/README.md`.
+**Paint ▾** in the Viewer's bar: the Paintings window (62 famous paintings as five-colour swatches, from Jeremy's music app) and the paint strip (Control-click empty space in the picture), which gives things in the picture a painting's colours, one undo step each. The project's painting is `film.painting`; the default is per device in `curio-paintings-default-v1`. The window's second tab, Recolor the app, gives the Viewer, the Screen and the menus a painting's five colours, made readable first (`paintings/theme.js`; per device in `curio-paintings-app-v2`). Read `paintings/README.md`.
 
 ## Saving
 
