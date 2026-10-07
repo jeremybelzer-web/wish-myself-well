@@ -16,9 +16,12 @@ head = head
 const loader = (dir) => {
   const src = read(dir + "/load.js");
   const files = JSON.parse(src.match(/const FILES = (\[[^\]]*\])/)[1]);
-  const flag = src.match(/window\.(__\w+) = true/)[1];
   const sheet = fs.existsSync(path.join(APP, `${dir}/${dir}.css`)) ? [css(read(`${dir}/${dir}.css`))] : [];
-  return [...sheet, js(`window.${flag} = true;`), ...files.map((f) => js(read(dir + "/" + f)))];
+  // A load.js with no "window.__flag = true" (relations/) loads its files only when asked: inline the files, then
+  // keep load.js itself, which finds them already there and only adds its menu button.
+  const fm = src.match(/window\.(__\w+) = true/);
+  if (!fm) return [...sheet, ...files.map((f) => js(read(dir + "/" + f))), js(src)];
+  return [...sheet, js(`window.${fm[1]} = true;`), ...files.map((f) => js(read(dir + "/" + f)))];
 };
 // rig/load.js fetches the 3D files when someone first opens 3D. The link has no files to fetch, so the code rides
 // along in the page: a small hook hands each file load.js (or rig.js, for GLTFLoader.js) asks for to the page as an
