@@ -43,7 +43,7 @@
     ],
   };
   const NAMES = { lanes: "Front and center", strip: "the storyboard", rail: "the menu" };
-  let ws = { lanes: "auto", strip: "bottom", rail: "left" };
+  let ws = { lanes: "auto", strip: "bottom", rail: "left", follow: true };
   try {
     ws = Object.assign(ws, JSON.parse(localStorage.getItem(KEY) || "{}"));
   } catch (e) {}
@@ -105,7 +105,7 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .cv-root[data-ws-lanes]:not([data-ws-lanes="below"]) .cf-grip { display: none; }
 
 /* Front and center beside the picture, the same width, its nodes and lines wrapping like sheet music */
-.cv-root[data-ws-lanes="beside"] .cv-player { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto !important; }
+.cv-root[data-ws-lanes="beside"] .cv-player { grid-template-columns: minmax(0, var(--ws-stage-w, 1fr)) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto !important; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-stage { grid-column: 1; grid-row: 1; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-under { grid-column: 2; grid-row: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-transport { grid-column: 1 / -1; grid-row: 2; }
@@ -116,6 +116,12 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .cv-root[data-ws-lanes="beside"] .cf-charts .cf-list { grid-area: list; grid-column: auto; height: 64px; }
 .cv-root[data-ws-lanes="beside"] .cf-lanes { max-height: none !important; overflow: visible; }
 .ws-src { display: none !important; }
+.cv-root .cv-views-menu > .ws-follow { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 8px; border-bottom: 1px solid var(--c-line, #2e2e33); margin-bottom: 2px; }
+.ws-follow > span:last-child { display: grid; gap: 1px; }
+.ws-sw { position: relative; width: 32px; height: 18px; border-radius: 9px; background: #3a3a42; transition: background 0.15s; }
+.ws-sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+.ws-follow[aria-checked="true"] .ws-sw { background: #22d3ee; }
+.ws-follow[aria-checked="true"] .ws-sw::after { left: 16px; }
 .cf-charts > .ws-sheet { grid-area: sheet; }
 .ws-sheet { display: grid; grid-auto-rows: minmax(52px, 1fr); gap: 6px; min-height: 0; }
 .ws-sheet.ws-lanes { grid-auto-rows: auto; gap: 10px; }
@@ -130,7 +136,31 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   const wide = () => window.innerWidth > 1100;
   const active = (root) => !!root && root.classList.contains("cv-big") && !root.classList.contains("cv-comic") && wide();
   const pictures = (root) => root.querySelectorAll(".cv-wins .cv-win").length;
+  /* "Lanes follow the window" (Jeremy 2026-10-07 01:29Z, on by default, at the top of Views ▾): when the top part is
+     short enough that the pictures leave room at their side, they move over and the lanes take that room; when it
+     is tall enough for the pictures to fill the width, the lanes drop under them. */
+  const LANE_MIN = 400;
+  function fitSpot(root) {
+    const player = root.querySelector(".cv-player");
+    const tr = player && player.querySelector(":scope > .cv-transport");
+    const win = root.querySelector(".cv-wins .cv-win");
+    if (!player || !win || !win.offsetHeight) return { at: pictures(root) > 1 ? "below" : "beside" };
+    const ratio = win.offsetWidth / win.offsetHeight;
+    const n = pictures(root);
+    /* the pictures' height beside the lanes: the Player less its padding, the transport row and the gap */
+    const h = player.clientHeight - 12 - (tr ? tr.offsetHeight + 6 : 0) - 12;
+    const picsW = Math.round(n * h * ratio + (n - 1) * 10 + 16);
+    const room = player.clientWidth - 12 - picsW;
+    const was = root.dataset.wsLanes === "beside";
+    return { at: room >= (was ? LANE_MIN - 40 : LANE_MIN) ? "beside" : "below", picsW };
+  }
+  let fit = null;
   function lanesSpot(root) {
+    fit = null;
+    if (ws.lanes === "auto" && ws.follow) {
+      fit = fitSpot(root);
+      return fit.at;
+    }
     if (ws.lanes === "auto") return pictures(root) > 1 ? "below" : "beside";
     return ws.lanes;
   }
@@ -151,6 +181,12 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       set("wsLanes", lanes);
       set("wsStrip", on && ws.strip !== "bottom" ? ws.strip : "");
       set("wsRail", on && ws.rail !== "left" ? ws.rail : "");
+      /* following the window, the pictures keep their own width and the lanes take the rest */
+      if (player) {
+        if (lanes === "beside" && fit && fit.picsW) player.style.setProperty("--ws-stage-w", fit.picsW + "px");
+        else player.style.removeProperty("--ws-stage-w");
+      }
+      toggle(root);
       /* under the storyboards it leaves the Player for the end of the page; anywhere else it goes back */
       if (under && player) {
         if (lanes === "bottom" && under.parentNode !== root) root.insertBefore(under, root.querySelector(":scope > .cv-strip").nextSibling);
@@ -172,10 +208,39 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   function set(part, spot) {
     if (!SPOTS[part] || !SPOTS[part].some((s) => s[0] === spot)) return false;
     ws[part] = spot;
+    /* putting the lanes somewhere yourself stops them following the window */
+    if (part === "lanes") ws.follow = false;
     save();
     apply();
     after();
     return true;
+  }
+
+  /* the switch at the top of Views ▾ */
+  function follow(on) {
+    ws.follow = !!on;
+    if (on) ws.lanes = "auto";
+    save();
+    apply();
+    after();
+  }
+  function toggle(root) {
+    const m = root.querySelector(".cv-views-menu");
+    if (!m) return;
+    let b = m.querySelector(":scope > .ws-follow");
+    if (!b) {
+      b = document.createElement("button");
+      b.type = "button";
+      b.className = "ws-follow";
+      b.setAttribute("role", "menuitemcheckbox");
+      b.innerHTML = `<span class="ws-sw" aria-hidden="true"></span><span>Lanes follow the window<small>beside the pictures when there is room, under them when not</small></span>`;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        follow(!(ws.follow && ws.lanes === "auto"));
+      });
+      m.prepend(b);
+    }
+    b.setAttribute("aria-checked", String(ws.follow && ws.lanes === "auto"));
   }
 
   /* the storyboard at the side: as many cards in a row as fit at about 150px */
@@ -380,7 +445,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       /* the lane's own redraws (its graph and lanes rebuilt), not our copies of them */
       if (ms.some((m) => ![...m.addedNodes, ...m.removedNodes].every((n) => n.nodeType !== 1 || n.classList.contains("ws-sheet") || n.classList.contains("ws-slice") || n.classList.contains("ws-n") || (n.closest && n.closest(".ws-sheet"))))) soon();
     }).observe(box, { childList: true, subtree: true });
-    if (window.ResizeObserver) new ResizeObserver(soon).observe(box);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(soon);
+      ro.observe(box);
+      ro.observe(root.querySelector(".cv-player"));
+    }
     window.addEventListener("resize", soon);
     apply();
     after();
@@ -388,5 +457,5 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioWorkspace = { get: () => Object.assign({}, ws), set, spots: SPOTS, apply };
+  window.CurioWorkspace = { get: () => Object.assign({}, ws), set, follow, spots: SPOTS, apply };
 })();

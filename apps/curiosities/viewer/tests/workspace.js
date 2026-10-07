@@ -45,7 +45,8 @@ server.listen(0, "127.0.0.1", async () => {
   ok(d.wsLanes === "beside", "with one picture Front and center sits beside it (" + d.wsLanes + ")");
   const pic = await box(".cv-stage");
   const lane = await box(".cv-under");
-  ok(lane.l >= pic.r - 2 && Math.abs(lane.w - pic.w) < 40 && lane.t < pic.b, `it takes the room to the right of the picture, the same width (${Math.round(pic.w)} and ${Math.round(lane.w)})`);
+  const pw = await page.$eval(".cv-wins .cv-win", (e) => e.getBoundingClientRect().right);
+  ok(lane.l >= pw - 2 && lane.w >= 380 && lane.t < pic.b, `it takes the room to the right of the picture (${Math.round(lane.w)}px wide)`);
   const rows = await page.$$eval(".cv-under .cf-pane-focus .ws-sheet .ws-sys", (els) => els.map((e) => e.getBoundingClientRect().top));
   ok(rows.length >= 2 && rows.every((t, i) => !i || t > rows[i - 1]), `its nodes and lines wrap into ${rows.length} rows, one under the other`);
   await page.evaluate(() => CurioViewer.seek(CurioViewer.film().panels.reduce((a, p) => a + (p.sec || 1), 0) * 0.75));
@@ -104,6 +105,32 @@ server.listen(0, "127.0.0.1", async () => {
   d = await ds();
   ok(d.wsLanes === "below", "with two pictures Front and center goes back under them (" + d.wsLanes + ")");
   ok(!(await page.$(".cv-under .ws-sheet")), "in one long row again");
+  /* Lanes follow the window: a shorter top part leaves room beside two pictures, and the lanes move there */
+  const views = async () => (await page.isVisible(".cv-views-menu")) || page.click('[data-act="views"]');
+  await views();
+  await page.waitForTimeout(200);
+  ok((await page.getAttribute(".cv-views-menu > .ws-follow", "aria-checked")) === "true", "Views ▾ starts with a Lanes follow the window switch, on");
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await page.waitForTimeout(800);
+  d = await ds();
+  const pics = await page.$$eval(".cv-wins .cv-win", (els) => els.map((e) => e.getBoundingClientRect().right));
+  const ln = await box(".cv-under");
+  ok(d.wsLanes === "beside" && ln.l >= Math.max(...pics) - 2, `with the top part shorter, two pictures move over and the lanes take the room beside them (${d.wsLanes})`);
+  await page.screenshot({ path: path.join(SHOTS, "viewer-workspace-follow.png") });
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 0 }; CurioBorders.apply(); });
+  await page.waitForTimeout(800);
+  ok((await ds()).wsLanes === "below", "taller again, the pictures fill the width and the lanes drop under them");
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await views();
+  await page.click(".cv-views-menu > .ws-follow");
+  await page.waitForTimeout(600);
+  ok((await ds()).wsLanes === "below" && (await page.getAttribute(".cv-views-menu > .ws-follow", "aria-checked")) === "false", "switched off, the lanes stay under two pictures");
+  await page.click(".cv-views-menu > .ws-follow");
+  await page.waitForTimeout(600);
+  ok((await ds()).wsLanes === "beside", "switched back on, they follow the window again");
+  await page.evaluate(() => CurioWorkspace.set("lanes", "below"));
+  ok((await page.evaluate(() => CurioWorkspace.get().follow)) === false, "putting the lanes somewhere yourself turns the switch off");
+
   ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();
   server.close();
