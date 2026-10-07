@@ -63,7 +63,11 @@
       things.hidden = details.hidden = false;
       strip.style.height = "";
       strip.classList.remove("cvd-folded");
-      if (under) under.style.height = "";
+      strip.removeAttribute("data-cvd-sized");
+      if (under) {
+        under.style.height = "";
+        under.removeAttribute("data-cvd-sized");
+      }
       root.classList.remove("cvd-lane-folded");
       return place();
     }
@@ -75,8 +79,13 @@
     details.hidden = s.fold.right;
     strip.classList.toggle("cvd-folded", s.fold.strip);
     strip.style.height = s.fold.strip ? "0px" : s.strip ? s.strip + "px" : "";
+    /* a size you dragged wins over the Automation lanes tab's own (focus-lane.js), and viewer/fit.js fits what is inside to it */
+    strip.toggleAttribute("data-cvd-sized", !s.fold.strip && !!s.strip);
     root.classList.toggle("cvd-lane-folded", s.fold.lane);
-    if (under) under.style.height = s.lane && !s.fold.lane ? s.lane + "px" : "";
+    if (under) {
+      under.style.height = s.lane && !s.fold.lane ? s.lane + "px" : "";
+      under.toggleAttribute("data-cvd-sized", !!s.lane && !s.fold.lane);
+    }
     place();
   }
 

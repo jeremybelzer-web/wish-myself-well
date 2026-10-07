@@ -120,8 +120,9 @@
 .cv-root.cf-big .cf-ln-track { height: 42px; }
 .cv-root.cf-big .cf-ln.cf-ln-suite .cf-ln-track { height: 30px; }
 .cv-root.cf-big .cf-ln-name { padding-left: 6px; font-size: 12px; }
-.cv-root.cf-big .cv-under { height: auto !important; }
-.cv-root.cf-big .cv-strip { height: auto !important; padding-top: 2px; padding-bottom: 4px; }
+.cv-root.cf-big .cv-under:not([data-cvd-sized]) { height: auto !important; }
+.cv-root.cf-big .cv-strip:not([data-cvd-sized]) { height: auto !important; }
+.cv-root.cf-big .cv-strip { padding-top: 2px; padding-bottom: 4px; }
 .cv-root.cf-big .cv-card { flex-basis: 92px; }
 .cv-root.cf-big .cv-card .cv-cap, .cv-root.cf-big .cv-card .cv-how, .cv-root.cf-big .cv-card .cv-focus { display: none; }
 .cf-ln-dot:hover, .cf-ln-dot.cf-drag { outline: 2px solid #fff; }
