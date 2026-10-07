@@ -237,7 +237,7 @@ const ok = (cond, msg) => {
   ok(th.a === null && !th.sheet && th.ground === "#0f0f10", "the app starts in its own colours");
   await L(() => CurioPaintings.open());
   const tabs = await L(() => [...document.querySelectorAll(".cvp-tabs button")].map((b) => b.textContent));
-  ok(tabs.join("|") === "Recolor project curiosities|Recolor the app", "the window has two tabs: " + tabs.join(", "));
+  ok(tabs.join("|") === "Recolor project elements|Recolor the app", "the window has two tabs: " + tabs.join(", "));
   await page.click('.cvp-win [data-cvp="tab-app"]');
   ok((await L(() => document.querySelectorAll(".cvp-win .cvp-row").length)) === 62 && !(await L(() => !!document.querySelector(".cvp-win .cvp-row.on"))), "Recolor the app lists all 62, none lit yet");
   const proj = (await L(() => CurioPaintings.inForce())).i;
@@ -249,7 +249,7 @@ const ok = (cond, msg) => {
   ok((await L(() => CurioPaintings.inForce())).i === proj, "and leaves the project's painting alone");
   ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(appPick), "the app's painting is lit in that tab");
   await page.click('.cvp-win [data-cvp="tab-project"]');
-  ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(proj), "Recolor project curiosities still lights the project's painting");
+  ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(proj), "Recolor project elements still lights the project's painting");
   const other = proj === 20 ? 21 : 20;
   await page.click(`.cvp-win .cvp-row[data-pick="${other}"]`);
   await settle();

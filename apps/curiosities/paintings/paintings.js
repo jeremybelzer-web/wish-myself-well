@@ -235,7 +235,7 @@
   function closeWindow() {
     if (win) win.hidden = true;
   }
-  /* two tabs: Recolor project curiosities (the paint strip's painting, kept with the project) and Recolor the app */
+  /* two tabs: Recolor project elements (the paint strip's painting, kept with the project) and Recolor the app */
   let tab = "project";
   function renderWindow() {
     if (!win || win.hidden) return;
@@ -244,7 +244,7 @@
     const list = win.querySelector(".cvp-list");
     const top = list ? list.scrollTop : 0;
     const lit = tab === "app" ? a : s.i;
-    const tabs = `<nav class="cvp-tabs" role="tablist"><button type="button" role="tab" data-cvp="tab-project" aria-selected="${tab === "project"}" class="${tab === "project" ? "on" : ""}">Recolor project curiosities</button><button type="button" role="tab" data-cvp="tab-app" aria-selected="${tab === "app"}" class="${tab === "app" ? "on" : ""}">Recolor the app</button></nav>`;
+    const tabs = `<nav class="cvp-tabs" role="tablist"><button type="button" role="tab" data-cvp="tab-project" aria-selected="${tab === "project"}" class="${tab === "project" ? "on" : ""}">Recolor project elements</button><button type="button" role="tab" data-cvp="tab-app" aria-selected="${tab === "app"}" class="${tab === "app" ? "on" : ""}">Recolor the app</button></nav>`;
     const top3 =
       tab === "app"
         ? `<p class="cvp-dim">The app takes the painting's five colours: the Viewer, the Screen and these menus. Each colour is made lighter or darker where needed so the words stay easy to read. Kept on this device.</p>
