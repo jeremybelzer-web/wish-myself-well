@@ -1483,8 +1483,8 @@
 .cv-thing.off { opacity: 0.5; }
 .cv-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .cv-addrow { display: flex; flex-wrap: wrap; gap: 4px; }
-.cv-player { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; padding: 6px; gap: 6px; overflow: hidden; }
-.cv-stage { position: relative; min-height: 0; display: grid; place-items: center; }
+.cv-player { display: grid; grid-template-rows: minmax(120px, 1fr) auto auto; padding: 6px; gap: 6px; overflow: auto; }
+.cv-stage { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; }
 .cv-wins { display: grid; gap: 6px; justify-content: center; align-content: center; width: 100%; height: 100%; }
 .cv-win { position: relative; background: #000; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line); }
 .cv-win.is-mine { box-shadow: 0 0 0 1px var(--c-accent); }
@@ -1515,7 +1515,7 @@
 @media (prefers-reduced-motion: reduce) { .cv-slide-l, .cv-slide-r { animation: none; } }
 .cv-canvas.dragging { cursor: grabbing; }
 .cv-hud { position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: #fff; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; pointer-events: none; max-width: 70%; }
-.cv-transport { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cv-transport { position: relative; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--c-panel); }
 .cv-transport .cv-time { font-variant-numeric: tabular-nums; color: var(--c-dim); min-width: 92px; }
 .cv-transport input[type=range] { flex: 1 1 160px; width: auto; }
 .cv-play { min-width: 74px; }
@@ -1573,7 +1573,7 @@
   .cv-main { display: flex; flex-direction: column; padding: 6px 0; }
   .cv-pane, .cv-details, .cv-body, .cv-player { overflow: visible; }
   .cv-player { display: block; }
-  .cv-stage { display: block; margin-bottom: 6px; }
+  .cv-stage { display: block; margin-bottom: 6px; overflow: visible; }
   .cv-things { order: 3; }
   .cv-strip { padding: 6px 16px 16px; }
   .cv-root.cv-comic .cv-strip { min-height: 100vh; }
@@ -1608,6 +1608,7 @@
           <select data-k="look" title="The light of the whole film"><option value="dusk">Dusk light</option><option value="day">Daylight</option><option value="night">Night</option></select>
           <button type="button" data-act="undo" title="Undo (⌘Z)">Undo</button>
           <button type="button" data-act="redo" title="Redo (⇧⌘Z)">Redo</button>
+          <button type="button" data-act="perform" title="Performance and recording: the Transport (play, advance, record), Live inputs (MIDI, camera, voice) and Catalysts">Performance ▾</button>
           <button type="button" data-act="comic" title="See every panel big, like a comic book page">Read as a comic</button>
           <button type="button" data-act="sample" title="Throw away your changes and load the Episode 1 sample again">Start over</button>
           <button type="button" class="cv-primary" data-act="close" title="The full editor: every curiosity, the timeline and the automation lanes">Full editor ▸</button>
@@ -1853,7 +1854,9 @@
     W_EL.forEach((w, i) => (w.el.hidden = swipe && i !== shownWin));
     const n = swipe ? 1 : W_EL.length;
     const gap = 6;
-    const autoH = r.height < 60 || window.innerWidth <= 760;
+    /* On a phone the stage grows with its windows. On a wider screen the windows always fit the stage's height,
+       however short it is, so a new window never pushes the play row out of sight (Jeremy 2026-10-07). */
+    const autoH = window.innerWidth <= 760;
     let best = { cols: 1, w: r.width };
     for (let cols = 1; cols <= n; cols++) {
       const rows = Math.ceil(n / cols);
@@ -2487,6 +2490,8 @@
     switch (act) {
       case "play":
         return togglePlay();
+      case "perform":
+        return window.CurioTransport && window.CurioTransport.menu(b);
       case "addwin":
         return addWin();
       case "unpan":
