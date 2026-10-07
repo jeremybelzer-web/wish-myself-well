@@ -8,7 +8,7 @@
 (function () {
   if (window.__curioVideoLoad) return;
   window.__curioVideoLoad = true;
-  const FILES = ["measure.js", "clip.js", "ui.js"];
+  const FILES = ["measure.js", "looks.js", "framing.js", "rhythm.js", "shutter.js", "relight.js", "lanes.js", "detail.js", "widen.js", "clip.js", "ai.js", "depth.js", "mask.js", "ui.js"];
   const me = document.currentScript && document.currentScript.src;
   const base = me ? me.replace(/load\.js(\?.*)?$/, "") : "video/";
   const css = document.createElement("link");

@@ -194,12 +194,17 @@
         out.push(lane("chance:" + id, "chance:" + id, `How often: ${x.then}`, 1, 0.5));
       });
       out.push(psBlendLane());
+      out.push(psLockLane());
     }
     return out;
   }
   /* A proximity suite's Blend: the share of each member's effects that land (one dice roll per panel and member). */
   function psBlendLane() {
     return lane("blend", "blend", "Blend: how much of this group's cause and effect plays", 0, 1);
+  }
+  /* An elixir's Lock (off at first): switched on, it fires only where every ingredient lines up. */
+  function psLockLane() {
+    return lane("lock", "lock", "Lock: fires only when every ingredient is in", 1, 1);
   }
   /* A suite's Blend and a Weight per member (off at first). A suite may carry weights: {member: 0..1}. */
   function blendLanes(id) {
@@ -263,6 +268,7 @@
     if (p && p.lanes && paramOf(key) && paramOf(key).level === "suite" && !p.lanes.some((l) => l.id === "blend")) blendLanes(paramOf(key).id).forEach((l) => p.lanes.some((x) => x.id === l.id) || p.lanes.push(l));
     /* Proximity suite patches saved before Blend existed get it now, switched off. */
     if (p && p.lanes && paramOf(key) && paramOf(key).level === "proximity suite" && !p.lanes.some((l) => l.id === "blend")) p.lanes.push(psBlendLane());
+    if (p && p.lanes && paramOf(key) && paramOf(key).level === "proximity suite" && !p.lanes.some((l) => l.id === "lock")) p.lanes.push(psLockLane());
     return p;
   }
   function laneOf(key) {
@@ -286,9 +292,31 @@
     }
     return f < 0.5 ? 0 : 1;
   }
+  /* Outside sources, like an LFO but read from another part of the app (momentum: how stale attention is).
+     A patch or lane picks one as mod "source:<id>"; read() gives 0..1, times depth. */
+  const SOURCES = new Map();
+  function addSource(src) {
+    if (!src || !src.id || typeof src.read !== "function") return false;
+    SOURCES.set(String(src.id), { id: String(src.id), label: String(src.label || src.id), read: src.read });
+    emit("sources", { id: String(src.id) });
+    return true;
+  }
+  const isSource = (mod) => typeof mod === "string" && mod.startsWith("source:");
+  function sourceAt(mod) {
+    const src = SOURCES.get(mod.slice(7));
+    if (!src) return 0;
+    let v = 0;
+    try {
+      v = Number(src.read());
+    } catch (e) {
+      v = 0;
+    }
+    return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+  }
   function mOf(p, now) {
     if (!p.running) return null;
     if (p.mod === "manual" || p.mod === "midi") return p.manual;
+    if (isSource(p.mod)) return sourceAt(p.mod) * (p.depth == null ? 1 : p.depth);
     const phase = ((now - (t0[p.key] || now)) / 1000) * p.rate;
     return shapeAt(p.shape, phase, p.key) * p.depth;
   }
@@ -390,6 +418,7 @@
     const across = Number(o.across) || 0;
     if (o.mod === "follow") return master * (1 - across + across * rel);
     if (o.mod === "manual" || o.mod === "midi") return Math.max(0, Math.min(1, Number(o.manual) || 0)) * (1 - across + across * rel);
+    if (isSource(o.mod)) return sourceAt(o.mod) * (o.depth == null ? 1 : Number(o.depth)) * (1 - across + across * rel);
     const phase = ((now - (t0[key] || now)) / 1000) * (Number(o.rate) || 1) + (across * rel) / 2; /* half a cycle, so the two ends of the moment sit opposite */
     return shapeAt(o.shape || "sine", phase, key + ":" + Math.round(across * rel * 8)) * (o.depth == null ? 1 : Number(o.depth));
   }
@@ -473,11 +502,16 @@
       /* Blend: on each panel, each member's effect lands only when its dice roll is under the blend. */
       const bl = find("blend");
       const blended = (id, i) => !bl || dice(p.key, i, "blend:" + id) < share(bl, i);
+      /* Lock: an elixir fires only on panels where every ingredient (each member's cause) is already there,
+         like a key whose ridges all fit. Read before any member lands, so one ingredient can't unlock the rest. */
+      const ingredients = ps.members.map((id) => PROXIMITIES.find((x) => x.id === id)).filter(Boolean);
+      const unlocked = find("lock") ? panels.map((_, i) => ingredients.every((x) => holds(x.x, panels, i))) : null;
+      const opened = (i) => !unlocked || unlocked[i];
       ps.members.forEach((id) => {
         const prox = PROXIMITIES.find((x) => x.id === id);
         if (!prox) return;
         const chance = per("chance:" + id, null);
-        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) && blended(id, i) ? (chance ? chance(i) : 1) : 0) });
+        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) && opened(i) && blended(id, i) ? (chance ? chance(i) : 1) : 0) });
       });
     });
     return { panels, ms };
@@ -652,6 +686,9 @@
 
   window.CurioAuto = {
     PARAMS,
+    /* addSource({ id, label, read: () => 0..1 }): a modulation source next to LFO, knob and MIDI ("source:" + id). */
+    addSource,
+    sources: () => Array.from(SOURCES.values()).map((x) => ({ id: x.id, label: x.label, mod: "source:" + x.id, value: sourceAt("source:" + x.id) })),
     PROXIMITY_SUITES,
     param: paramOf,
     /* Per character (story workspaces): "c:arcStage" + "Nessa" -> "c:arcStage@Nessa", that character's own patch. */
@@ -692,6 +729,18 @@
       PARAMS.push(p);
       PARAM[p.key] = p;
     },
+    /* The Catalyst window's own elixirs: addElixir({id, label, members: [spark ids]}) makes it automatable. */
+    addElixir(e) {
+      if (!e || !e.id || PARAM["ps:" + e.id]) return;
+      const members = (e.members || []).filter((id) => PROXIMITIES.some((x) => x.id === id));
+      if (!members.length) return;
+      PROXIMITY_SUITES.push({ id: e.id, label: e.label || e.id, members });
+      const p = { key: "ps:" + e.id, level: "proximity suite", id: e.id, label: e.label || e.id, group: "proximity suite" };
+      PARAMS.push(p);
+      PARAM[p.key] = p;
+    },
+    /* Is a spark's cause there on panel i? (the Catalyst window's ingredients) */
+    holds: (x, panels, i) => !!(x && panels && panels[i] && holds(x, panels, i)),
     patch,
     CURVES,
     FACETS,

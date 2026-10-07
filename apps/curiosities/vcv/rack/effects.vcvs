@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 17 to 32\n   1 Wind\n   2 Chaos\n   3 Cloth reacts\n   4 Impacts per beat\n   5 Breaks\n   6 Settle time\n   7 Weight\n   8 Fur length\n   9 Clumping\n  10 Frizz\n  11 Hair color\n  12 Shine\n  13 Fur reacts to\n  14 Fur lag\n  15 Element\n  16 Thickness\nCV-CC 2: MIDI channel 3, CC 33 to 47\n   1 Growth\n   2 Curl\n   3 Splash\n   4 Scattered things\n   5 Fire lights the scene\n   6 suite: Storm\n   7 suite: Hearth\n   8 suite: Brawl\n   9 suite: Slow motion\n  10 suite: Drenched\n  11 suite: Backlit fluff\n  12 suite: Windblown\n  13 suite: Avalanche\n  14 suite: Drift\n  15 pair: When impacts rise, the shake rises"
+    "text": "EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 81 to 96\n   1 Wind\n   2 Chaos\n   3 Cloth reacts\n   4 Impacts per beat\n   5 Breaks\n   6 Settle time\n   7 Weight\n   8 Fur length\n   9 Clumping\n  10 Frizz\n  11 Hair color\n  12 Shine\n  13 Fur reacts to\n  14 Fur lag\n  15 Element\n  16 Thickness\nCV-CC 2: MIDI channel 6, CC 97 to 112\n   1 Growth\n   2 Curl\n   3 Splash\n   4 Scattered bits per area\n   5 Fire lights the scene\n   6 Forces in the air\n   7 Cloth\n   8 Things that crash and break\n   9 Bits in the air\n  10 Hair and fur\n  11 Water and liquids\n  12 Smoke and fire\n  13 Rain on the window\n  14 Breath you can see\n  15 The sky matches the mood\n  16 Fog that hides, then shows\nCV-CC 3: MIDI channel 7, CC 1 to 16\n   1 suite: Storm\n   2 suite: Fire lighting the room\n   3 suite: Brawl\n   4 suite: Slow motion\n   5 suite: Drenched\n   6 suite: Backlit fluff\n   7 suite: Windblown\n   8 suite: Avalanche\n   9 suite: Drift\n  10 suite: Underwater\n  11 suite: Shampoo ad hair\n  12 suite: Puddle stomp\n  13 suite: Waiting by the window\n  14 suite: A frozen night out\n  15 suite: Storm in the heart\n  16 suite: Out of the mist\nCV-CC 4: MIDI channel 7, CC 17 to 32\n   1 pair: When impacts rise, the shake rises\n   2 pair: When something crashes, the camera shakes\n   3 pair: When something heavy lands, hair and cloth settle a beat later\n   4 pair: When the wind picks up, cloth flies out\n   5 pair: When the wind picks up, hair streams one way\n   6 pair: When it rains, hair goes stringy\n   7 pair: When the water churns, foam builds\n   8 pair: When things break, the mess spreads\n   9 pair: When a strong edge light hits from behind, the hair shines\n  10 pair: When something shatters, pieces scatter across the floor\n  11 pair: When things feel heavy, they land and stop fast\n  12 pair: When things bounce like rubber, the comedy turns cartoon\n  13 pair: When the fur is long, it trails behind the move\n  14 pair: When fur lags behind the body, the move takes longer to settle\n  15 pair: When fur gets soaked, it clumps flat\n  16 pair: When a pet's fur is soaked flat, it looks pitiful and funny\nCV-CC 5: MIDI channel 7, CC 33 to 48\n   1 pair: When the wind picks up, the hair frizzes\n   2 pair: When fire is in the scene, it flickers light across faces\n   3 pair: When firelight floods the scene, the light turns warm\n   4 pair: When the smoke keeps building, it becomes a wall\n   5 pair: When smoke becomes a wall, the world shrinks to one person\n   6 pair: When the air turns chaotic, smoke breaks into curls\n   7 pair: When a splash bursts, the edit drops into slow motion\n   8 pair: When more rain runs down the glass, longing grows\n   9 pair: When a rain streak runs over the cheek, we feel with them\n  10 pair: When their breath mixes in the cold air, tenderness grows\n  11 pair: When the breath comes in gasps, tension rises\n  12 pair: When they hold their breath to hide, dread rises\n  13 pair: When the sky goes against the feeling, our feelings get mixed\n  14 pair: When the sky turns before the feeling, dread rises\n  15 pair: When the fog gets thicker, the questions pile up\n  16 pair: When a shape comes out of the fog first, we see only its outline\nCV-CC 6: MIDI channel 7, CC 49 to 59\n   1 pair: When a crowd comes out of the fog, awe rises\n   2 pairs: Weather hits everyone\n   3 pairs: The impact chain\n   4 pairs: The elements build\n   5 pairs: Bath time disaster\n   6 pairs: Long coat in motion\n   7 pairs: Lost in the smoke\n   8 pairs: Fire takes the room\n   9 pairs: Splash hang time\n  10 pairs: The weather of the heart\n  11 pairs: Something in the fog"
    },
    "pos": [
     0,
@@ -23,6 +23,102 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,16 +141,16 @@
      32
     ],
     "midi": {
-     "channel": 2
+     "channel": 6
     }
    },
    "pos": [
-    24,
+    48,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -74,14 +170,46 @@
      45,
      46,
      47,
-     -1
+     48
     ],
     "midi": {
-     "channel": 2
+     "channel": 6
     }
    },
    "pos": [
-    32,
+    56,
+    0
+   ]
+  },
+  {
+   "id": 9,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    64,
     0
    ]
   }

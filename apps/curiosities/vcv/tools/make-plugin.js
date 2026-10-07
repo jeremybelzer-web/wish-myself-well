@@ -24,7 +24,7 @@ const WS = Object.fromEntries(require("../../data/load-db.js").toJSON().workspac
 const mods = [];
 bank.jacks.forEach((j) => {
   let m = mods.find((x) => x.n === j.module);
-  if (!m) mods.push((m = { n: j.module, channel: j.channel, workspace: j.workspace, items: [] }));
+  if (!m) mods.push((m = { n: j.module, port: j.port || 1, channel: j.channel, workspace: j.workspace, items: [] }));
   m.items.push(j);
 });
 /* A workspace with several modules numbers them: "Comedy 1", "Comedy 2"... */
@@ -58,7 +58,7 @@ const manifest = {
   donateUrl: "",
   changelogUrl: "",
   modules: mods
-    .map((m) => ({ slug: m.slug, name: m.title, description: `${m.items.length} curiosities, suites and pairs from ${WS[m.workspace]}, one jack each, sent to the Curiosities app as MIDI CC on channel ${m.channel}.`, tags: ["Controller", "MIDI"] }))
+    .map((m) => ({ slug: m.slug, name: m.title, description: `${m.items.length} curiosities, suites and pairs from ${WS[m.workspace]}, one jack each, sent to the Curiosities app as MIDI CC on ${m.port > 1 ? "port " + m.port + ", " : ""}channel ${m.channel}.`, tags: ["Controller", "MIDI"] }))
     .concat([{ slug: "Curio-Return", name: "Return", description: "Place right of any Curiosities module: 16 outputs carry its items' current values back from the desktop app (OSC, UDP 7001) as 0 to 10 V.", tags: ["Controller", "Expander"] }])
     .concat([{ slug: "Curio-Focus", name: "Focus", description: "16 jacks for the sliders of the one item in focus in the Curiosities app (MIDI channel 16).", tags: ["Controller", "MIDI"] }]),
 };
@@ -78,7 +78,7 @@ include $(RACK_DIR)/plugin.mk
 
 /* ---------- the jack table (generated) ---------- */
 const banks = mods.map(
-  (m, i) => `  { ${cstr(m.slug)}, ${cstr(m.title)}, ${m.channel}, ${m.items.length}, {\n${m.items.map((j) => `    { ${j.cc}, ${levelOf(j.key)}, ${cstr(j.label)}, ${cstr(j.key)} },`).join("\n")}\n  } },`
+  (m, i) => `  { ${cstr(m.slug)}, ${cstr(m.title)}, ${m.port}, ${m.channel}, ${m.items.length}, {\n${m.items.map((j) => `    { ${j.cc}, ${levelOf(j.key)}, ${cstr(j.label)}, ${cstr(j.key)} },`).join("\n")}\n  } },`
 );
 fs.writeFileSync(
   path.join(OUT, "src", "bank.hpp"),
@@ -95,6 +95,7 @@ struct CurioJack {
 struct CurioBank {
   const char* slug;
   const char* title;
+  int port;          // which virtual MIDI cable: 1, or 2 and up once port 1's 1,680 CCs are full
   int channel;       // MIDI channel, 1 to 16
   int count;         // jacks in use, up to 16
   CurioJack jacks[16];
@@ -398,7 +399,7 @@ struct CurioWidget : ModuleWidget {
     setPanel(createPanel(asset::plugin(pluginInstance, "res/Curio.svg")));
     addChild(makeLabel(mm2px(Vec(4.f, 6.f)), mm2px(Vec(${HP * 5.08 - 8}f, 8.f)), bank->title, nvgRGB(0x21, 0x1d, 0x1a), 14.f));
     addChild(makeLabel(mm2px(Vec(4.f, 14.f)), mm2px(Vec(${HP * 5.08 - 8}f, 8.f)),
-      string::f("MIDI ch %d, CC %d-%d. Left jack: 0 V From, 10 V To. Right jack: on/off gate (OSC).", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
+      string::f("%sMIDI ch %d, CC %d-%d. Left jack: 0 V From, 10 V To. Right jack: on/off gate (OSC).", bank->port > 1 ? string::f("Port %d, ", bank->port).c_str() : "", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
       nvgRGB(0x6d, 0x65, 0x5d), 8.f));
     const char* names[16];
     int levels[16];
@@ -437,7 +438,7 @@ ${mods.map((m, i) => `  createModel<BankModule<${i}>, BankWidget<${i}>>(${cstr(m
 
 // ---------- Focus: one item's sliders, chosen in the app ----------
 static const CurioBank FOCUS_BANK = {
-  "Curio-Focus", "Focus", CURIO_FOCUS_CHANNEL, 16, {
+  "Curio-Focus", "Focus", 1, CURIO_FOCUS_CHANNEL, 16, {
     { 1, 0, "The item itself", "" }, { 2, 0, "Slider 2", "" }, { 3, 0, "Slider 3", "" }, { 4, 0, "Slider 4", "" },
     { 5, 0, "Slider 5", "" }, { 6, 0, "Slider 6", "" }, { 7, 0, "Slider 7", "" }, { 8, 0, "Slider 8", "" },
     { 9, 0, "Slider 9", "" }, { 10, 0, "Slider 10", "" }, { 11, 0, "Slider 11", "" }, { 12, 0, "Slider 12", "" },

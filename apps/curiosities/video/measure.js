@@ -27,15 +27,20 @@
        per sample] }, nodes: { curiosity: [{ t, value }] }, moments: [{ start, end, label }], lanes: { curiosity:
        [value per moment] }, how: { curiosity: { how: "measured" | "estimated", from } }, summary: [sentences] }
    - LIST: every curiosity a clip is measured for, with its group, its engine track and how it is measured.
+   - lanesOf(dissection) -> every lane of the clip [{ id, group, track, how, from, nodes }], the newer measures
+     (video/lanes.js: palette, grain, frame shape, shot framing, camera height, rhythm) included
    - engineCommands(dissection, engineState, opts) -> commands for CurioEngine.send({ type: "batch" }): one
      automation lane per curiosity on My film, with a node only where the value changes.
    APPLYING (one clip's curiosities onto another)
    - GROUPS: what can be applied, one by one (light, contrast, color, warmth, shake, camera move, shot size,
      cuts, movement speed, loudness, dialogue).
-   - plan(inspiration, target, { mode: "same" | "stretch", on: { group: amount 0..1 }, title, lines? }) -> a plan
-   - at(plan, t) -> { src, luma, contrast, sat, warm, dx, dy, zoom, cx, cy, gainDb, duck, line }   what to do to
+   - plan(inspiration, target, { mode: "same" | "stretch", on: { group: amount 0..1 }, title, lines?, wider? }) -> a plan
+     (wider: false keeps "How close the shot is" from ever making the shot wider)
+   - at(plan, t) -> { src, luma, contrast, sat, warm, dx, dy, zoom, widen?, cx, cy, gainDb, duck, line }   what to do to
      the frame shown at output time t
    - paint(data, w, h, adj, mean) -> changes RGBA pixels in place (light, contrast, color, warmth)
+   - palette, grain and softness, frame shape: measured and drawn by video/looks.js (CurioLooks); at() gives
+     their changes as adj.looks
    - fitDialogue(title, phrases, opts) -> [{ start, end, text, syll }]   new lines on the title's topic, one per
      phrase of the inspiration's speech, each as long (in syllables and seconds) as the phrase it replaces
    - syllables(text), corr(a, b), series(dissection, feature), score(plan, before, after): checks
@@ -377,6 +382,7 @@
     const times = clip.samples.map((x) => r3(x.t));
     const get = (k) => clip.samples.map((x) => x.s[k]);
     const raw = { luma: get("luma"), std: get("std"), sat: get("sat"), warm: get("warm"), skin: get("skin"), skinX: get("skinX"), skinY: get("skinY"), colors: get("colors") };
+    if (clip.samples.some((x) => x.s.roll)) raw.roll = get("roll"); /* { deg, conf } per sample (framing.js), kept as it is */
     /* Cuts: a big jump in the colors that stands well above the frames on either side and that sliding the
        picture does not explain. */
     const hd = clip.samples.map((x, i) => (i ? histDistance(clip.samples[i - 1].s.hist, x.s.hist) : 0));
@@ -535,7 +541,7 @@
     const minHold = Math.max(0.4, Math.min(1.5, F.dur / 40));
     const sm = {};
     const w = Math.max(0, Math.round(minHold / 2 / F.dt));
-    Object.keys(F.raw).forEach((k) => (sm[k] = /^(wobX|wobY|steadyX|steadyY|zoomPos)$/.test(k) ? F.raw[k] : smooth(F.raw[k], w)));
+    Object.keys(F.raw).forEach((k) => (sm[k] = /^(wobX|wobY|steadyX|steadyY|zoomPos|roll)$/.test(k) ? F.raw[k] : smooth(F.raw[k], w)));
     const fs = F.times.map((_, i) => {
       const f = {};
       Object.keys(sm).forEach((k) => (f[k] = sm[k][i]));
@@ -604,8 +610,17 @@
   }
 
   /* ---------- onto My film's automation lanes ---------- */
+  /* Every lane of a clip: the curiosities above, then the newer measures (video/lanes.js: palette, grain and
+     softness, frame shape, shot framing, camera height, rhythm) when it is loaded. [{ id, name?, group, track,
+     how, from, nodes }] */
+  function lanesOf(d) {
+    if (!d) return [];
+    if (root.CurioVideoLanes) return root.CurioVideoLanes.of(d);
+    return LIST.filter((c) => d.nodes && d.nodes[c.id]).map((c) => Object.assign({}, c, { nodes: d.nodes[c.id] }));
+  }
   /* One lane per curiosity, stretched over the film's moments, with a node only where the value changes. The
-     lane holds between nodes (a change is a step, as in the clip). */
+     lane holds between nodes (a change is a step, as in the clip). A lane whose curiosity this app doesn't know
+     is left out, so the batch never fails. */
   function engineCommands(d, st, opts) {
     opts = opts || {};
     const only = opts.only ? new Set(opts.only) : null;
@@ -613,21 +628,36 @@
     if (!rows.length) return [];
     const kindTrack = (kind) => (st.tracks || []).find((t) => t.kind === kind) || (st.tracks || [])[0];
     const cmds = [];
-    const added = {};
-    LIST.forEach((c) => {
-      if (!d.nodes[c.id] || (only && !only.has(c.id))) return;
-      const t = kindTrack(c.track);
+    const added = {},
+      extra = {};
+    lanesOf(d).forEach((c) => {
+      if (!c.nodes || !c.nodes.length || (only && !only.has(c.id))) return;
+      if (S() && c.nodes.some((n) => S().fix(c.id, n.value) == null)) return;
+      let t = kindTrack(c.track);
       if (!t) return;
-      const has = (t.curiosities || []).includes(c.id) || (added[t.id] || []).includes(c.id);
+      const full = (x) => (x.curiosities || []).length + (added[x.id] || []).length >= 24;
+      const on = (x) => (x.curiosities || []).includes(c.id) || (added[x.id] || []).includes(c.id);
+      /* A full track (24 curiosities) spills into a second one next to it, made once. */
+      if (!on(t) && full(t)) {
+        const id = t.id + "-more";
+        let more = (st.tracks || []).find((x) => x.id === id) || extra[id];
+        if (!more) {
+          if ((st.tracks || []).length + Object.keys(extra).length >= 16) return;
+          more = extra[id] = { id, curiosities: [] };
+          cmds.push({ type: "addTrack", id, kind: "other", label: t.label + ", more" });
+        }
+        t = more;
+      }
+      const has = on(t);
       if (!has) {
-        if ((t.curiosities || []).length + (added[t.id] || []).length >= 24) return;
+        if (full(t)) return;
         cmds.push({ type: "addCuriosity", track: t.id, curiosity: c.id });
         (added[t.id] = added[t.id] || []).push(c.id);
       } else if (st.lanes && st.lanes[t.id + "|" + c.id]) cmds.push({ type: "clearLane", track: t.id, curiosity: c.id });
       let last = null;
       rows.forEach((r, i) => {
         const tm = ((i + 0.5) * d.duration) / rows.length;
-        const v = valueAt(d.nodes[c.id], tm);
+        const v = valueAt(c.nodes, tm);
         if (v == null || v === last) return;
         cmds.push({ type: "setPoint", row: r.id, track: t.id, curiosity: c.id, value: v });
         last = v;
@@ -636,12 +666,16 @@
     });
     return cmds;
   }
-  /* The dissection as an engine reference (values per moment only), for the engine's Analyze list. */
+  /* The dissection as an engine reference (values per moment only), for the engine's Analyze list: every lane,
+     so any of them can be carried onto a film (cross-pollinate). */
   function toRef(d) {
-    return { name: d.title.slice(0, 60), kind: "video", rows: d.moments.map((m) => m.label), lanes: d.lanes };
+    const lanes = {};
+    lanesOf(d).forEach((c) => (lanes[c.id] = d.moments.map((m) => valueAt(c.nodes, (m.start + m.end) / 2))));
+    return { name: d.title.slice(0, 60), kind: "video", rows: d.moments.map((m) => m.label), lanes };
   }
 
   /* ---------- applying one clip's curiosities to another ---------- */
+  const WIDEST = 0.8; /* a wider shot: the picture fills at least 80% of the frame (video/widen.js MIN) */
   const GROUPS = [
     { id: "light", label: "Light and dark", curiosities: ["valueKey", "setBrightness"], check: "luma", plain: "Brightens and darkens the clip so it gets lighter and darker exactly when, and as fast as, the inspiration does." },
     { id: "contrast", label: "Contrast", curiosities: ["contrast"], check: "std", plain: "Pulls the darks and lights apart or together to follow the inspiration's contrast." },
@@ -649,11 +683,22 @@
     { id: "warmth", label: "Warm and cool", curiosities: ["warmCool", "colorTemp"], check: "warm", plain: "Tints the clip warmer (orange) or cooler (blue) as the inspiration does." },
     { id: "shake", label: "Camera shake", curiosities: ["cameraShake", "cameraCarry"], check: "jitter", plain: "Steadies the clip's own wobble and adds the inspiration's, frame by frame, as if the same hand held the camera." },
     { id: "move", label: "Camera moves", curiosities: ["cameraMove", "moveSpeed"], check: "panX", plain: "Slides and pushes the frame the way the inspiration's camera pans, tilts and pushes in." },
-    { id: "size", label: "How close the shot is", curiosities: ["shotSize"], check: "skin", plain: "Moves in closer on the people when the inspiration is closer (it can only move in, not out)." },
+    { id: "size", label: "How close the shot is", curiosities: ["shotSize"], check: "skin", plain: "Moves in closer on the people when the inspiration is closer, and makes the shot wider when the inspiration is wider: your picture shrinks into the middle and the new edges are filled in (free in the browser, up to 25% wider; a paid AI fill paints them on a still frame). Turn off \"Wider shots\" to only ever move in." },
     { id: "cuts", label: "Cuts", curiosities: ["cutRate"], check: "cuts", plain: "Cuts where the inspiration cuts, by jumping ahead a little (a jump cut). Cuts already in the clip stay." },
     { id: "speed", label: "Movement speed", curiosities: ["movementAmount"], check: "local", plain: "Speeds the clip up where the inspiration moves more and slows it down where it moves less." },
     { id: "loud", label: "Loudness", curiosities: ["volume", "emoVoice"], check: "db", plain: "Turns the sound up and down so it gets louder and quieter with the inspiration." },
     { id: "dialogue", label: "Dialogue tempo", curiosities: ["wordsAmount", "pace"], check: "speech", plain: "Writes new lines about the clip's title and times them to the inspiration's sentences: same lengths, same pauses, same syllables per second." },
+    /* Element groups: they need AI cut-outs of both clips (video/mask.js), and change only that element. */
+    { id: "wardrobe", label: "Clothes color", curiosities: ["colorRange"], check: "el:clothes", needs: "elements", plain: "Finds the people's clothes in every frame (AI cut-out) and recolors only the clothes to the inspiration's clothes colors, changing when theirs change." },
+    { id: "hair", label: "Hair color", curiosities: ["colorRange"], check: "el:hair", needs: "elements", plain: "Finds hair in every frame and recolors only the hair to the inspiration's hair color." },
+    { id: "figure", label: "Person size and place", curiosities: ["shotSize"], check: "el:person", needs: "elements", plain: "Cuts the people out and makes them as big in the frame, and as far left or right, as the inspiration's people, moment by moment. The gap they leave is filled from the background around it." },
+    { id: "angle", label: "Camera angle (high or low)", curiosities: ["shotSize"], check: "el:angle", needs: "elements", off: true, plain: "Guesses how high the inspiration's camera is (from how much hair shows against faces, and how low people sit in the frame), then cuts your people out and tips the camera a little higher or lower to match: the set leans and slides less than the people, as if seen from a new height. Small changes only: a big angle change needs a full 3D rebuild. Off unless you turn it on." },
+    { id: "framing", label: "Shot framing", curiosities: ["shotSize"], check: "el:framing", needs: "elements", off: true, plain: "Finds where the inspiration's main person sits in the frame (their eyes on a third or in the middle, the room above their head, how much of the frame they fill, the room in front of them) and moves a virtual camera over your clip to frame your person the same way: it zooms in and pans to follow them, smoothly, like a camera operator. It can only zoom in, so the edges never go black. Dutch tilt (optional): the inspiration's horizon roll too. Off unless you turn it on." },
+    { id: "set", label: "The set (background)", curiosities: ["background"], check: "el:background", needs: "elements", off: true, plain: "Keeps your clip's people and puts them in the inspiration's place: its background, moving as it moves, with its own people still there behind yours. Off unless you turn it on." },
+    /* Look groups: they need both clips' looks (video/looks.js, measured when a clip comes in). */
+    { id: "palette", label: "Borrowed palette", curiosities: ["colorRange", "colorTemp"], check: "lk:palette", needs: "looks", plain: "Carries the inspiration's color grade over: your clip's darks, mids and lights in each color are moved to where the inspiration's are, moment by moment. Skin keeps most of its own color." },
+    { id: "grain", label: "Grain and softness", curiosities: ["lightingLens"], check: "lk:grain", needs: "looks", plain: "Measures how grainy and how sharp or soft the inspiration's picture is, then softens or sharpens your clip to match and adds the same film grain." },
+    { id: "shape", label: "Frame shape", curiosities: ["shotSize"], check: "lk:shape", needs: "looks", off: true, plain: "Gives your clip the inspiration's picture shape (black bars for a wide film look, or a tall or square frame) and darkens its edges as much as the inspiration's (vignette). Off unless you turn it on." },
     { id: "overlay", label: "Lay its graphics over", curiosities: ["colorRange"], check: "sat", off: true, plain: "Lays the inspiration's own picture over your clip with its plain light background taken out, so only its graphics (shapes, logos, colored text) show on top. For motion graphics like a title sequence. Off unless you turn it on." },
   ];
   /* Interpolate a per-sample series at time t. */
@@ -674,7 +719,7 @@
       const v = opts.on ? opts.on[g.id] : g.off ? 0 : 1; /* given a list, what it leaves out is off */
       on[g.id] = v === true ? 1 : clamp(Number(v) || 0, 0, 1);
     });
-    const p = { mode, on, insp, target, fps: 30 };
+    const p = { mode, on, insp, target, fps: 30, wider: opts.wider !== false };
     /* The inspiration's time for an output time: the same seconds (repeating when the clip is longer), or the
        whole inspiration stretched over the clip. */
     p.tA = (t, outDur) => (mode === "stretch" ? (t * insp.duration) / Math.max(0.001, outDur || target.duration) : insp.duration > 0 ? t % insp.duration : 0);
@@ -709,8 +754,8 @@
       }
       t += step;
     }
-    p.src = src;
-    p.duration = r3(src.length * step);
+    p.src = root.CurioRhythm ? root.CurioRhythm.retime(p, src) : src; /* video/rhythm.js: jumps and holds on the beat */
+    p.duration = r3(p.src.length * step);
     /* Dialogue: new lines on the title's topic, one per phrase of the inspiration's speech, at its times. */
     p.lines = [];
     if (on.dialogue > 0 && insp.speech && insp.speech.phrases.length) {
@@ -725,7 +770,7 @@
             if (a < p.duration - 0.2) pattern.push({ start: a, end: Math.min(p.duration, rep * insp.duration + ph.end), syll: ph.syll });
           });
       }
-      p.lines = opts.lines && opts.lines.length ? opts.lines : fitDialogue(opts.title || target.title, pattern, { seed: opts.seed });
+      p.lines = opts.lines && opts.lines.length ? opts.lines : fitDialogue(opts.title || target.title, pattern, { seed: opts.seed, pool: opts.pool });
     }
     /* The inspiration's camera moves, made to fit inside the frame's spare edge: its pans and tilts (the steady
        path with its slow drift over two seconds taken out, so a long pan does not run off the frame) and its
@@ -762,6 +807,24 @@
       }
       p.overlayFrom = r3(from);
     }
+    /* Another clip's set: start it where it is most colorful too (a title sequence opens on a plain card). */
+    if (on.set) {
+      const span = Math.min(insp.duration, p.duration);
+      let from = 0,
+        best = -1;
+      if (opts.setFrom != null) from = clamp(Number(opts.setFrom) || 0, 0, Math.max(0, insp.duration - 0.1));
+      else if (insp.duration > span + 0.5)
+        for (let a = 0; a + span <= insp.duration + 1e-6; a += 0.5) {
+          const m = mean(insp.times.map((t, i) => (t >= a && t < a + span ? insp.raw.sat[i] : null)).filter((x) => x != null));
+          if (m > best) {
+            best = m;
+            from = a;
+          }
+        }
+      p.setFrom = r3(from);
+    }
+    /* Shot framing: the virtual camera's whole move, worked out once (video/framing.js). */
+    if (on.framing && root.CurioFraming) p.framing = root.CurioFraming.path(p, opts.framing);
     if (on.shake || on.move) {
       const need = [];
       for (let k = 0; k < p.src.length; k += 3) {
@@ -813,6 +876,9 @@
     if (on.size) {
       const [a, b] = g("skin");
       if (a > 0.005 && b > 0.002 && a > b) zoom = Math.max(zoom, mix(clamp(Math.sqrt(a / b), 1, 1.8), on.size));
+      /* A wider inspiration: the picture shrinks and its new edges are filled in (video/widen.js). */
+      if (p.wider !== false && a > 0.002 && b > 0.005 && a < b) adj.widen = r3(mix(clamp(Math.sqrt(a / b), WIDEST, 1), on.size));
+      if (adj.widen >= 0.999) delete adj.widen;
       adj.cx = sampleAt(B, B.raw.skinX, s);
       adj.cy = sampleAt(B, B.raw.skinY, s);
     }
@@ -846,6 +912,7 @@
       zoom = z;
     } else zoom *= push;
     adj.zoom = r3(Math.max(1, zoom));
+    if (p.rhythm && root.CurioRhythm) root.CurioRhythm.at(p, t, adj); /* video/rhythm.js: punch-ins and flashes */
     if (on.loud && A.raw.db && B.raw.db) {
       const [a, b] = g("db");
       adj.gainDb = clamp(a - b, -24, 18) * on.loud;
@@ -854,12 +921,143 @@
       const room = Math.max(0.1, A.duration - (p.overlayFrom || 0));
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
+    if (p.framing) adj.frame = root.CurioFraming.at(p, t);
+    if (on.relight && root.CurioRelight) adj.relight = root.CurioRelight.at(p, ta, s); /* video/relight.js: the key light */
+    if (on.shutter && root.CurioShutter) adj.shutter = root.CurioShutter.at(p, t); /* video/shutter.js: motion feel */
+    if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
+    if ((on.palette || on.grain || on.shape) && root.CurioLooks) adj.looks = root.CurioLooks.at(p, ta, s); /* video/looks.js */
     if (on.dialogue && p.lines.length) {
       adj.line = lineAt(p, t);
       adj.duck = on.dialogue; /* the clip's own voices step back under the new lines */
     }
     return adj;
   }
+  /* ---------- elements (AI cut-outs) ----------
+     A cut-out is a label per pixel (0 background, 1 hair, 2 body skin, 3 face skin, 4 clothes, 5 other: the
+     MediaPipe selfie multiclass labels). PARTS names the elements made from them; partStats measures each one in a
+     frame; a clip's elements are those measures over time ({ times, dt, parts: { id: { area, cx, cy, top, bottom,
+     r, g, b } } }), made by CurioMask.scan. */
+  const PARTS = [
+    { id: "person", label: "People", ids: [1, 2, 3, 4, 5] },
+    { id: "hair", label: "Hair", ids: [1] },
+    { id: "face", label: "Faces", ids: [3] },
+    { id: "clothes", label: "Clothes", ids: [4] },
+    { id: "background", label: "The set (background)", ids: [0] },
+  ];
+  function partStats(labels, rgba, w, h) {
+    const out = {};
+    PARTS.forEach((pt) => {
+      const want = new Uint8Array(8);
+      pt.ids.forEach((i) => (want[i] = 1));
+      let n = 0,
+        sx = 0,
+        sy = 0,
+        sr = 0,
+        sg = 0,
+        sb = 0,
+        top = h,
+        bottom = -1,
+        vw = 0,
+        vr = 0,
+        vg = 0,
+        vb = 0;
+      for (let i = 0; i < w * h; i++) {
+        if (!want[labels[i] & 7]) continue;
+        const x = i % w,
+          y = (i / w) | 0;
+        n++;
+        sx += x;
+        sy += y;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (rgba) {
+          const R = rgba[i * 4],
+            G = rgba[i * 4 + 1],
+            B = rgba[i * 4 + 2];
+          sr += R;
+          sg += G;
+          sb += B;
+          /* its vivid color: weighted toward the most colorful pixels (a teal stripe, not the average brown) */
+          const mx = Math.max(R, G, B),
+            sat = mx ? (mx - Math.min(R, G, B)) / mx : 0,
+            wv = sat * sat * (mx / 255) * (mx / 255) + 1e-4; /* dark pixels' noisy hues count little */
+          vw += wv;
+          vr += R * wv;
+          vg += G * wv;
+          vb += B * wv;
+        }
+      }
+      out[pt.id] = n
+        ? { area: r3(n / (w * h)), cx: r3(sx / n / w), cy: r3(sy / n / h), top: r3(top / h), bottom: r3((bottom + 1) / h), r: r3(sr / n / 255), g: r3(sg / n / 255), b: r3(sb / n / 255), vr: r3(vw ? vr / vw / 255 : 0), vg: r3(vw ? vg / vw / 255 : 0), vb: r3(vw ? vb / vw / 255 : 0) }
+        : { area: 0, cx: 0.5, cy: 0.5, top: 0, bottom: 0, r: 0, g: 0, b: 0, vr: 0, vg: 0, vb: 0 };
+    });
+    return out;
+  }
+  /* A clip's elements from its cut-out looks: [{ t, stats }] -> series, lightly smoothed. */
+  function elementSeries(looks) {
+    const times = looks.map((l) => l.t);
+    const dt = times.length > 1 ? (times[times.length - 1] - times[0]) / (times.length - 1) : 1;
+    const parts = {};
+    PARTS.forEach((pt) => {
+      const o = {};
+      ["area", "cx", "cy", "top", "bottom", "r", "g", "b", "vr", "vg", "vb"].forEach((k) => (o[k] = smooth(looks.map((l) => (l.stats[pt.id] ? l.stats[pt.id][k] : 0)), 1)));
+      parts[pt.id] = o;
+    });
+    return { times, dt: r3(dt), parts };
+  }
+  function elAt(el, part, key, t) {
+    const arr = el && el.parts[part] && el.parts[part][key];
+    if (!arr || !arr.length) return 0;
+    return sampleAt({ times: el.times, dt: el.dt }, arr, t);
+  }
+  /* How high the camera seems (-1 below the people, 0 eye level, +1 above them), a guess: from above you see
+     more hair against the face, and people sit lower in the frame. null when no faces or hair show. */
+  function angleCue(el, t) {
+    const hair = elAt(el, "hair", "area", t),
+      face = elAt(el, "face", "area", t);
+    if (hair + face < 0.004) return null;
+    const ratio = hair / (hair + face),
+      cy = elAt(el, "person", "cy", t);
+    return r3(clamp((ratio - 0.45) / 0.25, -1, 1) * 0.6 + clamp((cy - 0.55) / 0.25, -1, 1) * 0.4);
+  }
+  /* What to do to each element at one output moment (for clip.js / mask.js to draw). */
+  function partsAt(p, ta, s) {
+    const A = p.insp.elements,
+      B = p.target.elements,
+      on = p.on;
+    if (!A || !B) return null;
+    const out = {};
+    const color = (part) => {
+      if (elAt(A, part, "area", ta) < 0.003) return null;
+      const v = A.parts[part].vr ? "v" : "";
+      return [elAt(A, part, v + "r", ta), elAt(A, part, v + "g", ta), elAt(A, part, v + "b", ta)].map(r3);
+    };
+    if (on.wardrobe) {
+      const c = color("clothes");
+      if (c) out.clothes = { color: c, amount: on.wardrobe };
+    }
+    if (on.hair) {
+      const c = color("hair");
+      if (c) out.hair = { color: c, amount: on.hair };
+    }
+    if (on.figure) {
+      const aA = elAt(A, "person", "area", ta),
+        aB = elAt(B, "person", "area", s);
+      if (aA > 0.01 && aB > 0.01) {
+        const scale = 1 + (clamp(Math.sqrt(aA / aB), 0.55, 1.6) - 1) * on.figure;
+        const dx = (elAt(A, "person", "cx", ta) - elAt(B, "person", "cx", s)) * on.figure;
+        out.person = { scale: r3(scale), dx: r3(dx) };
+      }
+    }
+    if (on.angle) {
+      const a = angleCue(A, ta),
+        b = angleCue(B, s);
+      if (a != null && b != null) out.angle = { tilt: r3(clamp(a - b, -1, 1) * on.angle) };
+    }
+    if (on.set) out.background = { t: r3(p.setFrom ? (p.setFrom + ta) % Math.max(0.1, p.insp.duration) : ta), amount: on.set };
+    return Object.keys(out).length ? out : null;
+  }
+
   /* Light, contrast, color strength and warmth, pixel by pixel (RGBA, in place). m is the frame's mean
      brightness (0..1) before the change. */
   function paint(data, w, h, a, m) {
@@ -918,7 +1116,7 @@
     if (a.contrast) out.contrast = mix(clamp(w.std / Math.max(0.02, have.std), 0.4, 2.5), a.contrast);
     if (a.light) out.luma = mix(clamp(w.luma / Math.max(0.03, have.luma), 0.25, 3), a.light);
     if (a.color) out.sat = mix(clamp(w.sat / Math.max(0.02, have.sat), 0, 3), a.color);
-    if (a.warmth) out.warm = clamp(w.warm - have.warm, -0.4, 0.4) * a.warmth;
+    if (a.warmth) out.warm = clamp(w.warm - have.warm, -0.25, 0.25) * a.warmth;
     return out;
   }
 
@@ -938,7 +1136,8 @@
       /* How much it looks like background: pale (bright) and plain (colorless). */
       const pale = clamp((y - 0.45) / 0.15, 0, 1),
         plain = clamp((0.2 - sat) / 0.1, 0, 1);
-      data[p + 3] = Math.round(255 * a * (1 - pale * plain));
+      /* Keep what was already see-through (outside the fitted graphic) see-through. */
+      data[p + 3] = Math.round(data[p + 3] * a * (1 - pale * plain));
     }
   }
 
@@ -964,15 +1163,56 @@
     show: ["welcome back to the show", "here's what's coming up", "stay with us", "we've got a lot to talk about", "let's get into it", "this is where it all comes together", "you won't want to miss this", "more after this"],
     any: ["here we go", "this is the moment", "let's take a look", "you can feel it", "something is about to change", "keep watching", "that's the whole idea", "and that's how it goes"],
   };
+  const MONTHS = "January February March April May June July August September October November December".split(" ");
+  const ORD = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth", "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth", "nineteenth", "twentieth", "twenty-first", "twenty-second", "twenty-third", "twenty-fourth", "twenty-fifth", "twenty-sixth", "twenty-seventh", "twenty-eighth", "twenty-ninth", "thirtieth", "thirty-first"];
+  /* A title that is a date (a phone names clips "2014-08-17 17.24.22"): lines about that day. */
+  function dayLines(t) {
+    const m = String(t || "").match(/(19|20)(\d\d)[-_. ](\d\d)[-_. ](\d\d)(?:[ T_]+(\d\d)[.:h](\d\d))?/);
+    if (!m) return null;
+    const year = Number(m[1] + m[2]),
+      mon = Number(m[3]),
+      day = Number(m[4]);
+    if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
+    const month = MONTHS[mon - 1],
+      wd = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][new Date(Date.UTC(year, mon - 1, day)).getUTCDay()];
+    const hr = m[5] != null ? Number(m[5]) : null;
+    const part = hr == null ? "day" : hr < 12 ? "morning" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
+    const season = [12, 1, 2].includes(mon) ? "winter" : mon <= 5 ? "spring" : mon <= 8 ? "summer" : "fall";
+    const yr = year >= 2010 && year < 2100 ? "twenty " + ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"][year - 2010] || String(year) : String(year);
+    return [
+      `${month} ${ORD[day]}, ${yr}`,
+      `a ${wd} ${part} in ${month}`,
+      `that ${season} ${part}`,
+      `the ${ORD[day]} of ${month}`,
+      `${wd}, ${month} ${ORD[day]}`,
+      `remember ${month} ${yr}`,
+      `everybody was there that ${wd}`,
+      `it was the ${season} of ${yr}`,
+      `one ${wd} ${part}, years ago`,
+      `back in ${month}, ${yr}`,
+      `that ${part} we will not forget`,
+      `the light that ${season} ${part}`,
+    ];
+  }
+  /* Lines built from the title's own words, for any title. */
+  function wordLines(words) {
+    if (!words.length) return [];
+    const w = words.join(" "),
+      a = words[0],
+      z = words[words.length - 1];
+    const out = [`this is ${w}`, `here is ${w}`, `all about ${w}`, `${w}, again`, `${w} is back`, `it's ${w} time`, `nothing but ${w}`];
+    if (words.length > 1) out.push(`${a} first, then ${z}`, `the ${a} and the ${z}`, `here comes the ${a}`, `listen to the ${z}`);
+    return out;
+  }
   function topicOf(title) {
     const t = String(title || "").toLowerCase();
-    const kind = /get well|feel better|recover|heal/.test(t) ? "getwell" : /birthday/.test(t) ? "birthday" : /thank/.test(t) ? "thanks" : /theme|show|cube|intro|episode|news/.test(t) ? "show" : "any";
+    const kind = dayLines(title) ? "day" : /get well|feel better|recover|heal/.test(t) ? "getwell" : /birthday/.test(t) ? "birthday" : /thank/.test(t) ? "thanks" : /theme|show|cube|intro|episode|news/.test(t) ? "show" : "any";
     const words = String(title || "")
       .replace(/\.[a-z0-9]{2,4}$/i, "")
       .split(/[^A-Za-z']+/)
       .filter((w) => w && !COMMON.has(w.toLowerCase()) && !/^\d/.test(w));
-    const name = words.find((w) => /^[A-Z]/.test(w)) || words[0] || "";
-    return { kind, name, words };
+    const name = kind === "day" ? "" : words.find((w) => /^[A-Z]/.test(w)) || words[0] || "";
+    return { kind, name, words: kind === "day" ? [] : words, day: dayLines(title) };
   }
   function seeded(seed) {
     let x = (seed >>> 0) || 1;
@@ -982,33 +1222,40 @@
     opts = opts || {};
     const top = topicOf(title);
     const rnd = seeded(opts.seed || 7);
-    const bank = BANKS[top.kind].concat(top.kind === "any" ? [] : BANKS.any.slice(0, 3));
-    const withName = (s) => (top.name ? [s, s + ", " + top.name, top.name + ", " + s] : [s]);
+    /* Your own lines first (opts.pool); else lines on the title: its day, its kind and its own words. No stock
+       filler: "any" lines are used only when the title gives nothing at all. */
+    const own = (opts.pool || []).map((x) => String(x).trim()).filter(Boolean);
+    const titleBank = top.kind === "day" ? top.day : top.kind === "any" ? [] : BANKS[top.kind];
+    let bank = own.length ? own : titleBank.concat(top.kind === "any" || top.kind === "show" ? wordLines(top.words) : []);
+    if (!bank.length) bank = BANKS.any;
+    const withName = (s) => (top.name && !own.length && top.kind !== "show" && !s.toLowerCase().includes(top.name.toLowerCase()) ? [s, s + ", " + top.name, top.name + ", " + s] : [s]);
     const cands = [];
-    bank.forEach((s) => withName(s).forEach((x) => cands.push({ text: x[0].toUpperCase() + x.slice(1), syll: syllables(x) })));
-    if (top.name) cands.push({ text: top.name + "!", syll: syllables(top.name) });
-    if (top.words.length > 1) {
+    bank.forEach((s) => withName(s).forEach((x) => cands.push({ text: x[0].toUpperCase() + x.slice(1), syll: syllables(x), base: s })));
+    if (top.name && !own.length) cands.push({ text: top.name + "!", syll: syllables(top.name), base: top.name });
+    if (top.words.length > 1 && !own.length) {
       const w = top.words.join(" ");
-      cands.push({ text: "This one is all about " + w, syll: syllables("this one is all about " + w) });
+      cands.push({ text: "This one is all about " + w, syll: syllables("this one is all about " + w), base: "all about" });
     }
     const used = new Map();
     return pattern.map((ph) => {
       const want = ph.syll;
       /* Fill the phrase with one or two lines whose syllables add up closest to the phrase's. */
       let best = null;
-      const score = (s, txt) => Math.abs(s - want) + (used.get(txt) || 0) * 1.5 + rnd() * 0.3;
+      /* a line already said costs a lot, so lines repeat only once all of them have been used */
+      const u = (c) => used.get(c.base) || 0;
+      const score = (s, c) => Math.abs(s - want) + u(c) * 6 + rnd() * 0.3;
       cands.forEach((a) => {
-        const sc = score(a.syll, a.text);
-        if (!best || sc < best.sc) best = { sc, text: a.text, syll: a.syll };
+        const sc = score(a.syll, a);
+        if (!best || sc < best.sc) best = { sc, text: a.text, syll: a.syll, bases: [a.base] };
         if (a.syll < want)
           cands.forEach((b) => {
-            if (b === a) return;
-            const txt = a.text + ". " + b.text;
-            const sc2 = score(a.syll + b.syll, txt) + 0.5 + (used.get(b.text) || 0);
-            if (sc2 < best.sc) best = { sc: sc2, text: txt, syll: a.syll + b.syll };
+            if (b === a || b.base === a.base) return;
+            const txt = a.text + (/[.!?]$/.test(a.text) ? " " : ". ") + b.text;
+            const sc2 = score(a.syll + b.syll, a) + 0.5 + u(b) * 6;
+            if (sc2 < best.sc) best = { sc: sc2, text: txt, syll: a.syll + b.syll, bases: [a.base, b.base] };
           });
       });
-      used.set(best.text, (used.get(best.text) || 0) + 1);
+      best.bases.forEach((b) => used.set(b, (used.get(b) || 0) + 1));
       return { start: r3(ph.start), end: r3(ph.end), text: best.text + (/[.!?]$/.test(best.text) ? "" : "."), syll: best.syll, want };
     });
   }
@@ -1021,6 +1268,32 @@
     const feat = g ? g.check : group;
     const A = p.insp;
     const tA = after.times.map((t) => p.tA(t, p.duration));
+    if (/^el:/.test(feat)) {
+      const part = feat.slice(3),
+        key = part === "person" ? "area" : part === "background" ? "r" : "r";
+      const E = after.elements,
+        EA = A.elements,
+        EB = before.elements;
+      if (!E || !EA || !EB) return { feature: feat, note: "needs AI cut-outs of both clips" };
+      if (part === "framing" && root.CurioFraming) return root.CurioFraming.score(p, before, after);
+      if (part === "angle") {
+        const cue = (el, t) => angleCue(el, t) || 0;
+        const want = E.times.map((t) => cue(EA, p.tA(t, p.duration)));
+        const bt = E.times.map((t) => cue(EB, p.src[clamp(Math.round(t * p.fps), 0, p.src.length - 1)]));
+        const af = E.times.map((t) => cue(E, t));
+        const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
+        return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
+      }
+      const want = E.times.map((t) => elAt(EA, part, key, p.tA(t, p.duration)));
+      const bt = E.times.map((t) => elAt(EB, part, key, p.src[clamp(Math.round(t * p.fps), 0, p.src.length - 1)]));
+      const af = E.parts[part][key];
+      const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
+      return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
+    }
+    if (feat === "relight") return root.CurioRelight ? root.CurioRelight.score(p, before, after) : { feature: feat, note: "needs video/relight.js" };
+    if (feat === "shutter") return root.CurioShutter ? root.CurioShutter.score(p, before, after) : { feature: feat, note: "needs video/shutter.js" };
+    if (feat === "rhythm") return root.CurioRhythm ? root.CurioRhythm.score(p, before, after) : { feature: feat, note: "needs video/rhythm.js" };
+    if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };
     if (feat === "speech") {
       const sum = (d) => {
@@ -1055,5 +1328,5 @@
     return { name: d.name, duration: d.duration, step: step || 2.5, every: d.dt, samples };
   }
 
-  root.CurioVideo = { toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, angleCue, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, lanesOf, nodesOf, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();

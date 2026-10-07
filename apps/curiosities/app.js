@@ -888,7 +888,7 @@
       ${appliedNote()}
       <div class="strip">${panels}</div>
       <p class="to-sb"><button type="button" id="to-storyboard">Save into the storyboard</button> <span class="cap">Keeps these ${lines.length} panels as a new scene in the Storyboard and takes you there, to flip through.</span></p>
-      <p class="prox">${fired ? esc(fired) : "No seed proximity is firing. Change the carry, the path, or whether an object enters."}</p>
+      <p class="prox">${fired ? esc(fired) : "No seed spark is firing. Change the carry, the path, or whether an object enters."}</p>
       ${suitesHere(lines.map((_, i) => panelState(i)))}
       <div class="lineage" id="lineage">${chips}</div>
       <p class="cap">The chips are the combination that made this board. Change one and the strip changes. That is the same device as opening a song or a shot to see which ideas parented it.</p>`;
@@ -953,11 +953,11 @@
     const tabs = [
       ["curiosities", `Curiosities (${CURIOSITIES.filter((c) => !c.sliderOf).length})`],
       ["suites", `Suites (${SUITES.length})`],
-      ["proximities", `Proximities (${PROXIMITIES.length + LIBRARY.proximities.length})`],
+      ["proximities", `Sparks (${PROXIMITIES.length + LIBRARY.proximities.length})`],
       ["moves", `Development moves (${LIBRARY.moves.length})`],
     ];
     catalog.innerHTML = `<h2>The Curiosities library</h2>
-      <p class="cap">Everything in the filmmaking catalog, in the three categories: curiosities, suites and proximities, plus the development moves that change a motif.</p>
+      <p class="cap">Everything in the filmmaking catalog, in the three categories: curiosities, suites and sparks, plus the development moves that change a motif.</p>
       <nav class="subtabs">${tabs.map(([k, l]) => `<button type="button" data-cat="${k}" class="${catView.tab === k ? "on" : ""}">${esc(l)}</button>`).join("")}</nav>
       <div id="cat-body"></div>`;
     drawCatalogBody();
@@ -1040,8 +1040,8 @@
         (p) => `<tr><td>When ${esc(p.when)}, ${esc(p.then)}</td><td class="mono">${p.within}</td><td class="cap">${esc(p.source)}${p.source === "suite" ? "" : " · a guess until counted"}</td></tr>`
       ).join("");
       body.innerHTML = `<p class="cap">When X happens, Y follows within N beats. The first table can be counted in Study today. The second is the catalog’s full list; every row is a guess until we count it in works we curate.</p>
-        <p class="g">Countable now</p><div class="scroll"><table class="trace"><thead><tr><th>Proximity</th><th>Within</th><th></th></tr></thead><tbody>${counted}</tbody></table></div>
-        <p class="g">The catalog’s list</p><div class="scroll"><table class="trace"><thead><tr><th>Proximity</th><th>Within</th><th>Source</th></tr></thead><tbody>${text}</tbody></table></div>`;
+        <p class="g">Countable now</p><div class="scroll"><table class="trace"><thead><tr><th>Spark</th><th>Within</th><th></th></tr></thead><tbody>${counted}</tbody></table></div>
+        <p class="g">The catalog’s list</p><div class="scroll"><table class="trace"><thead><tr><th>Spark</th><th>Within</th><th>Source</th></tr></thead><tbody>${text}</tbody></table></div>`;
       return;
     }
     body.innerHTML = `<p class="cap">The Bach and Beethoven moves, treated as curiosities too. Run through “A is to B as C is to D”, a move read from a curated work is applied to our motif. Not playable yet.</p>
@@ -1148,8 +1148,11 @@
     scene() {
       return scene();
     },
-    panel(line, i, count, values) {
-      return panelHtml(line, i, count, Object.assign({}, state, values), scene().people.slice(0, Number(state.peopleCount) || 1));
+    panel(line, i, count, values, people) {
+      /* people: the names in this panel, when the caller has its own cast (a storyboard scene from a story file). */
+      const cast = Array.isArray(people) && people.length ? people : scene().people;
+      const st = Object.assign({}, state, values);
+      return panelHtml(line, i, count, st, cast.slice(0, Number(st.peopleCount) || 1));
     },
     values() {
       const out = {};
@@ -1207,6 +1210,13 @@
     document.addEventListener("keydown", (e) => {
       if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || e.target.isContentEditable) return;
       if (document.querySelector(".en-overlay:not([hidden])")) return;
+      /* the 3D window and the Maya tool window sit over the film: Ctrl+Z there must not undo the film behind */
+      if (document.querySelector(".rig-dlg[open], .sc-maya-dlg[open]")) return;
+      try {
+        if (document.querySelector("dialog:modal")) return; /* any other window over the app */
+      } catch (err) {
+        /* older browsers without :modal */
+      }
       const k = e.key.toLowerCase();
       if (k === "z" && !e.shiftKey ? window.CurioStore.undo() : (k === "z" && e.shiftKey) || k === "y" ? window.CurioStore.redo() : false) e.preventDefault();
     });

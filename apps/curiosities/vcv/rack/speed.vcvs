@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 1 to 16\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Pace across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 suite: Viral edit\n  11 suite: Music video\n  12 suite: Trailer\n  13 pair: When the music is featured, the cuts find the beat\n  14 pair: When jump cuts go rhythmic, a joke builds\n  15 pair: When seconds are left on the clock, the cutting gets fast\n  16 pairs: Music leads the edit"
+    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 10, CC 33 to 48\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Cutting speed across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 Time-lapse\n  11 Slowing down for the detail\n  12 Frozen moment, camera circles\n  13 Skipping ahead in time\n  14 Stretching a moment\n  15 Time to take in the shot\n  16 suite: Phone-video editing tricks\nCV-CC 2: PORT 2 (your second cable), MIDI channel 10, CC 49 to 64\n   1 suite: Music video cutting\n   2 suite: Trailer\n   3 suite: Vlog kit\n   4 suite: Instant replay\n   5 suite: Action showcase\n   6 suite: Time flies\n   7 pair: When the music is featured, the cuts find the beat\n   8 pair: When jump cuts go rhythmic, a joke builds\n   9 pair: When seconds are left on the clock, the cutting gets fast\n  10 pair: When a clip slows way down, it needs smooth in-between frames\n  11 pair: When something new arrives every second or two, the jokes come faster\n  12 pair: When the edit template is meme, the smash cuts pile up\n  13 pair: When a time-lapse squeezes the day, the story skips ahead\n  14 pair: When a person waits through a time-lapse, loneliness grows\n  15 pair: When the picture slows for the detail, the sound drops to a heartbeat\n  16 pair: When the slow detail is shown, the story turns\nCV-CC 3: PORT 2 (your second cable), MIDI channel 10, CC 65 to 73\n   1 pair: When time freezes and the camera circles, the hit lands harder\n   2 pair: When years are skipped, a card says so\n   3 pair: When a moment is stretched, the tension rises\n   4 pair: When the moment is life or death, we cut to the faces watching\n   5 pair: When shots are held long after we have read them, the camera lingers\n   6 pair: When the cuts land on the beat, an everyday chore feels like an action scene\n   7 pairs: Featured music drives the edit\n   8 pairs: Time gets away\n   9 pairs: One second, forever"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
      "channel": 9
@@ -50,6 +50,70 @@
    },
    "pos": [
     24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    40,
     0
    ]
   }

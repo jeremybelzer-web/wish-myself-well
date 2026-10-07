@@ -92,6 +92,8 @@ const diff = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filt
   const toBoard = await page.$('button:has-text("Save into the storyboard")');
   if (toBoard) await toBoard.click();
   await page.waitForTimeout(400);
+  /* The workspaces live in a pop-up from the "Workspaces" button. */
+  await page.click("#ws-pick");
   await page.click('#ws-buttons button[data-ws="emotion"]');
   await page.waitForTimeout(400);
   await page.evaluate(() => {

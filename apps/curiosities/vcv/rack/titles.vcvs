@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 97 to 111\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 suite: Comedy punch\n   9 suite: Reaction comedy\n  10 pair: When the picture freezes, a title appears\n  11 pair: When the joke pays off, a mood pops onto a face\n  12 pair: When someone gets angry, steam pops onto their face\n  13 pair: When an outro effect closes the film, an end card follows\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 9, CC 97 to 112\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 Words placed into the world\n  13 Subtitles that play along\n  14 The opening credits\n  15 Their thoughts written on screen\n  16 suite: Comedy punch\nCV-CC 2: PORT 2 (your second cable), MIDI channel 10, CC 1 to 16\n   1 suite: Reaction comedy\n   2 suite: Life on screens\n   3 suite: Meet the crew\n   4 suite: Words on the walls\n   5 suite: Inside her head, on screen\n   6 pair: When the picture freezes, a title appears\n   7 pair: When the joke pays off, a mood pops onto a face\n   8 pair: When someone gets angry, steam pops onto their face\n   9 pair: When an outro effect closes the film, an end card follows\n  10 pair: When captions appear word by word, eyes stay glued to the screen\n  11 pair: When the text is in comic-book style, the comedy goes cartoon\n  12 pair: When stickers and emoji pile up, the laughs speed up\n  13 pair: When a chapter card appears, the story stops and restarts\n  14 pair: When someone shouts, the words act it out\n  15 pair: When a text is typed and deleted, the wait for a reply grows\n  16 pair: When the messages pile up, a secret slips out\nCV-CC 3: PORT 2 (your second cable), MIDI channel 10, CC 17 to 29\n   1 pair: When the name cards get cheeky, the laughs come faster\n   2 pair: When the title comes late, it lands on a shock\n   3 pair: When the opening grabs hard, the title slams in\n   4 pair: When the signs behind them can be read, the titles move into the world too\n   5 pair: When the opening credits shrink, the title comes later\n   6 pair: When the opening credits grow, the title music grows with them\n   7 pair: When the voice in their head gets louder, their thoughts appear on screen\n   8 pair: When the written thoughts lie, we stop trusting the view\n   9 pair: When the subtitles lie, the joke comes from the other side\n  10 pairs: Words that point\n  11 pairs: Phone comedy reactions\n  12 pairs: The unsent message\n  13 pairs: Words that live in the world"
    },
    "pos": [
     0,
@@ -42,7 +42,7 @@
      109,
      110,
      111,
-     -1
+     112
     ],
     "midi": {
      "channel": 8
@@ -50,6 +50,70 @@
    },
    "pos": [
     24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    40,
     0
    ]
   }

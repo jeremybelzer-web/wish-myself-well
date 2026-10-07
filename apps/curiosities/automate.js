@@ -17,8 +17,8 @@
   const LEVELS = [
     ["curiosity", "Curiosities"],
     ["suite", "Suites"],
-    ["proximity", "Proximities"],
-    ["proximity suite", "Proximity suites"],
+    ["proximity", "Sparks"],
+    ["proximity suite", "Elixirs"],
   ];
   const SHAPES = ["sine", "triangle", "square", "saw", "random"];
 
@@ -58,6 +58,10 @@
 
   function A() {
     return window.CurioAuto;
+  }
+  /* Outside modulation sources other parts register (CurioAuto.addSource), as [mod, label] choices. */
+  function srcChoices() {
+    return A() && A().sources ? A().sources().map((x) => [x.mod, x.label]) : [];
   }
   function esc(s) {
     return String(s == null ? "" : s)
@@ -230,7 +234,7 @@
       </div>
       <div class="au-lane-body">
         <div class="au-row"><label class="cap">from ${lanePicker(l, "from")}</label><label class="cap">to ${lanePicker(l, "to")}</label><label class="cap">curve ${curveSelect("data-lane-curve", l.curve)}</label></div>
-        <div class="au-row"><label class="cap">moved by <select data-lane-mod>${[["follow", "follows the main lane"], ["lfo", "its own LFO"], ["manual", "a knob"], ["midi", "a MIDI control"]].map(([v, n]) => `<option value="${v}"${mod === v ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+        <div class="au-row"><label class="cap">moved by <select data-lane-mod>${[["follow", "follows the main lane"], ["lfo", "its own LFO"], ["manual", "a knob"], ["midi", "a MIDI control"], ...srcChoices()].map(([v, n]) => `<option value="${v}"${mod === v ? " selected" : ""}>${n}</option>`).join("")}</select></label>
           ${mod === "lfo" ? `<label class="cap">shape <select data-lane-shape>${SHAPES.map((s) => `<option${(l.shape || "sine") === s ? " selected" : ""}>${s}</option>`).join("")}</select></label><label class="cap">rate <input type="number" data-lane-rate min="0.05" max="10" step="0.05" value="${Number(l.rate) || 0.5}"> Hz</label>` : ""}
           ${mod === "manual" || mod === "midi" ? `<label class="au-knob au-lknob"><span>${mod === "midi" ? "MIDI value" : "Knob"}</span><input type="range" data-lane-manual min="0" max="1" step="0.01" value="${Number(l.manual) || 0}"></label>` : ""}
           ${mod === "midi" ? `<button type="button" data-lane-learn>${learning ? "Move a MIDI control…" : "Learn"}</button><span class="cap">${esc(bind ? bindingText(bind) : "")}</span>${bind ? `<button type="button" class="link" data-lane-unbind>Clear</button>` : ""}` : ""}
@@ -329,12 +333,16 @@
           ${sweepHtml("data-main-across", pt.across)}
           <div class="au-row">
             <span class="au-lab">Moved by</span>
-            <div class="au-seg">${["lfo", "manual", "midi"].map((m) => `<button type="button" data-mod="${m}" class="${pt.mod === m ? "on" : ""}">${m === "lfo" ? "LFO" : m === "midi" ? "MIDI CC" : "Knob"}</button>`).join("")}</div>
+            <div class="au-seg">${["lfo", "manual", "midi"].map((m) => `<button type="button" data-mod="${m}" class="${pt.mod === m ? "on" : ""}">${m === "lfo" ? "LFO" : m === "midi" ? "MIDI CC" : "Knob"}</button>`).join("")}${srcChoices()
+              .map(([m, n]) => `<button type="button" data-mod="${esc(m)}" class="${pt.mod === m ? "on" : ""}">${esc(n)}</button>`)
+              .join("")}</div>
           </div>
           ${
             pt.mod === "lfo"
               ? `<div class="au-row"><span class="au-lab">Shape</span><div class="au-seg">${SHAPES.map((s) => `<button type="button" data-shape="${s}" class="${pt.shape === s ? "on" : ""}">${s}</button>`).join("")}</div></div>
                  <div class="au-knobs">${knob("rate", "Rate Hz", 0.05, 10, 0.05, pt.rate, (v) => Number(v).toFixed(2))}${knob("depth", "Depth", 0, 1, 0.05, pt.depth, (v) => Math.round(v * 100) + "%")}</div>`
+              : /^source:/.test(pt.mod || "")
+              ? `<div class="au-knobs">${knob("depth", "Depth", 0, 1, 0.05, pt.depth, (v) => Math.round(v * 100) + "%")}</div>`
               : `<div class="au-knobs">${knob("manual", pt.mod === "midi" ? "CC value" : "Knob", 0, 1, 0.01, pt.manual, (v) => Number(v).toFixed(2))}</div>`
           }
           <canvas class="au-scope" data-r="scope" width="300" height="70"></canvas>`;
@@ -457,7 +465,9 @@
   }
 
   /* The main meter, m and the scope, drawn every frame while the card is on screen. */
-  function paintCard(c, now, textOnly) {
+  /* scopeShown: whether the scope is on the page, read before any card's meters were written (hubFrame), so
+     the page's styles are worked out once per frame and not once per card. */
+  function paintCard(c, now, textOnly, scopeShown) {
     if (!A().param(c.key)) return;
     const m = A().m(c.key);
     const buf = c.scope;
@@ -469,7 +479,7 @@
     if (mm) mm.style.width = Math.round(Math.max(0, Math.min(1, m || 0)) * 100) + "%";
     if (textOnly) return;
     const cv = c.wrap.querySelector('[data-r="scope"]');
-    if (!cv || !shownEl(cv)) return;
+    if (!cv || !(scopeShown != null ? scopeShown : shownEl(cv))) return;
     const g = cv.getContext("2d");
     const W = cv.width;
     const H = cv.height;
@@ -582,8 +592,12 @@
     hubRaf = 0;
     prune();
     if (!cards.size) return;
-    const shown = [...cards].filter(cardVisible);
-    shown.forEach((c) => paintCard(c, now));
+    /* Read everything first (which cards and scopes show), then write: one style pass per frame. */
+    const shown = [...cards].filter(cardVisible).map((c) => {
+      const cv = c.wrap.querySelector('[data-r="scope"]');
+      return [c, !!cv && shownEl(cv)];
+    });
+    shown.forEach(([c, scopeShown]) => paintCard(c, now, false, scopeShown));
     if (shown.length) hubRaf = requestAnimationFrame(hubFrame);
     else hubIdle = setTimeout(hubPoll, 400);
   }
@@ -1239,7 +1253,7 @@
       </ol>
       <div class="bar-actions"><button type="button" id="au-midi">Connect MIDI</button>
         <select id="au-out"><option value="">MIDI out: none</option>${outs.map((o) => `<option value="${esc(o.id)}"${m.out && m.out.id === o.id ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select>
-        <span class="cap" id="au-midistat">${esc(m.status === "off" ? "MIDI is off. Keys and the trigger button still work." : m.status)}</span></div>
+        <span class="cap" id="au-midistat">${esc(m.status === "off" ? "MIDI is off. Keys and the spark button still work." : m.status)}</span></div>
     </details>`;
   }
 
@@ -1304,7 +1318,7 @@
     }
     const counts = Object.fromEntries(LEVELS.map(([l]) => [l, A().PARAMS.filter((p) => p.level === l).length]));
     root.innerHTML = `<h2>Automate</h2>
-      <p class="cap">Every curiosity, suite, proximity and proximity suite is a module. Its switch (the big button, a MIDI note, a key) turns it on and off. Inside, lanes grade each part between two settings: an angle from low to high, a shot from close to wide. Each lane has its own curve and its own mover (an LFO, a knob, a MIDI control), and plays in the panels you choose. Modules that are on play on the board.</p>
+      <p class="cap">Every curiosity, suite, spark and elixir is a module. Its switch (the big button, a MIDI note, a key) turns it on and off. Inside, lanes grade each part between two settings: an angle from low to high, a shot from close to wide. Each lane has its own curve and its own mover (an LFO, a knob, a MIDI control), and plays in the panels you choose. Modules that are on play on the board.</p>
       <div class="bar-actions au-presets"><button type="button" id="au-perf" class="au-perf-btn ${view.perf ? "on" : ""}">${view.perf ? "Back to the modules" : "Performer view"}</button><span class="au-lab">Patches</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.name)}</button>`).join("")}</div>
       ${rigsHtml()}
       <div class="g au-g">Patch bay</div>
@@ -1498,7 +1512,7 @@
       });
       if (fired) rows.push(`<div><span class="chip${held ? " lit" : ""}">${held ? "holds" : "doesn’t hold"}</span> When ${esc(p.when)}, ${esc(p.then)}.</div>`);
     });
-    return rows.length ? rows.join("") : `<p class="cap">No proximity's cause happens in these panels yet.</p>`;
+    return rows.length ? rows.join("") : `<p class="cap">No spark's cause happens in these panels yet.</p>`;
   }
 
   function drawPanels(panels) {

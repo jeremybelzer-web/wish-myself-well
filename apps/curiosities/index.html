@@ -10,6 +10,27 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <!-- While the Screen (the main layout) is on its way, the page under it stays hidden behind a plain dark
+         cover, so the first thing seen is the Screen itself, not the older page flashing by (Jeremy, 2026-10-06).
+         screen/ui.js takes the cover off when the Screen opens, or when it will not open; the cover also lifts
+         on its own after 12 seconds in case something fails to load. -->
+    <style id="sc-boot-style">
+      html.sc-boot, html.sc-boot body { background: #0f0f10; }
+      html.sc-boot body > :not(.sc-page) { visibility: hidden; }
+    </style>
+    <script>
+      (function () {
+        try {
+          var q = location.search;
+          if (/[?&]screen=0\b/.test(q) || (navigator.webdriver && !/[?&]screen=1\b/.test(q))) return;
+          var p = JSON.parse(localStorage.getItem("curiosities-screen-v1") || "null");
+          if (p && p.open === false) return;
+        } catch (e) {}
+        var h = document.documentElement;
+        h.classList.add("sc-boot");
+        setTimeout(function () { h.classList.remove("sc-boot"); }, 12000);
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -34,20 +55,36 @@
       .tabs .lib-menu button:last-child { border-bottom: 0; }
       .tabs .lib-menu button:hover, .tabs .lib-menu button:focus-visible { background: var(--ink); color: var(--paper); }
       .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
-      /* The phone bar's "Workspaces" button and its sheet: shown only on narrow screens. */
-      .ws-pick, .ws-sheet-head { display: none; }
+      /* The workspaces live in a pop-up window, the Curiosity Browser, opened by its button in the top row (Jeremy,
+         2026-10-06: the many-column list of words should not sit on the page; it is a pop-up like a search
+         window). It has a search box; on a phone it is a sheet from the bottom instead. */
+      .ws-pick { display: inline-flex; align-items: center; gap: 2px; }
+      .ws-sheet-head { display: none; }
+      .tabs .tabs-ws { display: none; }
+      .tabs.ws-sheet-open .tabs-ws { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); align-items: start; gap: 8px 10px; position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 70; width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 96px); overflow-y: auto; margin: 0; padding: 0 16px 16px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 6px 6px 0 rgba(28, 23, 18, 0.25); }
+      .tabs.ws-sheet-open .tabs-ws .ws-sheet-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 1; background: var(--paper); padding: 12px 0 10px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: 17px; }
+      .tabs.ws-sheet-open .tabs-ws .ws-sec { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+      .tabs.ws-sheet-open .tabs-ws .ws-sec button { white-space: normal; text-align: left; }
+      .ws-find { flex: 1 1 auto; width: 0; min-width: 0; font: inherit; font-family: var(--sans); font-size: 14px; padding: 6px 10px; border: 2px solid var(--ink); background: #fff; }
+      .ws-none { grid-column: 1 / -1; margin: 6px 0; font-family: var(--mono); font-size: 12px; color: #7a6f63; }
+      .ws-sec[hidden], .tabs-ws button[hidden], .ws-none[hidden] { display: none !important; }
+      .ws-sheet-back { position: fixed; inset: 0; z-index: 69; background: rgba(28, 23, 18, 0.35); }
+      /* Viewer and Help ▸ App Walkthrough: buttons in the top row, moved into Library on phones so the row fits. */
+      .tabs .lib-menu button.phone-only { display: none; }
       .ws-sheet-back[hidden] { display: none; }
       @media (max-width: 600px) {
         .tabs-top { flex-wrap: nowrap; gap: 5px; }
+        .tabs-top > .cv-open-btn, .tabs-top > .cw-help { display: none; }
+        .tabs .lib-menu button.phone-only { display: grid; }
         .tabs-top > button, .tabs-top .lib > button { font-size: 10px; letter-spacing: 0.04em; padding: 6px 7px; }
         .tabs .tabs-top .proj-ind { flex: none; font-size: 0; padding: 4px 6px; }
         .tabs .tabs-top .proj-ind::before { font-size: 12px; content: "●"; }
-        .ws-pick { display: inline-flex; align-items: center; gap: 2px; flex: 1 1 auto; min-width: 0; justify-content: center; }
+        .tabs .tabs-top .ws-pick { flex: 1 1 auto; min-width: 0; justify-content: center; }
         .ws-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-        .tabs .tabs-ws { display: none; }
-        .tabs.ws-sheet-open .tabs-ws { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 6px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; max-height: min(78vh, 640px); overflow-y: auto; margin: 0; padding: 0 16px 18px; background: var(--paper); border-top: 3px solid var(--ink); box-shadow: 0 -6px 0 rgba(28, 23, 18, 0.18); }
-        .ws-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: sticky; top: 0; background: var(--paper); padding: 12px 0 8px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: 17px; }
-        .ws-sheet-back { position: fixed; inset: 0; z-index: 59; background: rgba(28, 23, 18, 0.35); }
+        .tabs.ws-sheet-open .tabs-ws { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 6px; top: auto; left: 0; right: 0; bottom: 0; transform: none; width: auto; max-height: min(78vh, 640px); padding: 0 16px 18px; border: 0; border-top: 3px solid var(--ink); box-shadow: 0 -6px 0 rgba(28, 23, 18, 0.18); }
+        .tabs.ws-sheet-open .tabs-ws .ws-sheet-head { padding: 12px 0 8px; gap: 8px; }
+        .tabs.ws-sheet-open .tabs-ws .ws-sheet-head strong { display: none; }
+        .tabs.ws-sheet-open .tabs-ws .ws-sec { flex-direction: row; flex-wrap: wrap; align-items: center; }
         .ws-sec { flex: none; padding: 3px 4px 3px 6px; gap: 5px; }
         .ws-group { width: 100%; }
         .tabs-ws .ws-sec button { font-size: 11px; letter-spacing: 0.04em; padding: 8px 9px; }
@@ -134,7 +171,7 @@
           <div class="lib-menu" id="lib-menu" hidden>
             <button type="button" data-tab="study">Curated films<small>studies and the Shelf</small></button>
             <button type="button" data-tab="prism">Prism<small>split a whole film</small></button>
-            <button type="button" data-tab="catalog">All curiosities<small>suites, proximities, moves</small></button>
+            <button type="button" data-tab="catalog">All curiosities<small>suites, sparks, moves</small></button>
             <button type="button" data-tab="tool" data-tool="manual">Maya manual<small>every topic, and Start here</small></button>
             <button type="button" data-tab="tool" data-tool="words">Words<small>every film and Maya word, in plain language</small></button>
             <button type="button" data-tab="tool" data-tool="print">Print<small>pages and frames</small></button>
@@ -182,6 +219,168 @@
     <script src="data/db-finish.js"></script>
     <script src="data/db-momentum.js"></script>
     <script src="data/db-editing.js"></script>
+    <script src="data/db-maya.js"></script>
+    <script src="data/db-ties.js"></script>
+    <script src="data/db-heart.js"></script>
+    <script src="data/db-depth-story.js"></script>
+    <script src="data/db-depth-cut.js"></script>
+    <script src="data/db-depth-sound.js"></script>
+    <script src="data/db-depth-acting.js"></script>
+    <script src="data/db-depth-world.js"></script>
+    <script src="data/db-depth-look.js"></script>
+    <script src="data/db-depth-fx.js"></script>
+    <script src="data/db-depth-comedy.js"></script>
+    <script src="data/db-depth-attention.js"></script>
+    <script src="data/db-depth-feeling.js"></script>
+    <script src="data/db-depth-minds.js"></script>
+    <script src="data/db-depth-lines.js"></script>
+    <script src="data/db-depth-frame.js"></script>
+    <script src="data/db-depth-telling.js"></script>
+    <script src="data/db-depth-belonging.js"></script>
+    <script src="data/db-depth-relations.js"></script>
+    <script src="data/db-depth-alone.js"></script>
+    <script src="data/db-styles.js"></script>
+    <script src="data/db-styles-comedy.js"></script>
+    <script src="data/db-plain.js"></script>
+    <script src="data/db-plain-2.js"></script>
+    <script src="data/db-model-scenes-2.js"></script>
+    <script src="data/db-model-scenes-3.js"></script>
+    <script src="data/db-model-scenes-4.js"></script>
+    <script src="data/db-model-scenes-5.js"></script>
+    <script src="data/db-model-scenes-6.js"></script>
+    <script src="data/db-model-scenes-7.js"></script>
+    <script src="data/db-model-scenes-8.js"></script>
+    <script src="data/db-model-scenes-9.js"></script>
+    <script src="data/db-model-scenes-10.js"></script>
+    <!-- A window for every curiosity: its own settings, faces and presets (data/windows/README.md). -->
+    <script src="data/windows/windows.js"></script>
+    <script src="data/windows/look-kit.js"></script>
+    <script src="data/windows/win-space.js"></script>
+    <script src="data/windows/win-camera.js"></script>
+    <script src="data/windows/win-performance.js"></script>
+    <script src="data/windows/win-light.js"></script>
+    <script src="data/windows/win-grade.js"></script>
+    <script src="data/windows/win-world.js"></script>
+    <script src="data/windows/win-wardrobe.js"></script>
+    <script src="data/windows/win-sound.js"></script>
+    <script src="data/windows/win-text.js"></script>
+    <script src="data/windows/win-effects.js"></script>
+    <script src="data/windows/win-transitions.js"></script>
+    <script src="data/windows/win-speed.js"></script>
+    <script src="data/windows/win-editing.js"></script>
+    <script src="data/windows/win-feeling.js"></script>
+    <script src="data/windows/win-comedy.js"></script>
+    <script src="data/windows/win-character.js"></script>
+    <script src="data/windows/win-story.js"></script>
+    <script src="data/windows/win-page.js"></script>
+    <script src="data/windows/win-heart-comedy.js"></script>
+    <script src="data/windows/win-heart-emotion.js"></script>
+    <script src="data/windows/win-depth-story.js"></script>
+    <script src="data/windows/win-depth-cut.js"></script>
+    <script src="data/windows/win-depth-sound.js"></script>
+    <script src="data/windows/win-depth-acting.js"></script>
+    <script src="data/windows/win-depth-world.js"></script>
+    <script src="data/windows/win-depth-look.js"></script>
+    <script src="data/windows/win-depth-fx.js"></script>
+    <script src="data/windows/win-depth-comedy.js"></script>
+    <script src="data/windows/win-depth-attention.js"></script>
+    <script src="data/windows/win-depth-feeling.js"></script>
+    <script src="data/windows/win-depth-minds.js"></script>
+    <script src="data/windows/win-depth-lines.js"></script>
+    <script src="data/windows/win-depth-frame.js"></script>
+    <script src="data/windows/win-depth-telling.js"></script>
+    <script src="data/windows/win-depth-belonging.js"></script>
+    <script src="data/windows/win-depth-relations.js"></script>
+    <script src="data/windows/win-depth-alone.js"></script>
+    <script src="data/windows/measure-camera.js"></script>
+    <script src="data/windows/measure-performance.js"></script>
+    <script src="data/windows/measure-light.js"></script>
+    <script src="data/windows/measure-grade.js"></script>
+    <script src="data/windows/measure-world.js"></script>
+    <script src="data/windows/measure-wardrobe.js"></script>
+    <script src="data/windows/measure-sound.js"></script>
+    <script src="data/windows/measure-text.js"></script>
+    <script src="data/windows/measure-effects.js"></script>
+    <script src="data/windows/measure-transitions.js"></script>
+    <script src="data/windows/measure-speed.js"></script>
+    <script src="data/windows/measure-editing.js"></script>
+    <script src="data/windows/measure-feeling.js"></script>
+    <script src="data/windows/measure-comedy.js"></script>
+    <script src="data/windows/measure-character.js"></script>
+    <script src="data/windows/measure-story.js"></script>
+    <script src="data/windows/measure-page.js"></script>
+    <script src="data/windows/say-camera.js"></script>
+    <script src="data/windows/say-performance.js"></script>
+    <script src="data/windows/say-light.js"></script>
+    <script src="data/windows/say-grade.js"></script>
+    <script src="data/windows/say-world.js"></script>
+    <script src="data/windows/say-wardrobe.js"></script>
+    <script src="data/windows/say-sound.js"></script>
+    <script src="data/windows/say-text.js"></script>
+    <script src="data/windows/say-effects.js"></script>
+    <script src="data/windows/say-transitions.js"></script>
+    <script src="data/windows/say-speed.js"></script>
+    <script src="data/windows/say-editing.js"></script>
+    <script src="data/windows/say-feeling.js"></script>
+    <script src="data/windows/say-comedy.js"></script>
+    <script src="data/windows/say-character.js"></script>
+    <script src="data/windows/say-story.js"></script>
+    <script src="data/windows/say-page.js"></script>
+    <script src="data/windows/say-heart-comedy.js"></script>
+    <script src="data/windows/say-heart-emotion.js"></script>
+    <script src="data/windows/say-depth-story.js"></script>
+    <script src="data/windows/say-depth-cut.js"></script>
+    <script src="data/windows/say-depth-sound.js"></script>
+    <script src="data/windows/say-depth-acting.js"></script>
+    <script src="data/windows/say-depth-world.js"></script>
+    <script src="data/windows/say-depth-look.js"></script>
+    <script src="data/windows/say-depth-fx.js"></script>
+    <script src="data/windows/say-depth-comedy.js"></script>
+    <script src="data/windows/say-depth-attention.js"></script>
+    <script src="data/windows/say-depth-feeling.js"></script>
+    <script src="data/windows/say-depth-minds.js"></script>
+    <script src="data/windows/say-depth-lines.js"></script>
+    <script src="data/windows/say-depth-frame.js"></script>
+    <script src="data/windows/say-depth-telling.js"></script>
+    <script src="data/windows/say-depth-belonging.js"></script>
+    <script src="data/windows/say-depth-relations.js"></script>
+    <script src="data/windows/say-depth-alone.js"></script>
+    <script src="data/windows/look-camera.js"></script>
+    <script src="data/windows/look-text.js"></script>
+    <script src="data/windows/look-performance.js"></script>
+    <script src="data/windows/look-speed.js"></script>
+    <script src="data/windows/look-transitions.js"></script>
+    <script src="data/windows/look-sound.js"></script>
+    <script src="data/windows/look-wardrobe.js"></script>
+    <script src="data/windows/look-world.js"></script>
+    <script src="data/windows/look-character.js"></script>
+    <script src="data/windows/look-feeling.js"></script>
+    <script src="data/windows/look-grade.js"></script>
+    <script src="data/windows/look-light.js"></script>
+    <script src="data/windows/look-page.js"></script>
+    <script src="data/windows/look-editing.js"></script>
+    <script src="data/windows/look-effects.js"></script>
+    <script src="data/windows/look-comedy.js"></script>
+    <script src="data/windows/look-story.js"></script>
+    <script src="data/windows/look-heart-comedy.js"></script>
+    <script src="data/windows/look-heart-emotion.js"></script>
+    <script src="data/windows/look-depth-story.js"></script>
+    <script src="data/windows/look-depth-cut.js"></script>
+    <script src="data/windows/look-depth-sound.js"></script>
+    <script src="data/windows/look-depth-acting.js"></script>
+    <script src="data/windows/look-depth-world.js"></script>
+    <script src="data/windows/look-depth-look.js"></script>
+    <script src="data/windows/look-depth-fx.js"></script>
+    <script src="data/windows/look-depth-comedy.js"></script>
+    <script src="data/windows/look-depth-attention.js"></script>
+    <script src="data/windows/look-depth-feeling.js"></script>
+    <script src="data/windows/look-depth-minds.js"></script>
+    <script src="data/windows/look-depth-lines.js"></script>
+    <script src="data/windows/look-depth-frame.js"></script>
+    <script src="data/windows/look-depth-telling.js"></script>
+    <script src="data/windows/look-depth-belonging.js"></script>
+    <script src="data/windows/look-depth-relations.js"></script>
+    <script src="data/windows/look-depth-alone.js"></script>
     <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
     <script src="reference.js"></script>
     <script src="suites.js"></script>
@@ -196,6 +395,7 @@
     <script src="vcv/curiosity-jacks.js"></script>
     <script src="vcv/bridge.js"></script>
     <script src="storyboard.js"></script>
+    <script src="episodes/wish-myself-well-1.js"></script>
     <script src="prism.js"></script>
     <script src="automate.js"></script>
     <script src="studio.js"></script>
@@ -218,13 +418,50 @@
     <script src="studio-chain.js"></script>
     <script src="studio-live.js"></script>
     <script src="studio-print.js"></script>
+    <script src="rig/load.js"></script>
+    <script src="rig/screen.js"></script>
     <script src="project.js"></script>
     <script src="workspaces.js"></script>
     <script src="glossary.js"></script>
     <script src="engine/load.js"></script>
     <script src="momentum/load.js"></script>
     <script src="screen/load.js"></script>
+    <script src="screen-maya.js"></script>
     <script src="media/media.js"></script>
+    <script src="inspire/scenes.js"></script>
+    <script src="inspire/writing.js"></script>
+    <script src="inspire/search.js"></script>
+    <script src="inspire/hub.js"></script>
+    <script src="inspire/watch.js"></script>
     <script src="video/load.js"></script>
+    <script src="viewer/viewer.js"></script>
+    <script src="viewer/objects.js"></script>
+    <script src="viewer/build.js"></script>
+    <script src="viewer/actions.js"></script>
+    <script src="viewer/wear.js"></script>
+    <script src="viewer/build-windows.js"></script>
+    <script src="viewer/flight.js"></script>
+    <script src="character-matrix/data.js"></script>
+    <script src="viewer/people.js"></script>
+    <script src="viewer/speech.js"></script>
+    <script src="viewer/comic.js"></script>
+    <script src="viewer/borders.js"></script>
+    <script src="viewer/big.js"></script>
+    <script src="viewer/rig-actors.js"></script>
+    <script src="viewer/scenes.js"></script>
+    <script src="viewer/strip-drag.js"></script>
+    <script src="viewer/focus-lane.js"></script>
+    <script src="viewer/fit.js"></script>
+    <script src="viewer/workspace.js"></script>
+    <script src="viewer/fullscreen.js"></script>
+    <script src="viewer/scene-focus.js"></script>
+    <script src="viewer/hoverhelp.js"></script>
+    <script src="viewer/walkthrough.js"></script>
+    <script src="perform/transport.js"></script>
+    <script src="paintings/paintings-data.js"></script>
+    <script src="paintings/theme.js"></script>
+    <script src="paintings/paintings.js"></script>
+    <script src="voice/load.js"></script>
+    <script src="relations/load.js"></script>
   </body>
 </html>

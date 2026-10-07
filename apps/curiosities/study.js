@@ -219,7 +219,7 @@
       ["trace", "Trace"],
       ["curiosity", "Curiosity"],
       ["suite", "Suite"],
-      ["proximity", "Proximity"],
+      ["proximity", "Spark"],
       ["shelf", "Shelf (" + store.shelf.length + ")"],
     ];
     root.innerHTML = `
@@ -301,7 +301,7 @@
         ${favs ? `<ul class="fav-list">${favs}</ul>` : `<p class="cap">None yet. Tick one beat or a few beats in a row, then star them below with a short name, like “the bar entrance”. The Prism can then split just that moment.</p>`}
       </div>`}
       <div class="scroll"><table class="trace">
-        <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites, by share</th><th>Proximities that held from here</th><th></th></tr></thead>
+        <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites, by share</th><th>Sparks that held from here</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="7" class="cap">No beats yet.</td></tr>`}</tbody>
       </table></div>
       ${ro ? "" : `<p class="row-actions">
@@ -580,10 +580,10 @@
       .join("");
     const curOpts = groupedOptions((c) => `<option value="${c.id}">${esc(c.label)}</option>`);
     const suiteOpts = SUITES.map((x) => `<option value="s:${x.id}">Suite: ${esc(x.label)}</option>`).join("");
-    return `<p class="cap">When X happens, does Y follow within N beats? Each cell is held / times X happened, in that study. Proximities are measured, so they can be wrong for the next work.</p>
-      <div class="scroll"><table class="trace"><thead><tr><th>Proximity</th>${studies.map((s) => `<th>${esc(s.title)}</th>`).join("")}<th>All</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    return `<p class="cap">When X happens, does Y follow within N beats? Each cell is held / times X happened, in that study. Sparks are measured, so they can be wrong for the next work.</p>
+      <div class="scroll"><table class="trace"><thead><tr><th>Spark</th>${studies.map((s) => `<th>${esc(s.title)}</th>`).join("")}<th>All</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
       <div class="keep">
-        <p class="g">Add a proximity</p>
+        <p class="g">Add a spark</p>
         <div class="prox-form">
           <label class="field">When <select id="px-x">${suiteOpts}${curOpts}</select></label>
           <label class="field">is <select id="px-xv"></select></label>

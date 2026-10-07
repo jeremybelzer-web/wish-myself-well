@@ -110,6 +110,29 @@ check("rewrite: source, then lanes, then links, then edits, in that order", () =
   E.send({ type: "edit", row: "r5", track: "a", curiosity: "gesture", off: true });
   assert.strictEqual(E.value("r5", "a", "gesture"), null);
 });
+check("lanes: smooth eases out of one point and into the next; a bad mode is refused", () => {
+  E.reset();
+  const film = tiny();
+  film.rows = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => ({ id: "r" + i, label: "R" + i }));
+  assert.ok(E.send({ type: "importFilm", film }).ok);
+  E.send({ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 1 });
+  E.send({ type: "setPoint", row: "r9", track: "a", curiosity: "volume", value: 5 });
+  const run = () => film.rows.map((r) => E.value(r.id, "a", "volume"));
+  const ramp = run();
+  assert.ok(E.send({ type: "laneMode", track: "a", curiosity: "volume", mode: "smooth" }).ok);
+  const smooth = run();
+  assert.strictEqual(smooth[0], 1);
+  assert.strictEqual(smooth[8], 5, "the points themselves are unchanged");
+  assert.strictEqual(smooth[4], ramp[4], "halfway is halfway either way");
+  assert.ok(smooth[1] < ramp[1], "smooth leaves the first point slowly (" + smooth + " vs " + ramp + ")");
+  assert.ok(smooth[7] >= ramp[7], "and arrives at the last one slowly");
+  for (let i = 1; i < 9; i++) assert.ok(smooth[i] >= smooth[i - 1], "and never turns back");
+  assert.strictEqual(E.send({ type: "laneMode", track: "a", curiosity: "volume", mode: "wobble" }).ok, false, "a lane ramps, smooths or holds");
+  E.save();
+  B.E.load();
+  same(film.rows.map((r) => B.E.value(r.id, "a", "volume")), smooth, "smooth survives a reload");
+});
+
 check("links: a follower holds its new value until its own material changes", () => {
   E.reset();
   E.send({ type: "importFilm", film: tiny() });
@@ -207,7 +230,7 @@ function randomCommand(R, st) {
     case "clearLane": {
       const lanes = Object.keys(st.lanes);
       const [t, c] = lanes.length ? pick(lanes).split("|") : [tr().id, "volume"];
-      return { type: kind, track: t, curiosity: c, mode: pick(["ramp", "hold"]), on: R() < 0.8 };
+      return { type: kind, track: t, curiosity: c, mode: pick(["ramp", "smooth", "hold"]), on: R() < 0.8 };
     }
     case "addLink": {
       const l = { type: kind, from: end(), to: end(), does: pick(["follow", "oppose", "rise", "fall", "moveWith", "set"]), amount: Math.round(R() * 100) / 100, within: Math.floor(R() * 3), every: R() < 0.2 ? 1 + Math.floor(R() * 3) : 0 };
@@ -711,6 +734,27 @@ check("bridge: a tool can ask for the whole film as a timeline", () => {
   assert.strictEqual(B.handle({ type: "list" }).type, "params", "everything else still reaches bridge.js");
 });
 
+check("store: the engine's changes are on the app-wide undo list too, and its own Undo stays in step", () => {
+  const C = A.window.CurioStore;
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const v = () => E.value("r2", "a", "volume");
+  const start = v();
+  assert.ok(E.send({ type: "setPoint", row: "r2", track: "a", curiosity: "volume", value: 2 }).ok);
+  assert.ok(E.send({ type: "setPoint", row: "r2", track: "a", curiosity: "volume", value: 4 }).ok);
+  assert.strictEqual(C.history().undo.slice(-1)[0], "Engine: Set an automation point");
+  assert.ok(C.undo());
+  assert.strictEqual(v(), 2, "the page's undo undoes the engine's newest step");
+  assert.ok(C.redo());
+  assert.strictEqual(v(), 4, "and redoes it");
+  assert.ok(E.undo(), "the engine's own Undo");
+  assert.strictEqual(v(), 2);
+  assert.ok(C.undo(), "the page's undo skips the step the engine already undid");
+  assert.strictEqual(v(), start, "and undoes the one before it");
+  assert.ok(E.redo());
+  assert.strictEqual(v(), 2, "the engine's own Redo still works after the page's undo");
+});
+
 /* ---------- the shared store (engine/store.js): one undo list for the app's parts ---------- */
 check("store: parts change by commands, undo in place across parts, and keep their own saved keys", () => {
   const C = A.window.CurioStore;
@@ -773,6 +817,94 @@ check("speed: a full rewrite of the biggest film is quick", () => {
   const ms = (Date.now() - t) / 10;
   console.log("  one change on a 64 x 16 x 9 film with 120 links: " + ms.toFixed(1) + " ms (rewrite, undo snapshot, save)");
   assert.ok(ms < 500);
+});
+
+check("level bar: a lane below 100% plays that share of its distance from neutral, saved only below 100%", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  E.send({ type: "batch", commands: [{ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 5 }, { type: "setPoint", row: "r5", track: "a", curiosity: "volume", value: 1 }] });
+  same(E.neutral("volume"), 3);
+  assert.strictEqual(E.value("r1", "a", "volume"), 5);
+  assert.ok(E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 0.5 }).ok);
+  assert.strictEqual(E.state().lanes["a|volume"].level, 0.5);
+  assert.strictEqual(E.value("r1", "a", "volume"), 4, "halfway from neutral 3 to 5");
+  assert.strictEqual(E.value("r5", "a", "volume"), 2, "halfway from neutral 3 to 1");
+  E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 0 });
+  assert.strictEqual(E.value("r1", "a", "volume"), 3, "0% plays the neutral value");
+  E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 1 });
+  assert.ok(!("level" in E.state().lanes["a|volume"]), "100% is not written down");
+  E.undo();
+  assert.strictEqual(E.state().lanes["a|volume"].level, 0);
+  same(E.shapeAt("slowStart", 100, 0.5), Math.pow(0.5, 5));
+  same(E.drift(), []);
+});
+check("master nodes: kept valid, tidied when rows, curiosities or tracks go, and one undo step", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const masters = { seq: 2, list: [{ id: "M1", label: "Look", src: { tracks: ["a"], t0: "r1", t1: "r2" }, span: 2, suite: { lanes: [{ cur: "volume", track: "a", mode: "ramp", points: [[0, 5], [1, 4], [7, 2]] }] }, on: true, gate: { 1: 0, 9: 0 }, lfo: 3, scale: 250, nodes: [{ id: "N1", n: 1, track: "a", t: "r3", lks: ["a|volume"], under: { "a|volume": { r3: null, r4: 2 } }, scale: 40 }, { id: "N2", n: 2, track: "zz", t: "r3", lks: [] }] }] };
+  assert.ok(E.send({ type: "setMasters", masters }).ok);
+  const m = E.state().masters.list[0];
+  same(m.suite.lanes[0].points, [[0, 5], [1, 4]], "points past the span go");
+  same(m.gate, { 1: 0 });
+  assert.strictEqual(m.lfo, 0, "an LFO is every 1, 2 or 4 moments");
+  assert.strictEqual(m.scale, 100, "scale runs 0 to 100: 250 is held at 100");
+  same(m.nodes.map((x) => x.id), ["N1"], "a node on a missing track goes");
+  same(m.nodes[0].under, { "a|volume": { r3: null, r4: 2 } });
+  assert.strictEqual(m.nodes[0].scale, 40, "a node's own scale in range is kept");
+  E.send({ type: "removeRow", row: "r4" });
+  same(E.state().masters.list[0].nodes[0].under, { "a|volume": { r3: null } });
+  E.send({ type: "removeCuriosity", track: "a", curiosity: "volume" });
+  same(E.state().masters.list[0].nodes[0].lks, [null]);
+  E.send({ type: "removeRow", row: "r3" });
+  same(E.state().masters.list[0].nodes, []);
+  E.undo();
+  E.undo();
+  E.undo();
+  assert.strictEqual(E.state().masters.list[0].nodes[0].under["a|volume"].r4, 2, "undo brings back the under data exactly");
+  const low = JSON.parse(JSON.stringify(E.state().masters));
+  low.list[0].scale = -50;
+  low.list[0].nodes[0].scale = -100;
+  assert.ok(E.send({ type: "setMasters", masters: low }).ok);
+  assert.strictEqual(E.state().masters.list[0].scale, 0, "scale runs 0 to 100: -50 is held at 0 (off)");
+  assert.strictEqual(E.state().masters.list[0].nodes[0].scale, 0, "a node's -100 is held at 0 (off)");
+  assert.ok(E.send({ type: "setMasters", masters: null }).ok);
+  assert.ok(!("masters" in E.state()), "no masters: nothing written (old saves keep their fingerprint)");
+  same(E.drift(), []);
+});
+check("perform: a trigger's performance plays but is never saved, fingerprinted or an undo step, and goes back exactly", () => {
+  E.reset();
+  assert.ok(E.send({ type: "importFilm", film: tiny() }).ok);
+  E.send({ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 1 });
+  E.send({ type: "setPoint", row: "r5", track: "a", curiosity: "volume", value: 5 });
+  const fp = E.fingerprint();
+  const undo = E.history().undo.length;
+  const before = ["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume"));
+  E.perform("triggers", { lanes: { "a|volume": { on: false } } });
+  assert.notDeepStrictEqual(["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume")), before, "switching the lane off plays");
+  E.perform("triggers", { lanes: { "a|volume": { set: 1 } } });
+  assert.strictEqual(E.value("r3", "a", "volume"), 5, "set holds the whole lane at the top");
+  E.perform("triggers", { lanes: { "a|volume": { scale: 100 } } });
+  assert.strictEqual(E.value("r5", "a", "volume"), 5, "scale 100 plays the lane as drawn");
+  E.perform("triggers", { lanes: { "a|volume": { scale: 0 } } });
+  const start = E.value("r1", "a", "volume");
+  assert.strictEqual(E.value("r5", "a", "volume"), start, "scale 0 pulls every node to the curiosity's neutral");
+  E.perform("triggers", { lanes: { "a|volume": { scale: -100 } } });
+  assert.strictEqual(E.value("r5", "a", "volume"), start, "a scale below 0 is held at 0 (off)");
+  E.perform("triggers", { lanes: { "a|volume": { nodes: { r5: { off: true } } } } });
+  assert.strictEqual(E.value("r3", "a", "volume"), 1, "a node switched off is left out of the line");
+  E.perform("masters", { lanes: { "a|gesture": { points: { r2: 4 } } } });
+  assert.strictEqual(E.performing().join(","), "triggers,masters", "two named layers at once");
+  assert.strictEqual(E.value("r4", "a", "gesture"), 4);
+  assert.strictEqual(E.fingerprint(), fp, "the saved film is untouched");
+  assert.strictEqual(E.history().undo.length, undo, "and no undo step was made");
+  E.send({ type: "setPoint", row: "r3", track: "a", curiosity: "volume", value: 2 });
+  assert.strictEqual(E.history().undo.length, undo + 1, "a real edit during a performance is still one undo step");
+  E.undo();
+  assert.strictEqual(E.value("r3", "a", "volume"), 1, "undo keeps the performance on top");
+  E.perform(null);
+  assert.deepStrictEqual(["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume")), before, "put back exactly when playback stops");
+  assert.strictEqual(E.fingerprint(), fp);
+  assert.strictEqual(E.performing().length, 0);
 });
 
 check("every command leaves a state that needs no fixing to survive a reload", () => {

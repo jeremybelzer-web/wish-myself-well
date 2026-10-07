@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 17 to 26\n   1 Focus width\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 suite: Tunnel vision\n   7 suite: Looks away at the wrong moment\n   8 pair: When a fixation tightens, the shots get closer\n   9 pair: When a distraction pulls hard, something is missed\n  10 pairs: Eyes on one thing"
+    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 97 to 112\n   1 What they pay attention to\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 Where the eye goes first\n   7 The object we keep seeing\n   8 A view we cannot trust\n   9 What we do not see\n  10 The camera stays too long\n  11 Everyone looks the same way\n  12 Something that doesn't belong\n  13 The one still thing in a busy frame\n  14 Finding one face in the crowd\n  15 Looking the wrong way on purpose\n  16 The thing that matters, at the edge\nCV-CC 2: MIDI channel 10, CC 1 to 16\n   1 suite: Tunnel vision\n   2 suite: Looks away at the wrong moment\n   3 suite: Narrowing in\n   4 suite: Hidden in plain sight\n   5 suite: Guide the eye\n   6 suite: Trust no one\n   7 suite: Leading the eye\n   8 suite: Something is wrong here\n   9 suite: Lost in the crowd\n  10 suite: The magician's shot\n  11 pair: When a fixation tightens, the shots get closer\n  12 pair: When a distraction pulls hard, something is missed\n  13 pair: When attention starts narrowing, it hardens into a fixation\n  14 pair: When a character's attention shrinks to one thing, they miss the warning\n  15 pair: When an object is planted, the camera comes back to it\n  16 pair: When sharp focus pulls the eye, attention narrows to one thing\nCV-CC 3: MIDI channel 10, CC 17 to 32\n   1 pair: When too many things compete for the eye, distraction grows\n   2 pair: When the camera keeps returning to an object, questions grow\n   3 pair: When the camera stays too long, dread creeps in\n   4 pair: When the lingering shot hints at a clue, the plant is less hidden\n   5 pair: When more is kept out of sight, dread grows\n   6 pair: When we catch the false view near the end, everything flips\n   7 pair: When the view gets less trustworthy, the misdirection grows\n   8 pair: When everyone turns to look, our eye goes there first\n   9 pair: When we wait long to see what they see, the question grows\n  10 pair: When something in the frame doesn't belong, we start wondering\n  11 pair: When the odd detail is explained only at the end, it becomes a hidden plant\n  12 pair: When one thing stays still in the rush, the eye goes straight to it\n  13 pair: When one face is picked out by focus, the rest goes soft\n  14 pair: When the face in the crowd is the one they love, tenderness grows\n  15 pair: When the eye is pulled away, danger slips in behind them\n  16 pair: When the trick sets up a twist, a clue points the wrong way\nCV-CC 4: MIDI channel 10, CC 33 to 39\n   1 pair: When they are pushed to the edge of the frame, they stand apart\n   2 pair: When the camera stays too long, the dread rises\n   3 pair: When the big thing stays off screen, the dread builds\n   4 pair: When the door closes on the couple, we imagine more than we would see\n   5 pairs: Eyes on one thing\n   6 pairs: Clue in plain sight\n   7 pairs: Where the eye lands"
    },
    "pos": [
     0,
@@ -27,6 +27,70 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
      17,
      18,
      19,
@@ -37,6 +101,38 @@
      24,
      25,
      26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -45,11 +141,11 @@
      -1
     ],
     "midi": {
-     "channel": 3
+     "channel": 9
     }
    },
    "pos": [
-    24,
+    48,
     0
    ]
   }

@@ -60,6 +60,10 @@
     /* A list with no order (which track, which type) steps from item to item instead of gliding. */
     out.curve = s.curve || (s.unordered ? "steps" : "linear");
     if (s.unordered) out.unordered = true;
+    /* lane: the Screen offers this slider as a timeline lane of its own; track says which kind of track it sits on
+       ("character": one lane per character track, "camera", or "master": one lane for the whole scene). */
+    if (s.lane) out.lane = true;
+    if (s.track) out.track = s.track;
     return out;
   }
 
@@ -74,6 +78,10 @@
       /* A later file can enrich an earlier row: new sliders are added (before "amount"), other fields only
          fill gaps, and fields named in item.override (workspace, plain...) replace the earlier value. */
       const old = index[level][item.id];
+      /* Suites, proximities and proximity suites are not enriched: a second one with the same id but a different
+         label is almost always a new idea that picked a taken id, and would otherwise vanish silently. */
+      if (level !== "curiosity" && level !== "workspace" && item.label && old.label && item.label !== old.label)
+        clashes.push(`${level} ${item.id}: "${item.label}" was dropped, "${old.label}" already uses that id`);
       (item.sliders || []).forEach((s) => {
         if (!old.sliders) return;
         const same = old.sliders.find((o) => o.id === s.id);
@@ -146,7 +154,11 @@
       const sliders = [
         slider({ id: "cause", label: "Cause", range: { min: 0, max: 100, unit: "%" }, from: 0, to: 100, plain: "Share of panels where the cause is set." }),
         slider({ id: "delay", label: "Delay", range: { min: 0, max: Math.max(16, within + 8), unit: "beats", step: 1 }, from: within, to: within + 2, plain: "Beats between the cause and the effect." }),
-        slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
+        /* A fact (Jeremy, 2026-10-05: "that can be hardwired into the app. That those are facts.") always follows:
+           its How often is held at 100%. */
+        p.fact
+          ? slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: 100, to: 100, plain: "Always. This is a fact of the app, so the effect always follows the cause." })
+          : slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
       ];
       /* Effect size only means something when the effect is a change (rises, drops); an effect that sets a value or
          plays a suite has no size. Same rule as the app's automation lanes, and the same lane ids (chance, effect). */
@@ -156,7 +168,7 @@
       /* whenText and thenText are the two halves in plain words ("the music is cut dead", "a big line lands"), which
          the app shows as "When ..., ...". A label already written that way is split; others set them (db-proximity-words.js). */
       const split = /^When (.+?), (.+)$/.exec(p.label || "");
-      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, whenText: p.whenText || (split ? split[1] : ""), thenText: p.thenText || (split ? split[2] : ""), within, often: p.often == null ? null : p.often, sliders, source: p.source || "database", tags: p.tags || [] });
+      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, whenText: p.whenText || (split ? split[1] : ""), thenText: p.thenText || (split ? split[2] : ""), within, often: p.fact ? 100 : p.often == null ? null : p.often, fact: !!p.fact, sliders, source: p.source || "database", tags: p.tags || [] });
     },
 
     /* proximitySuite({ id, label, plain, workspace, members: [proximity ids] }) */
@@ -184,6 +196,18 @@
     /* ---------- reading ---------- */
 
     get: (level, id) => (index[level] || {})[id] || null,
+    /* Take a row out of its list and its index, so a curiosity someone made and then deleted is gone everywhere.
+       Returns the removed row, or null when nothing has that id. Other rows that name it (a suite's members,
+       a proximity's from/to) are left alone; check() reports them as missing. */
+    remove(level, id) {
+      const item = (index[level] || {})[id];
+      if (!item) return null;
+      const list = level === "workspace" ? db.workspaces : db[level === "curiosity" ? "curiosities" : level === "suite" ? "suites" : level === "proximity" ? "proximities" : "proximitySuites"];
+      const at = list.indexOf(item);
+      if (at >= 0) list.splice(at, 1);
+      delete index[level][id];
+      return item;
+    },
     find(id) {
       for (const l of ["curiosity", "suite", "proximity", "proximitySuite"]) if (index[l][id]) return index[l][id];
       return null;
@@ -394,6 +418,12 @@
          value, so a suite-to-suite proximity is as many links as the effect suite has members, not the product.
        - groups: each proximity suite, as the link ids of its members, so the engine can add them in one step.
        Curiosity ids are the app's (CURIOSITIES after install), slider rows included ("music.tempo"). */
+    /* The facts of the app: proximities that always hold (fact: true), such as "when they stay with a hard
+       feeling, freedom waits on the other side". The app treats them as truths, never as optional settings. */
+    facts() {
+      return db.proximities.filter((p) => p.fact);
+    },
+
     links() {
       const BASE = 0.25;
       const CHARACTER = ["character-motion", "placement", "lines", "movement-lines", "wardrobe", "arc", "plot", "mindset", "focus", "archetype"];
@@ -491,7 +521,17 @@
     install(t) {
       api.resolve();
       t = t || {};
-      if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      if (t.CURIOSITIES) {
+        /* Rows the app already has keep their own values, except a label or note that data/db-plain.js rewrote
+           in plain words: those follow the database, so lanes, lists and the inspector all say the same thing. */
+        t.CURIOSITIES.forEach((r) => {
+          const c = index.curiosity[r.id];
+          if (!c) return;
+          if (c.relabeled) r.label = c.label;
+          if (c.replained && "note" in r) r.note = c.plain;
+        });
+        api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      }
       if (t.SUITES) {
         /* Suites the app already has keep their own values; they only gain the database's member weights (0..1). */
         const have = Object.fromEntries(api.legacySuites([]).map((r) => [r.id, r]));

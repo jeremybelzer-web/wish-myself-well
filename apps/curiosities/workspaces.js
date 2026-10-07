@@ -200,11 +200,33 @@
     }).join("");
     /* Anything not in a section yet still gets a button. */
     html += sec("More", WORKSPACES.filter((w) => !listed.has(w.id) && (!w.fromDb || idsOf(w).length)));
-    /* On a phone the sections open as a sheet from the "Workspaces" button; this heading shows only there. */
-    bar.innerHTML = `<div class="ws-sheet-head"><strong id="ws-sheet-title">Pick a workspace</strong><button type="button" class="ws-sheet-close" data-sheet-close="1" aria-label="Close the list">Close</button></div>` + html;
+    /* The sections open as a pop-up window, the Curiosity Browser, (a sheet on a phone), with a search box. */
+    bar.innerHTML =
+      `<div class="ws-sheet-head"><strong id="ws-sheet-title">Curiosity Browser</strong><input type="search" class="ws-find" placeholder="Search every workspace: camera, comedy, wardrobe..." aria-label="Search the Curiosity Browser" autocomplete="off" /><button type="button" class="ws-sheet-close" data-sheet-close="1" aria-label="Close the list">Close</button></div>` +
+      html +
+      `<p class="ws-none" hidden>No workspace has those words.</p>`;
+  }
+  /* The search box: keeps the workspaces whose name or note has every word typed (a section's name counts too). */
+  function filterBar(text) {
+    const words = String(text || "").toLowerCase().split(/\s+/).filter(Boolean);
+    let any = false;
+    bar.querySelectorAll(".ws-sec").forEach((sec) => {
+      const group = (sec.getAttribute("aria-label") || "").toLowerCase();
+      let shown = 0;
+      sec.querySelectorAll("button[data-ws]").forEach((b) => {
+        const hay = `${group} ${b.textContent} ${b.title || ""}`.toLowerCase();
+        const ok = words.every((w) => hay.includes(w));
+        b.hidden = !ok;
+        if (ok) shown++;
+      });
+      sec.hidden = !shown;
+      if (shown) any = true;
+    });
+    const none = bar.querySelector(".ws-none");
+    if (none) none.hidden = any;
   }
 
-  /* ---------- the phone bar: one row, the workspaces in a sheet ---------- */
+  /* ---------- the bar: one row, the workspaces in a pop-up ---------- */
   const tabsEl = document.getElementById("tabs");
   const picker = document.createElement("button");
   picker.type = "button";
@@ -225,8 +247,8 @@
   })();
   function paintPicker() {
     const ws = page === "ws" ? byId[view.ws] : null;
-    picker.innerHTML = `<span class="ws-pick-name">${esc(ws ? ws.label : "Workspaces")}</span> ▾`;
-    picker.setAttribute("aria-label", ws ? `Workspaces: ${ws.label} is open. Pick another.` : "Workspaces: pick one");
+    picker.innerHTML = `<span class="ws-pick-name">${esc(ws ? ws.label : "Curiosity Browser")}</span> ▾`;
+    picker.setAttribute("aria-label", ws ? `Curiosity Browser: ${ws.label} is open. Pick another.` : "Curiosity Browser: pick a workspace");
     picker.classList.toggle("on", !!ws);
   }
   const sheetOpen = () => tabsEl.classList.contains("ws-sheet-open");
@@ -235,10 +257,26 @@
     picker.setAttribute("aria-expanded", on ? "true" : "false");
     backdrop.hidden = !on;
     if (on) {
-      const cur = bar.querySelector("button.on[data-ws]") || bar.querySelector("button[data-ws]");
-      if (cur) cur.focus();
+      const find = bar.querySelector(".ws-find");
+      if (find) {
+        find.value = "";
+        filterBar("");
+        find.focus();
+      }
     } else if (focusBack) picker.focus();
   }
+  bar.addEventListener("input", (e) => {
+    if (e.target.classList && e.target.classList.contains("ws-find")) filterBar(e.target.value);
+  });
+  /* Enter in the search box opens the first workspace still shown. */
+  bar.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || !e.target.classList || !e.target.classList.contains("ws-find")) return;
+    const first = [...bar.querySelectorAll("button[data-ws]")].find((b) => !b.hidden && !b.closest(".ws-sec").hidden);
+    if (first) {
+      e.preventDefault();
+      first.click();
+    }
+  });
   picker.addEventListener("click", () => setSheet(!sheetOpen()));
   backdrop.addEventListener("click", () => setSheet(false));
   bar.addEventListener("click", (e) => {
@@ -1031,11 +1069,11 @@
     const proxList = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
     const members = (d.members || []).map((m) => proxList.find((p) => p.id === m)).filter(Boolean);
     el.innerHTML = `<div class="ws-psdb"><p><strong>${esc(d.label)}</strong></p>${d.plain ? `<p class="cap">${esc(d.plain)}</p>` : ""}
-      <p class="cap">These proximities act together. Switch on each one you want; each has its own delay and how often.</p>
+      <p class="cap">These sparks act together. Switch on each one you want; each has its own delay and how often.</p>
       <div class="ws-mods"></div></div>`;
     const box = el.querySelector(".ws-mods");
     members.forEach((p) => addModule(box, "p:" + p.id));
-    if (!members.length) box.innerHTML = `<p class="cap">None of its proximities are loaded.</p>`;
+    if (!members.length) box.innerHTML = `<p class="cap">None of its sparks are loaded.</p>`;
     return true;
   }
 
@@ -1096,7 +1134,7 @@
     const r = related(ids);
     const el = document.getElementById("ws-related");
     if (!r.suites.length && !r.prox.length && !r.ps.length) {
-      el.innerHTML = ws.scope === "story" ? `<p class="cap">No suite or proximity involves these yet. Once films are traced for them, they will show here.</p>` : "";
+      el.innerHTML = ws.scope === "story" ? `<p class="cap">No suite or spark involves these yet. Once films are traced for them, they will show here.</p>` : "";
       return;
     }
     const opened = view.opened[ws.id] || (view.opened[ws.id] = []);
@@ -1114,11 +1152,11 @@
       return chip("s:" + s.id, s.label, (hintOf("suite", s.id) || s.note || "") + (m ? ` In my film: ${CS.pct(m.mean)} on average, best ${CS.pct(m.peak)}.` : ""), extra);
     };
     const block = (title, items) => (items.length ? `<p class="ws-g">${esc(title)}</p><div class="ws-chips">${items.join("")}</div>` : "");
-    el.innerHTML = `<h4>Suites and proximities that involve these</h4>
+    el.innerHTML = `<h4>Suites and sparks that involve these</h4>
       <p class="cap">Tap one to open its automation here.</p>
       ${block("Suites, by how much my film shows of each", r.suites.map(suiteChip))}
-      ${block("Proximities", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`, hintOf("proximity", p.id) || p.note || "")))}
-      ${block("Proximity suites", r.ps.map((p) => chip("ps:" + p.id, p.label, hintOf("proximitySuite", p.id))))}
+      ${block("Sparks", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`, hintOf("proximity", p.id) || p.note || "")))}
+      ${block("Elixirs", r.ps.map((p) => chip("ps:" + p.id, p.label, hintOf("proximitySuite", p.id))))}
       <div class="ws-mods" id="ws-related-mods"></div>`;
     const box = document.getElementById("ws-related-mods");
     opened.forEach((key) => {
@@ -1261,6 +1299,8 @@
         group: (GROUPS.find((g) => g.ids.includes(w.id)) || { title: "More" }).title,
       })),
     current: () => (page === "ws" || page === "sb" ? view.ws : null),
+    /* The Curiosity Browser pop-up: picker(true) opens it, picker(false) closes it. */
+    picker: (on) => setSheet(on !== false),
   };
 
   /* Leaving a workspace detaches its body, so tool animations that check isConnected stop. */

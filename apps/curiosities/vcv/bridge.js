@@ -8,7 +8,7 @@
    one item in focus: jack 1 its main lane, jack 2 its first lane, and so on.
 
    Needs, after automation.js:  <script src="vcv/curiosity-jacks.js"></script> <script src="vcv/bridge.js"></script>
-   window.CurioVCV: start(), status(), focus(key), focused(), jackFor(key), feed([status, cc, value]), on(fn). */
+   window.CurioVCV: start(), status(), focus(key), focused(), jackFor(key), feed([status, cc, value], port), on(fn). */
 (function () {
   const BANK = window.CURIOSITY_VCV;
   const A = () => window.CurioAuto;
@@ -16,9 +16,10 @@
 
   const byJack = {};
   const byKey = {};
-  BANK.jacks.forEach(([key, channel, cc, label, workspace, module, jack]) => {
-    const j = { key, channel, cc, label, workspace, module, jack };
-    byJack[channel + ":" + cc] = j;
+  /* Port 1 holds the first 1,680 jacks; later ones come in on a second virtual MIDI cable (an 8th entry: 2). */
+  BANK.jacks.forEach(([key, channel, cc, label, workspace, module, jack, port]) => {
+    const j = { key, port: port || 1, channel, cc, label, workspace, module, jack };
+    byJack[j.port + ":" + channel + ":" + cc] = j;
     byKey[key] = j;
   });
   const FOCUS = BANK.focus || { channel: 16, ccs: [] };
@@ -73,7 +74,8 @@
   }
 
   /* One MIDI message: [status, data1, data2]. Only control changes matter here. */
-  function feed(msg) {
+  function feed(msg, port) {
+    port = port || 1;
     const [st, cc, val] = msg;
     if ((st & 0xf0) !== 0xb0) return false;
     const channel = (st & 0x0f) + 1;
@@ -87,7 +89,7 @@
         what = (byKey[state.focus] ? byKey[state.focus].label : state.focus) + (n ? " · slider " + (n + 1) : "");
       }
     } else {
-      const j = byJack[channel + ":" + cc];
+      const j = byJack[port + ":" + channel + ":" + cc];
       if (j) {
         ok = driveMain(j.key, v);
         what = j.label;
@@ -95,7 +97,7 @@
     }
     if (ok) {
       state.count++;
-      state.last = { what, value: Math.round(v * 100), channel, cc };
+      state.last = { what, value: Math.round(v * 100), port, channel, cc };
       tellSoon();
     }
     return ok;
@@ -119,8 +121,16 @@
   }
 
   /* Web MIDI: listen on every input with addEventListener, so automation.js's own listener keeps working. */
+  /* Which port an input is: a cable whose name ends in a number from 2 to 9 ("Curiosities 2", IAC "Bus 2", loopMIDI
+     "loopMIDI Port 2") is that port; anything else is port 1. Only matters once the bank needs a second port. */
+  const PORTS = Math.max(1, ...BANK.jacks.map((j) => j[7] || 1));
+  const portOf = (name) => {
+    const m = /(?:^|[\s_-])([2-9])\s*$/.exec(String(name || "").trim());
+    const n = m ? Number(m[1]) : 1;
+    return n <= PORTS ? n : 1;
+  };
   const hooked = new WeakSet();
-  const onMsg = (e) => feed(e.data);
+  const onMsg = (e) => feed(e.data, portOf(e.target && e.target.name));
   function hook(access) {
     let n = 0;
     access.inputs.forEach((input) => {
@@ -246,6 +256,8 @@
     status: () => Object.assign({}, state),
     jackFor: (key) => (byKey[key] ? Object.assign({}, byKey[key]) : null),
     jacks: () => BANK.jacks.length,
+    ports: () => PORTS,
+    portOf,
     on(fn) {
       listeners.push(fn);
       return () => listeners.splice(listeners.indexOf(fn), 1);
