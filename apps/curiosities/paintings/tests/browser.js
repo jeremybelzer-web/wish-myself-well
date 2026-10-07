@@ -43,7 +43,7 @@ const ok = (cond, msg) => {
 
 (async () => {
   const server = await serve();
-  const base = `http://127.0.0.1:${server.address().port}/index.html?viewer=1`;
+  const base = `http://127.0.0.1:${server.address().port}/index.html?viewer=1&paint=1`;
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];

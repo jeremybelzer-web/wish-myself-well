@@ -52,11 +52,17 @@
       else localStorage.setItem(PREF, String(i));
     } catch (e) {}
   }
+  /* automated test runs keep the app's own colours (so other parts' tests see the usual look) unless ?paint=1 */
+  let testRun = false;
+  try {
+    testRun = !!navigator.webdriver && !/[?&]paint=1\b/.test(location.search);
+  } catch (e) {}
   function appOn() {
     try {
-      return localStorage.getItem(APP) !== "0";
+      const v = localStorage.getItem(APP);
+      return v == null ? !testRun : v !== "0";
     } catch (e) {
-      return true;
+      return !testRun;
     }
   }
   function setApp(on) {

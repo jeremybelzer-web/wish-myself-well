@@ -19,7 +19,7 @@ paintings as five-colour swatches, so things in the film can take colours a grea
   the Screen and these menus take the five as their colour tokens (`--c-*`, `--cc-*`), ranked by lightness, after
   the readability guard moves each 6 % at a time toward white or black (background luminance at most 0.025, text
   7:1, dimmed text and accent 5.5:1, 4.5:1 on every panel layer). The menus' swatches are never changed. "The app
-  wears it: on/off" in the window and the strip, per device in `curio-paintings-app-v1` (on unless turned off).
+  wears it: on/off" in the window and the strip, per device in `curio-paintings-app-v1` (on unless turned off; automated test runs start with it off unless `?paint=1`, so other parts' tests see the usual look).
   The older full-editor pages (styles.css, a light paper look with fixed colours) keep their own colours.
 
 Tests: `node paintings/tests/run.js` (the data against `tests/expected.txt`, the spec's table, and the readability rules for all 62) and
