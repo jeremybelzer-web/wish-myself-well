@@ -18,7 +18,7 @@
    - The storyboard: At the bottom, Left of the picture, or Right of the picture. At the side its cards run left to
      right and wrap onto the next row.
    - The menu on the left (the rail): Left, Right, or Top.
-   Kept per device (localStorage curio-viewer-workspace-v1). Only in the big Viewer on a screen wider than 1100px;
+   Kept per device (localStorage curio-viewer-workspace-v1). Only in the big Viewer on a screen wider than 760px;
    phones keep their one column. window.CurioWorkspace = { get(), set(part, spot), spots, apply() } */
 (function () {
   "use strict";
@@ -129,11 +129,15 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .ws-sys { position: relative; }
 .ws-sys > .ws-n { position: absolute; left: 3px; top: 1px; z-index: 2; font: 600 9.5px/1 system-ui, sans-serif; color: #8b8b94; pointer-events: none; }
 .ws-slice { position: absolute; top: 0; bottom: 0; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card > :not(canvas):not(.cv-num) { display: none; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card { flex-basis: 108px; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card canvas { border-bottom: 0; }
 .ws-slice > .cf-ln-in { inset: 5px 0; }
 `;
 
   /* ---------- what is on now ---------- */
-  const wide = () => window.innerWidth > 1100;
+  /* wider than a phone (the app link opens in a frame narrower than the window, often under 1100px) */
+  const wide = () => window.innerWidth > 760;
   const active = (root) => !!root && root.classList.contains("cv-big") && !root.classList.contains("cv-comic") && wide();
   const pictures = (root) => root.querySelectorAll(".cv-wins .cv-win").length;
   /* "Lanes follow the window" (Jeremy 2026-10-07 01:29Z, on by default, at the top of Views ▾): when the top part is
@@ -149,7 +153,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     const n = pictures(root);
     /* the pictures' height beside the lanes: the Player less its padding, the transport row and the gap */
     const h = player.clientHeight - 12 - (tr ? tr.offsetHeight + 6 : 0) - 12;
-    const picsW = Math.round(n * h * ratio + (n - 1) * 10 + 16);
+    let picsW = Math.round(n * h * ratio + (n - 1) * 10 + 16);
+    /* one picture: the lanes always sit beside it, at the top, and the picture gives up room for them when the
+       window is narrow (Jeremy 2026-10-07 19:27Z: "the curiosity lanes ... in the window next to the viewer window
+       at the top ... only when we add a window ... underneath both of them") */
+    if (n === 1) return { at: "beside", picsW: Math.min(picsW, Math.round((player.clientWidth - 12) * 0.62)) };
     const room = player.clientWidth - 12 - picsW;
     const was = root.dataset.wsLanes === "beside";
     return { at: room >= (was ? LANE_MIN - 40 : LANE_MIN) ? "beside" : "below", picsW };
@@ -181,6 +189,9 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       set("wsLanes", lanes);
       set("wsStrip", on && ws.strip !== "bottom" ? ws.strip : "");
       set("wsRail", on && ws.rail !== "left" ? ws.rail : "");
+      /* two or more pictures with the lanes the long way under them: the storyboard gets smaller below, its cards
+         down to the picture and its number, so the pictures keep their room (Jeremy 2026-10-07 19:27Z) */
+      set("wsSmallStrip", lanes === "below" && pictures(root) > 1 && ws.strip === "bottom" ? "1" : "");
       /* following the window, the pictures keep their own width and the lanes take the rest */
       if (player) {
         /* only a real change moves it: the pictures' measured shape shifts a pixel or two with the room they get, and

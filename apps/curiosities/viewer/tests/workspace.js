@@ -117,6 +117,23 @@ server.listen(0, "127.0.0.1", async () => {
   d = await ds();
   ok(d.wsLanes === "below", "with two pictures Front and center goes back under them (" + d.wsLanes + ")");
   ok(!(await page.$(".cv-under .ws-sheet")), "in one long row again");
+  ok(d.wsSmallStrip === "1" && !(await page.isVisible(".cv-strip .cv-card .cv-cap")), "and the storyboard below gets smaller: its cards keep only the picture and number");
+  /* click the extra window and press Delete: it closes (Jeremy 2026-10-07 19:27Z); your film never does */
+  const second = await box(".cv-wins .cv-win:nth-child(2)");
+  await page.mouse.click(second.l + second.w / 2, second.t + second.h / 2);
+  await page.waitForTimeout(200);
+  ok(await page.evaluate(() => document.querySelectorAll(".cv-wins .cv-win")[1].classList.contains("cv-win-picked")), "clicking the extra window picks it");
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(800);
+  d = await ds();
+  ok((await page.$$(".cv-wins .cv-win")).length === 1 && d.wsLanes === "beside" && !d.wsSmallStrip, "Delete closes it; the lanes go back beside your film and the storyboard back to full size");
+  const first = await box(".cv-wins .cv-win");
+  await page.mouse.click(first.l + first.w / 2, first.t + first.h / 2);
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(300);
+  ok((await page.$$(".cv-wins .cv-win")).length === 1, "Delete never closes your own film");
+  await page.click('[data-act="addwin"]');
+  await page.waitForTimeout(800);
   /* Lanes follow the window: a shorter top part leaves room beside two pictures, and the lanes move there */
   const views = async () => (await page.isVisible(".cv-views-menu")) || page.click('[data-act="views"]');
   await views();
@@ -142,6 +159,20 @@ server.listen(0, "127.0.0.1", async () => {
   ok((await ds()).wsLanes === "beside", "switched back on, they follow the window again");
   await page.evaluate(() => CurioWorkspace.set("lanes", "below"));
   ok((await page.evaluate(() => CurioWorkspace.get().follow)) === false, "putting the lanes somewhere yourself turns the switch off");
+
+  /* the app link opens in a frame narrower than the window: one picture still has the lanes beside it */
+  await page.evaluate(() => (CurioWorkspace.follow(true), localStorage.setItem("curio-viewer-workspace-v1", "{}")));
+  await page.setViewportSize({ width: 1000, height: 700 });
+  await page.reload();
+  await page.waitForSelector(".cv-root[data-ws-lanes] .cv-under .cf-charts", { timeout: 15000 });
+  await page.waitForTimeout(800);
+  const nw = await page.$$(".cv-wins .cv-win");
+  for (let i = nw.length - 1; i > 0; i--) await page.evaluate((i) => document.querySelector(`[data-wclose="${i}"]`).click(), i);
+  await page.waitForTimeout(800);
+  const p1 = await box(".cv-wins .cv-win");
+  const l1 = await box(".cv-under");
+  ok((await ds()).wsLanes === "beside" && l1.l >= p1.r - 2 && l1.t < p1.b, `in a 1000px window one picture has the lanes beside it at the top (${(await ds()).wsLanes})`);
+  await page.screenshot({ path: path.join(SHOTS, "viewer-workspace-1000.png") });
 
   ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

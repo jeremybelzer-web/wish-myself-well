@@ -638,6 +638,7 @@
   if (!wins.length) wins = ["mine"];
   const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
   let activeWin = 0;
+  let pickedWin = 0;
   /* Two ways to see many windows: "fit" shrinks them all to fit the stage, "swipe" keeps one big window and
      you drag along its top edge (or click the dots) to see the others. */
   const MKEY = "curiosities-viewer-winmode-v1";
@@ -1494,6 +1495,8 @@
 .cv-stage { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; }
 .cv-wins { display: grid; gap: 6px; justify-content: center; align-content: center; width: 100%; height: 100%; }
 .cv-win { position: relative; background: #000; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line); }
+.cv-win.cv-win-picked { box-shadow: inset 0 0 0 2px var(--c-accent, #22d3ee); }
+.cv-win.cv-win-picked::after { content: "Delete closes this window"; position: absolute; right: 6px; bottom: 6px; z-index: 3; padding: 3px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.75); color: #fff; font: 12px/1.3 system-ui, sans-serif; pointer-events: none; }
 .cv-win.is-mine { box-shadow: 0 0 0 1px var(--c-accent); }
 .cv-wins[data-n="1"] .cv-win.is-mine { box-shadow: none; }
 .cv-canvas, .cv-video { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; object-fit: contain; background: #000; }
@@ -1687,6 +1690,7 @@
       save();
     });
     document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", (e) => pickedWin && W_EL[pickedWin] && !W_EL[pickedWin].el.contains(e.target) && pickWin(0), true);
     window.addEventListener("resize", () => draw());
     /* the stage changes size without a window resize too (the Front and center lane arrives a moment after the
        first picture): fit the windows again then, so the picture never jumps and drags use fresh coordinates */
@@ -1715,6 +1719,7 @@
     W_EL.forEach((w) => w.video && w.video.pause());
     box.innerHTML = "";
     W_EL.length = 0;
+    pickedWin = 0;
     wins.forEach((id, i) => {
       const el = document.createElement("div");
       el.className = "cv-win";
@@ -1726,6 +1731,8 @@
         <div class="cv-wmenu" hidden></div>
         <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
       box.appendChild(el);
+      /* click an extra window to pick it; Delete (or Backspace) then closes it (Jeremy 2026-10-07) */
+      if (i) el.addEventListener("pointerdown", (e) => !(e.target.closest && e.target.closest("button, select, input, .cv-wmenu")) && pickWin(i));
       const w = { el, canvas: el.querySelector("canvas"), hud: el.querySelector(".cv-hud"), video: el.querySelector("video"), picks: [] };
       w.ctx = w.canvas.getContext("2d");
       const on = (fn) => (e) => {
@@ -1843,8 +1850,14 @@
     if (winMode === "swipe") showWin(shownWin);
     draw();
   }
+  /* the extra window picked by a click (pickedWin, 0: none; your film, window 0, is never closed) */
+  function pickWin(i) {
+    pickedWin = i > 0 && i < wins.length ? i : 0;
+    W_EL.forEach((w, k) => w.el.classList.toggle("cv-win-picked", k === pickedWin && k > 0));
+  }
   function closeWin(i) {
     if (!i || i >= wins.length) return;
+    pickedWin = 0;
     wins.splice(i, 1);
     saveWins();
     buildWins();
@@ -3000,6 +3013,10 @@
       if (typing && t.type !== "range") return;
       e.preventDefault();
       return e.shiftKey ? restore(redo, undo) : restore(undo, redo);
+    }
+    if (pickedWin && !typing && !mod && (e.key === "Delete" || e.key === "Backspace")) {
+      e.preventDefault();
+      return closeWin(pickedWin);
     }
     if (!typing && HOOK.keys.some((fn) => fn(e))) return;
     if (typing || mod || e.altKey) return;
