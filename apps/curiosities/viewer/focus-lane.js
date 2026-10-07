@@ -58,6 +58,10 @@
 .cv-under[data-tab="focus"] .cf-pane-lanes, .cv-under[data-tab="moments"] .cf-pane-lanes, .cv-under[data-tab="lanes"] .cf-pane-focus, .cv-under[data-tab="lanes"] .cf-pane-moments { display: none; }
 .cf-lanes { display: grid; gap: 3px; max-height: 106px; overflow-y: auto; padding-right: 2px; }
 .cf-ln { display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 6px; align-items: center; }
+/* Show curiosity suite: every setting of a curiosity, indented under its lane */
+.cf-ln-sub .cf-ln-name { padding-left: 14px !important; opacity: 0.92; }
+.cf-ln-sub .cf-ln-name b { font-weight: 500; }
+.cv-root.cf-big .cf-ln.cf-ln-sub { background: #131316; border-left-width: 2px; margin-left: 10px; }
 /* the pop-up button at the end of each lane (Jeremy 2026-10-05): opens that curiosity's window */
 .cv-root .cf-ln-pop { width: 24px; height: 22px; padding: 0; border-radius: 5px; border: 1px solid #4a4a54; background: #26262b; color: #e6e6ea; font-size: 13px; line-height: 20px; cursor: pointer; }
 .cv-root .cf-ln-pop:hover, .cv-root .cf-ln-pop:focus-visible { background: #22d3ee; color: #062a31; border-color: #22d3ee; }
@@ -91,6 +95,17 @@
 .cf-cwin [data-cw="search"] { background: #22d3ee; color: #062a31; border-color: #22d3ee; font-weight: 600; }
 .cf-cwin-b, .cf-swin-b { overflow-y: auto; padding: 8px 10px 10px; display: grid; gap: 8px; align-content: start; }
 .cf-cwin-b > p { margin: 0; color: #b5b5bd; }
+.cf-cw-pad { display: grid; gap: 5px; padding: 6px; background: #222226; border-radius: 6px; }
+.cf-pad-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cf-pad-pick label { display: grid; gap: 2px; color: #9b9ba3; font-size: 10.5px; }
+.cf-pad-pick select { width: 100%; min-width: 0; }
+.cf-pad { position: relative; height: 150px; border-radius: 6px; background: #121215; border: 1px solid #3a3a42; cursor: crosshair; touch-action: none; overflow: hidden; outline-offset: 2px; }
+.cf-pad:focus-visible { outline: 2px solid #22d3ee; }
+.cf-pad-grid { position: absolute; inset: 0; background-image: linear-gradient(#2a2a30 1px, transparent 1px), linear-gradient(90deg, #2a2a30 1px, transparent 1px); background-size: 25% 25%; pointer-events: none; }
+.cf-pad span { position: absolute; font-size: 10px; color: #8a8a93; pointer-events: none; max-width: 48%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-pad-x0 { left: 4px; bottom: 2px; } .cf-pad-x1 { right: 4px; bottom: 2px; } .cf-pad-y1 { left: 4px; top: 2px; } .cf-pad-y0 { left: 4px; bottom: 14px; }
+.cf-pad-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 0 3px rgba(34,211,238,.3); pointer-events: none; }
+.cf-pad-k { margin: 0; color: #9b9ba3; }
 .cf-cw-row { display: grid; gap: 3px; padding: 6px; background: #222226; border-radius: 6px; }
 .cf-cw-row > div { display: flex; align-items: center; gap: 6px; }
 .cf-cw-row b { flex: 1; font-weight: 600; }
@@ -331,7 +346,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     /* edits clear the cache (onChange), so playing never re-reads */
     if (cache) return cache;
     const film = v.film();
-    const key = JSON.stringify(film.panels.map((p) => [p.sec, p.cam, p.place, p.words.length, !!p.caption, p.rain, p.v || null, p.id, p.note, p.curves || null]));
+    const key = JSON.stringify(film.panels.map((p) => [p.sec, p.cam, p.place, p.words.length, !!p.caption, p.rain, p.v || null, p.id, p.note, p.curves || null, p.front || null]));
     const starts = [];
     let t = 0;
     film.panels.forEach((p) => (starts.push(t), (t += p.sec)));
@@ -343,13 +358,13 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       raw.map((values, i) => ({ at: starts[i], values: active(values) })),
       { end: film.panels[film.panels.length - 1].sec },
     );
-    const segs = reading.segments;
+    let segs = reading.segments.slice();
     const prox = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
     const suites = typeof SUITES !== "undefined" ? SUITES.filter((s) => s && s.set && Object.keys(s.set).length >= 2) : [];
     const panels = film.panels.map((p, i) => {
       const at = starts[i] + 1e-6;
       const seg = segs.find((s) => at >= s.from && at < s.to + 1e-6) || segs[segs.length - 1] || null;
-      const lead = seg ? { id: seg.curiosity, label: seg.label, family: seg.family, from: seg.from, to: seg.to, fresh: seg.beat === i } : null;
+      let lead = seg ? { id: seg.curiosity, label: seg.label, family: seg.family, from: seg.from, to: seg.to, fresh: seg.beat === i } : null;
       /* the strongest other curiosity changing here: the one that pushes the story hardest */
       let second = null;
       const changedHere = Object.keys(active(raw[i])).filter((id) => {
@@ -412,15 +427,63 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
         const n = M().note(trigger.who);
         second = { id: trigger.who, label: n.label, family: n.family, score: 99 };
       }
+      /* Jeremy 2026-10-07: what's front and center can be changed by hand (right-click the pie, the list, a lane's
+         node or line). p.front = { lead, with, out: [ids] }: lead is front and center, with is the one with it,
+         out are taken out of the front for this panel. Chosen ones take the most attention in the pie and graph. */
+      const fc = p.front && typeof p.front === "object" ? p.front : null;
+      const outs = fc && Array.isArray(fc.out) ? fc.out : [];
+      const chosen = (cid) => {
+        const n = M().note(cid);
+        return { id: cid, label: n.label || cid, family: n.family, from: starts[i], to: starts[i] + p.sec, fresh: true, chosen: true };
+      };
+      let byHand = false;
+      if (fc) {
+        if (second && outs.includes(second.id)) second = null;
+        if (lead && outs.includes(lead.id)) {
+          lead = second ? chosen(second.id) : null;
+          second = null;
+          byHand = true;
+        }
+        if (fc.lead && !outs.includes(fc.lead)) {
+          if (second && second.id === fc.lead) second = null;
+          if (lead && !lead.chosen && lead.id !== fc.lead && !second) second = { id: lead.id, label: lead.label, family: lead.family, score: 50 };
+          lead = chosen(fc.lead);
+          byHand = true;
+        }
+        if (fc.with && fc.with !== (lead && lead.id) && !outs.includes(fc.with)) {
+          const n = M().note(fc.with);
+          second = { id: fc.with, label: n.label || fc.with, family: n.family, score: 99, chosen: true };
+        }
+        if (byHand) {
+          const a = starts[i];
+          const b = starts[i] + p.sec;
+          const cut = [];
+          segs.forEach((g) => {
+            if (g.to <= a + 1e-6 || g.from >= b - 1e-6) return cut.push(g);
+            if (g.from < a - 1e-6) cut.push(Object.assign({}, g, { to: a, dur: +(a - g.from).toFixed(2) }));
+            if (g.to > b + 1e-6) cut.push(Object.assign({}, g, { from: b, dur: +(g.to - b).toFixed(2) }));
+          });
+          if (lead) cut.push({ curiosity: lead.id, label: lead.label, family: lead.family, from: a, to: b, dur: +p.sec.toFixed(2), beat: i, chosen: true });
+          segs = cut.sort((x, y) => x.from - y.from);
+        }
+      }
       /* what changed here and how hard it pulls, for the attention pie and graph */
-      const changes = changedHere.map((id) => {
+      const changes = changedHere.filter((id) => !outs.includes(base(id))).map((id) => {
         const n = M().note(base(id));
         let pull = 1 + 0.15 * (n.push || 0) + (STORY[n.family] ? 0.4 : 0);
         if (lead && lead.fresh && base(id) === lead.id) pull *= 1.8;
         if (second && base(id) === second.id) pull *= 1.3;
         return { id: base(id), label: n.label, family: n.family, pull };
       });
-      const present = Object.keys(active(K[i])).map(base);
+      const present = Object.keys(active(K[i])).map(base).filter((id) => !outs.includes(id));
+      [lead && lead.chosen && lead.id, second && second.chosen && second.id].filter(Boolean).forEach((cid, k) => {
+        if (!present.includes(cid)) present.push(cid);
+        const n = M().note(cid);
+        const was = changes.find((c) => c.id === cid);
+        const pull = k === 0 ? 4 : 2.5;
+        if (was) was.pull = Math.max(was.pull, pull);
+        else changes.push({ id: cid, label: n.label || cid, family: n.family, pull });
+      });
       return { i, at: starts[i], sec: p.sec, lead, second, suite, trigger, changes, present };
     });
     cache = { key, total, segs, panels, K, stats: reading.stats, limit: reading.limit, curves: film.panels.map((p) => p.curves || null) };
@@ -582,12 +645,15 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const sl = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x.id === (slider || c.main || "setting")) || c.sliders[0] : null;
     const list = sl && Array.isArray(sl.scale) ? sl.scale : c && Array.isArray(c.options) ? c.options : null;
     if (list && list.length > 1) return { list: list.slice() };
+    const g = sl && sl.range && isFinite(sl.range.min) && isFinite(sl.range.max) ? sl.range : null;
     const nums = vals.filter((v) => v != null && v !== "" && isFinite(Number(v))).map(Number);
     if (nums.length && nums.length === vals.filter((v) => v != null && v !== "").length) {
-      const lo = Math.min(0, ...nums);
-      const hi = Math.max(lo + 1, ...nums, sl && isFinite(sl.max) ? sl.max : -Infinity);
-      return { lo, hi, step: nums.every((n) => Number.isInteger(n)) ? 1 : 0.1 };
+      const lo = Math.min(g ? g.min : 0, ...nums);
+      const hi = Math.max(lo + 1, ...nums, g ? g.max : sl && isFinite(sl.max) ? sl.max : -Infinity);
+      return { lo, hi, step: g && g.step ? g.step : nums.every((n) => Number.isInteger(n)) ? 1 : 0.1 };
     }
+    /* a number setting nothing sets yet: its own range, so an opened suite can still be set from the menu */
+    if (g && !vals.some((v) => v != null && v !== "")) return { lo: g.min, hi: Math.max(g.min + 1, g.max), step: g.step || 1 };
     /* words with no known scale: the ones the film uses, in the order they first come */
     const seen = [];
     vals.forEach((v) => v != null && v !== "" && !seen.includes(String(v)) && seen.push(String(v)));
@@ -789,10 +855,26 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const total = r.total;
     const seps = sepsOf(r);
     const L = scenesOf();
-    const rows = laneIds(r).map((id) => {
+    const laneRow = (id, sub) => {
       const { n, sc, where, edit, svg, dots } = laneParts(r, id);
       const tip = edit ? "Drag a dot up or down to change that panel" : where ? `Read from the picture: change it in ${where}` : "Set in the panels themselves";
-      return `<div class="cf-ln${edit ? " cf-ln-edit" : ""}" data-ln="${esc(id)}" style="--ln-c:${M().mark(n.family).color}"><span class="cf-ln-name" title="${esc(n.label + ". " + tip)}"><b>${esc(laneName(id, n))}</b><small>${esc(edit ? (sc.list ? sc.list[0] + " to " + sc.list[sc.list.length - 1] : sc.lo + " to " + sc.hi) : tip)}</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in">${svg}${dots}<i class="cf-ln-play" data-play="${esc(id)}"></i></div><i class="cf-ln-head"></i></div><button type="button" class="cf-ln-pop" data-cwin="${esc(id)}" title="${esc("Open the " + n.label + " window")}" aria-label="${esc("Open the " + n.label + " window")}">⧉</button></div>`;
+      const open = !sub && suiteOpen.has(base(id));
+      const name = sub ? sub.label || id : laneName(id, n);
+      return `<div class="cf-ln${edit ? " cf-ln-edit" : ""}${sub ? " cf-ln-sub" : ""}${open ? " cf-ln-open" : ""}" data-ln="${esc(id)}" style="--ln-c:${M().mark(n.family).color}"><span class="cf-ln-name" title="${esc((sub ? n.label + ": " + name : n.label) + ". " + tip)}"><b>${open ? "▾ " : ""}${esc(name)}</b><small>${esc(edit ? (sc.list ? sc.list[0] + " to " + sc.list[sc.list.length - 1] : sc.lo + " to " + sc.hi) : tip)}</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in">${svg}${dots}<i class="cf-ln-play" data-play="${esc(id)}"></i></div><i class="cf-ln-head"></i></div><button type="button" class="cf-ln-pop" data-cwin="${esc(id)}" title="${esc("Open the " + n.label + " window")}" aria-label="${esc("Open the " + n.label + " window")}">⧉</button></div>`;
+    };
+    /* a lane opened with Show curiosity suite has every setting of its curiosity under it, set or not */
+    const done = new Set();
+    const rows = [];
+    laneIds(r).forEach((id) => {
+      if (done.has(id)) return;
+      done.add(id);
+      rows.push(laneRow(id));
+      if (!suiteOpen.has(base(id))) return;
+      settingsOf(id).forEach((sl) => {
+        if (done.has(sl.lid)) return;
+        done.add(sl.lid);
+        rows.push(laneRow(sl.lid, sl));
+      });
     });
     /* suites: how much of each suite in front is on, panel by panel */
     const suiteIds = [...new Set(r.panels.filter((p) => p.suite).map((p) => p.suite.id))];
@@ -945,6 +1027,32 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     if (swin) swin.remove();
     swin = null;
   }
+  /* every setting of a curiosity, as lanes: { lid, label } */
+  function settingsOf(id) {
+    const c = M().find ? M().find(base(id)) : null;
+    if (!c || !Array.isArray(c.sliders)) return [];
+    return c.sliders.map((sl) => ({ lid: laneIdOf(c, sl), label: sl.label || sl.id }));
+  }
+  const SUITE_KEY = "curio-lane-suites-v1";
+  const suiteOpen = new Set(
+    (() => {
+      try {
+        return JSON.parse(localStorage.getItem(SUITE_KEY) || "[]");
+      } catch (e) {
+        return [];
+      }
+    })(),
+  );
+  function toggleSuite(id) {
+    const b = base(id);
+    if (suiteOpen.has(b)) suiteOpen.delete(b);
+    else suiteOpen.add(b);
+    try {
+      localStorage.setItem(SUITE_KEY, JSON.stringify([...suiteOpen]));
+    } catch (e) {}
+    const r = read();
+    if (r) relayout(r);
+  }
   const laneIdOf = (c, sl) => (sl.id === (c.main || "setting") ? c.id : c.id + "." + sl.id);
   function winRows(id) {
     const live = V().live();
@@ -979,7 +1087,140 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const live = V().live();
     const c = M().find ? M().find(base(id)) : null;
     const n = M().note(base(id));
-    cwin.querySelector(".cf-cwin-b").innerHTML = `<p>${esc((c && c.plain) || n.label)}</p><p><small>Panel ${live.cur + 1}: pick another panel in the storyboard to set it there.</small></p>${winRows(id)}`;
+    const padFocus = document.activeElement && document.activeElement.classList && document.activeElement.classList.contains("cf-pad") && cwin.contains(document.activeElement);
+    cwin.querySelector(".cf-cwin-b").innerHTML = `<p>${esc((c && c.plain) || n.label)}</p><p><small>Panel ${live.cur + 1}: pick another panel in the storyboard to set it there.</small></p>${padHtml(id)}${winRows(id)}`;
+    const pd = padFocus && cwin.querySelector(".cf-pad");
+    if (pd) pd.focus();
+  }
+
+  /* ---------- the pad (Jeremy 2026-10-07: "a 2D grid that the user can draw on or navigate through") ----------
+     Two settings of the curiosity at once: across and up. Click or drag on it (or arrow keys) to set both in the
+     picked panel, one undo step per drag. The two menus above it pick which settings it moves. */
+  const padPick = {};
+  let padDragging = false;
+  function padSettings(id) {
+    const c = M().find ? M().find(base(id)) : null;
+    if (!c || !Array.isArray(c.sliders)) return [];
+    return c.sliders
+      .map((sl) => ({ sl, lid: laneIdOf(c, sl) }))
+      .filter((q) => !READ_FROM_PICTURE[q.lid] && ((Array.isArray(q.sl.scale) && q.sl.scale.length > 1) || (q.sl.range && isFinite(q.sl.range.min) && isFinite(q.sl.range.max))));
+  }
+  const padAt = (sl, u) => {
+    u = Math.max(0, Math.min(1, u));
+    if (Array.isArray(sl.scale) && sl.scale.length > 1) return sl.scale[Math.round(u * (sl.scale.length - 1))];
+    const g = sl.range;
+    const st = g.step || 1;
+    return +Math.max(g.min, Math.min(g.max, g.min + Math.round((u * (g.max - g.min)) / st) * st)).toFixed(4);
+  };
+  const padOf = (sl, v) => {
+    if (v == null || v === "") return null;
+    if (Array.isArray(sl.scale) && sl.scale.length > 1) {
+      const k = sl.scale.map(String).indexOf(String(v));
+      return k < 0 ? null : k / (sl.scale.length - 1);
+    }
+    return (Number(v) - sl.range.min) / Math.max(1e-6, sl.range.max - sl.range.min);
+  };
+  function padHtml(id) {
+    const all = padSettings(id);
+    if (all.length < 2) return "";
+    const b = base(id);
+    let [x, y] = padPick[b] || [];
+    if (!all.some((q) => q.lid === x)) x = all[0].lid;
+    if (!all.some((q) => q.lid === y) || y === x) y = (all.find((q) => q.lid !== x) || all[1]).lid;
+    padPick[b] = [x, y];
+    const X = all.find((q) => q.lid === x);
+    const Y = all.find((q) => q.lid === y);
+    const r = read();
+    const K = (r && r.K[V().live().cur]) || {};
+    const px = padOf(X.sl, K[x]);
+    const py = padOf(Y.sl, K[y]);
+    const opts = (sel) => all.map((q) => `<option value="${esc(q.lid)}"${q.lid === sel ? " selected" : ""}>${esc(q.sl.label || q.sl.id)}</option>`).join("");
+    const ends = (sl) => (Array.isArray(sl.scale) && sl.scale.length > 1 ? [sl.scale[0], sl.scale[sl.scale.length - 1]] : [sl.range.min, sl.range.max]);
+    const [x0, x1] = ends(X.sl);
+    const [y0, y1] = ends(Y.sl);
+    return `<div class="cf-cw-pad"><div class="cf-pad-pick"><label>Across <select data-pad-axis="0" aria-label="The setting across the pad">${opts(x)}</select></label><label>Up <select data-pad-axis="1" aria-label="The setting up the pad">${opts(y)}</select></label></div><div class="cf-pad" data-pad="${esc(x)}|${esc(y)}" tabindex="0" role="application" aria-label="${esc((X.sl.label || x) + " across, " + (Y.sl.label || y) + " up. Click, drag or use the arrow keys.")}"><i class="cf-pad-grid" aria-hidden="true"></i><span class="cf-pad-x0">${esc(x0)}</span><span class="cf-pad-x1">${esc(x1)} →</span><span class="cf-pad-y1">↑ ${esc(y1)}</span><span class="cf-pad-y0">${esc(y0)}</span>${px != null && py != null ? `<i class="cf-pad-dot" style="left:${(px * 100).toFixed(1)}%;top:${((1 - py) * 100).toFixed(1)}%"></i>` : ""}</div><p class="cf-pad-k"><small>Drag across the pad to set both at once in panel ${V().live().cur + 1}.</small></p></div>`;
+  }
+  function padSet(pad, u, v, final) {
+    const [x, y] = pad.dataset.pad.split("|");
+    const all = padSettings(cwin.dataset.cwin);
+    const X = all.find((q) => q.lid === x);
+    const Y = all.find((q) => q.lid === y);
+    if (!X || !Y) return;
+    const p = V().live().panel;
+    const st = Object.assign({}, storyOf(p));
+    st[x] = padAt(X.sl, u);
+    st[y] = padAt(Y.sl, v);
+    p.v = st;
+    cache = null;
+    let dot = pad.querySelector(".cf-pad-dot");
+    if (!dot) {
+      dot = document.createElement("i");
+      dot.className = "cf-pad-dot";
+      pad.appendChild(dot);
+    }
+    dot.style.left = (padOf(X.sl, st[x]) * 100).toFixed(1) + "%";
+    dot.style.top = ((1 - padOf(Y.sl, st[y])) * 100).toFixed(1) + "%";
+    if (final) V().changed(true);
+    else V().redraw();
+  }
+  function padWire(w) {
+    w.addEventListener("change", (e) => {
+      const s = e.target.closest("[data-pad-axis]");
+      if (!s) return;
+      const b = base(w.dataset.cwin);
+      const pk = (padPick[b] || []).slice();
+      pk[+s.dataset.padAxis] = s.value;
+      if (pk[0] === pk[1]) pk[1 - +s.dataset.padAxis] = null;
+      padPick[b] = pk;
+      drawWin();
+    });
+    w.addEventListener("pointerdown", (e) => {
+      const pad = e.target.closest(".cf-pad");
+      if (!pad || e.button > 0) return;
+      e.preventDefault();
+      pad.focus();
+      V().remember("pad-" + pad.dataset.pad + "-" + V().live().cur);
+      const at = (ev, final) => {
+        const b = pad.getBoundingClientRect();
+        padSet(pad, (ev.clientX - b.left) / b.width, 1 - (ev.clientY - b.top) / b.height, final);
+      };
+      padDragging = true;
+      at(e, false);
+      pad.setPointerCapture && pad.setPointerCapture(e.pointerId);
+      const move = (ev) => at(ev, false);
+      const up = (ev) => {
+        pad.removeEventListener("pointermove", move);
+        pad.removeEventListener("pointerup", up);
+        pad.removeEventListener("pointercancel", up);
+        padDragging = false;
+        at(ev, true);
+      };
+      pad.addEventListener("pointermove", move);
+      pad.addEventListener("pointerup", up);
+      pad.addEventListener("pointercancel", up);
+    });
+    w.addEventListener("keydown", (e) => {
+      const pad = e.target.closest && e.target.closest(".cf-pad");
+      if (!pad || !/^Arrow/.test(e.key)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const [x, y] = pad.dataset.pad.split("|");
+      const all = padSettings(w.dataset.cwin);
+      const X = all.find((q) => q.lid === x);
+      const Y = all.find((q) => q.lid === y);
+      const K = (read() || { K: [] }).K[V().live().cur] || {};
+      const stepOf = (sl) => (Array.isArray(sl.scale) && sl.scale.length > 1 ? 1 / (sl.scale.length - 1) : 0.1);
+      let u = padOf(X.sl, K[x]);
+      let v = padOf(Y.sl, K[y]);
+      u = u == null ? 0.5 : u;
+      v = v == null ? 0.5 : v;
+      if (e.key === "ArrowLeft") u -= stepOf(X.sl);
+      if (e.key === "ArrowRight") u += stepOf(X.sl);
+      if (e.key === "ArrowDown") v -= stepOf(Y.sl);
+      if (e.key === "ArrowUp") v += stepOf(Y.sl);
+      V().remember("pad-key-" + pad.dataset.pad + "-" + V().live().cur);
+      padSet(pad, u, v, true);
+    });
   }
   function dock() {
     if (!cwin || !swin) return;
@@ -1026,6 +1267,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     cwin.innerHTML = `<header title="Drag to move"><i style="background:${M().mark(n.family).color}"></i><b>${esc(laneName(id, n))}</b><button type="button" data-cw="search" title="Search films and writing for this curiosity (opens beside this window)">🔍 Search</button><button type="button" data-cw="close" title="Close (Esc)" aria-label="Close">✕</button></header><div class="cf-cwin-b"></div>`;
     document.body.appendChild(cwin);
     drawWin();
+    padWire(cwin);
     const b = btn ? btn.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2 };
     const h = cwin.offsetHeight;
     cwin.style.left = Math.max(8, Math.min(innerWidth - cwin.offsetWidth - 8, b.left - cwin.offsetWidth - 8)) + "px";
@@ -1502,6 +1744,193 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     V().redraw();
   }
 
+
+  /* ---------- the lane menu: right-click a lane (Ctrl+click on a Mac, the menu key or Shift+F10 on a PC) ----------
+     Jeremy 2026-10-07: the same kind of menu as the storyboards (window.CurioMenu, viewer/strip-drag.js). It
+     works on the panel under the pointer, or on every picked panel when that panel is one of them. */
+  let laneClip = null;
+  /* the lane and panel under the pointer, from a dot, a line, a lane's track or its name */
+  function laneHit(e) {
+    const t = e.target.closest ? e.target : null;
+    if (!t || !t.closest(".cv-under")) return null;
+    const r = read();
+    if (!r) return null;
+    const own = t.closest("[data-ln]");
+    let id = own ? own.dataset.ln : null;
+    if (!id) {
+      const g = t.closest(".cf-graph");
+      if (!g) return null;
+      const ids = laneIds(r);
+      id = (picked && ids.find((x) => base(x) === picked)) || ids[0];
+    }
+    if (!id || t.closest(".cf-ln-scenes")) return null;
+    let i = t.dataset.lnI != null ? +t.dataset.lnI : t.dataset.seg != null ? +t.dataset.seg : null;
+    if (i == null) {
+      const track = (t.closest(".cf-ln") || t.closest(".cf-graph") || t).querySelector(".cf-ln-in") || t.closest(".cf-ln-in");
+      const tr = track ? track.getBoundingClientRect() : null;
+      const at = tr && (e.clientX || e.clientY) ? view.from + ((e.clientX - tr.left) / Math.max(1, tr.width)) * view.span : V().time();
+      i = r.panels.findIndex((p) => at >= p.at - 1e-6 && at < p.at + p.sec);
+      if (i < 0) i = at < 0 ? 0 : r.panels.length - 1;
+    }
+    return { id, i, seg: t.closest(".cf-seg") };
+  }
+  /* front and center by hand: the menu items for curiosity id on panels list (Jeremy 2026-10-07) */
+  function frontItems(id, list) {
+    const r = read();
+    const cid = base(id);
+    const nm = M().note(cid).label || cid;
+    const own = (k) => (V().live().film.panels[k] || {}).front || null;
+    const write = (tag, fn) => () => {
+      V().remember("front-" + tag + "-" + cid);
+      const film = V().live().film;
+      list.forEach((k) => {
+        const p = film.panels[k];
+        if (!p) return;
+        const f = fn(Object.assign({ out: [] }, p.front || {}, { out: ((p.front && p.front.out) || []).slice() }));
+        const empty = !f || (!f.lead && !f.with && !(f.out && f.out.length));
+        if (empty) delete p.front;
+        else {
+          if (!f.lead) delete f.lead;
+          if (!f.with) delete f.with;
+          if (!f.out || !f.out.length) delete f.out;
+          p.front = f;
+        }
+      });
+      cache = null;
+      V().changed(true);
+    };
+    const notOut = (f) => ((f.out = f.out.filter((x) => x !== cid)), f);
+    const isLead = list.every((k) => r && r.panels[k] && r.panels[k].lead && r.panels[k].lead.id === cid);
+    const isWith = list.every((k) => r && r.panels[k] && r.panels[k].second && r.panels[k].second.id === cid);
+    const isOut = list.every((k) => ((own(k) || {}).out || []).includes(cid));
+    const byHand = list.some((k) => own(k));
+    return [
+      { label: `Put ${nm} front and center`, run: write("lead", (f) => (notOut(f), f.with === cid && delete f.with, (f.lead = cid), f)), off: isLead, hint: isLead ? "It is already front and center here" : "It leads here, whatever the app worked out" },
+      { label: `Put ${nm} with it`, run: write("with", (f) => (notOut(f), f.lead === cid && delete f.lead, (f.with = cid), f)), off: isWith, hint: isWith ? "It is already with it here" : "The second thing holding attention here" },
+      { label: `Take ${nm} out of front and center`, run: write("out", (f) => (f.lead === cid && delete f.lead, f.with === cid && delete f.with, f.out.includes(cid) || f.out.push(cid), f)), off: isOut },
+      { label: "Let the app decide again", run: write("auto", () => null), off: !byHand, hint: "Forget what was picked by hand for " + (list.length > 1 ? "these panels" : "this panel") },
+    ];
+  }
+  function panelsAt(t) {
+    const r = read();
+    if (!r) return [0];
+    let i = r.panels.findIndex((p) => t >= p.at - 1e-6 && t < p.at + p.sec);
+    if (i < 0) i = r.panels.length - 1;
+    const pk = window.CurioScenes && CurioScenes.picked();
+    return pk && pk.panels.includes(i) ? pk.panels.slice() : [i];
+  }
+  function frontMenu(id, e) {
+    const Menu = window.CurioMenu;
+    if (!Menu || !id) return;
+    const list = panelsAt(V().time());
+    const [x, y] = Menu.spot(e, e.target);
+    const nm = M().note(base(id)).label || id;
+    const lane = laneIds(read()).find((x) => base(x) === base(id)) || base(id);
+    Menu.open(x, y, `${nm} · ${list.length > 1 ? list.length + " panels" : "panel " + (list[0] + 1)}`, [
+      ...frontItems(id, list),
+      "-",
+      { label: `Open the ${nm} window`, run: () => openWin(lane) },
+      { label: picked === base(id) ? "Stop picking this lane" : "Pick this lane in the graph", run: () => pick(base(id)) },
+    ]);
+  }
+  function laneMenu(hit, e) {
+    const Menu = window.CurioMenu;
+    const r = read();
+    if (!Menu || !r) return;
+    const { id, i } = hit;
+    const pk = window.CurioScenes && CurioScenes.picked();
+    const list = pk && pk.panels.includes(i) ? pk.panels.slice() : [i];
+    const n = M().note(base(id));
+    const vals = r.K.map((k) => k[id]);
+    const sc = scaleOf(id, vals);
+    const where = READ_FROM_PICTURE[id];
+    const edit = !where && !sc.loose;
+    const why = where ? `Read from the picture: change it in ${where}` : sc.loose ? "Set in the panels themselves" : "";
+    /* write values panel by panel, one undo step */
+    const write = (tag, fn) => () => {
+      V().remember("lane-menu-" + tag + "-" + id);
+      const film = V().live().film;
+      list.forEach((k, at) => {
+        const p = film.panels[k];
+        const v = fn(k, at);
+        if (v === undefined) return;
+        const story = Object.assign({}, storyOf(p));
+        if (v === null) delete story[id];
+        else story[id] = typeof v === "number" ? Number(v.toFixed(2)) : v;
+        p.v = story;
+      });
+      cache = null;
+      V().changed(true);
+    };
+    const steps = sc.list ? sc.list : null;
+    const idx = (v) => (steps ? steps.map(String).indexOf(String(v)) : v == null || v === "" ? null : Number(v));
+    const at = (u) => (steps ? steps[Math.round(u * (steps.length - 1))] : sc.lo + u * (sc.hi - sc.lo));
+    const nudge = (d) => (k) => {
+      const v = vals[k];
+      if (steps) {
+        const q = idx(v);
+        return q < 0 || q == null ? undefined : steps[Math.max(0, Math.min(steps.length - 1, q + d))];
+      }
+      return v == null || v === "" ? undefined : Math.max(sc.lo, Math.min(sc.hi, Number(v) + d * sc.step));
+    };
+    const first = list[0];
+    const last = list[list.length - 1];
+    const ramp = (k) => {
+      const a = idx(vals[first]);
+      const b = idx(vals[last]);
+      if (a == null || b == null || a < 0 || b < 0) return undefined;
+      const u = list.length > 1 ? list.indexOf(k) / (list.length - 1) : 0;
+      const x = a + (b - a) * u;
+      return steps ? steps[Math.round(x)] : x;
+    };
+    const seg = hit.seg || (box && box.querySelector(`.cf-seg[data-ln="${window.CSS.escape(id)}"][data-seg="${i}"]`));
+    const hasCurve = list.some((k) => r.curves && r.curves[k] && r.curves[k][id]);
+    const [x, y] = Menu.spot(e, e.target);
+    const label = laneName(id, n);
+    const sub = settingsOf(id).length > 1;
+    const opened = suiteOpen.has(base(id));
+    Menu.open(x, y, `${label} · ${list.length > 1 ? list.length + " panels" : "panel " + (i + 1)}`, [
+      { label: "Go to this panel", run: () => V().seek(r.panels[i].at) },
+      { label: `Open the ${n.label || label} window`, run: () => openWin(id, box && box.querySelector(`[data-cwin="${window.CSS.escape(id)}"]`)), hint: "Its settings, with a pad to set two at once" },
+      { label: opened ? "Hide curiosity suite" : "Show curiosity suite", run: () => toggleSuite(id), off: !sub, hint: opened ? "Fold its settings back into one lane" : `Every setting inside ${n.label || label}, each on its own lane` },
+      "-",
+      ...frontItems(id, list),
+      { label: "Curve to the next panel…", run: () => seg && openCurve(seg, e), off: !seg, hint: "How the value moves from this panel to the next" },
+      { label: "Straight steps again", run: () => {
+          V().remember("lane-menu-flat-" + id);
+          const film = V().live().film;
+          list.forEach((k) => {
+            const p = film.panels[k];
+            if (p.curves && p.curves[id]) {
+              const c = Object.assign({}, p.curves);
+              delete c[id];
+              p.curves = c;
+            }
+          });
+          cache = null;
+          V().changed(true);
+        }, off: !hasCurve },
+      "-",
+      { label: "Copy the value", run: () => (laneClip = { id, v: vals[i] }), off: vals[i] == null || vals[i] === "" },
+      { label: laneClip && laneClip.id === id ? `Paste ${laneClip.v}` : "Paste the value", run: write("paste", () => laneClip.v), off: !edit || !laneClip || laneClip.id !== id, hint: why },
+      { label: "Hold the value before", run: write("hold", () => vals[first - 1]), off: !edit || first === 0 || vals[first - 1] == null, hint: why || "Each panel keeps the value of the panel before them" },
+      { label: "Ramp from first to last", run: write("ramp", ramp), off: !edit || list.length < 3, hint: why || "Pick 3 or more storyboards: the ones between go evenly from the first value to the last" },
+      { label: "Set to", row: [
+          { label: "Lowest", run: write("low", () => at(0)), off: !edit, hint: why || String(at(0)) },
+          { label: "Middle", run: write("mid", () => at(0.5)), off: !edit, hint: why || String(at(0.5)) },
+          { label: "Highest", run: write("high", () => at(1)), off: !edit, hint: why || String(at(1)) },
+        ] },
+      { label: "Step", row: [
+          { label: "Down", run: write("down", nudge(-1)), off: !edit, hint: why || "One step down its scale" },
+          { label: "Up", run: write("up", nudge(1)), off: !edit, hint: why || "One step up its scale" },
+        ] },
+      { label: "Clear this panel's own value", run: write("clear", () => null), off: !edit || !list.some((k) => { const p = V().live().film.panels[k]; return p && p.v && p.v[id] != null; }), hint: why || "Back to what comes before it" },
+      "-",
+      { label: picked === base(id) ? "Stop picking this lane" : "Pick this lane in the graph", run: () => pick(base(id)) },
+      { label: "Show this scene", run: () => setZoom("scene") },
+      { label: "Show the whole film", run: () => setZoom("film") },
+    ]);
+  }
   /* ---------- the tabs ---------- */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
@@ -1581,7 +2010,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       <div class="cf-pane cf-pane-focus">
         <p class="cf-focus" aria-live="polite" title="What holds the audience's attention in this panel: 2 things, or 3 in a busy scene"></p>
         <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie), through the scene (the graph), and every one on now (the list).">
-          <canvas class="cf-pie" role="img" aria-label="Attention right now: click a color to pick its lane in the graph" title="Click a color to pick that curiosity's lane in the graph"></canvas>
+          <canvas class="cf-pie" role="img" aria-label="Attention right now: click a color to pick its lane in the graph" title="Click a color to pick that curiosity's lane in the graph. Right-click to change what's front and center."></canvas>
           <div class="cf-graph cf-ln-track${picked ? " cf-picked" : ""}" role="img" aria-label="The top curiosities through the scene: drag a node to change that panel">${graphHtml(r)}</div>
           <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
         </div>
@@ -1674,7 +2103,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       const sig = (pk ? pk.first + "-" + pk.last + ":" : "") + sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
       if (list.dataset.sig !== sig) {
         list.dataset.sig = sig;
-        list.innerHTML = sh.map((q) => `<li data-g="${esc(q.id)}" class="${q.id === picked ? "on" : ""}" title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention. Click to pick its lane in the graph."><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
+        list.innerHTML = sh.map((q) => `<li data-g="${esc(q.id)}" class="${q.id === picked ? "on" : ""}" title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention. Click to pick its lane in the graph. Right-click to change what's front and center."><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
       }
     }
   }
@@ -1737,7 +2166,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     /* the window follows the selected panel and undo */
     let winSig = "";
     v.onDraw(() => {
-      if (!cwin) return;
+      if (!cwin || padDragging) return;
       const live = V().live();
       const sig = live.cur + "|" + JSON.stringify(live.panel && live.panel.v) + "|" + (read() || {}).key;
       if (sig === winSig || (document.activeElement && cwin.contains(document.activeElement) && document.activeElement.type === "range")) return;
@@ -1751,10 +2180,29 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (sc) closeSearch();
     });
     document.addEventListener("contextmenu", (e) => {
-      const sg = segAt(e);
-      if (!sg) return;
+      /* the pie, the list beside it and the Leading row: change what's front and center */
+      const pie = e.target.closest && e.target.closest(".cv-under .cf-pie");
+      const li = e.target.closest && e.target.closest(".cv-under .cf-list li[data-g]");
+      const lb = e.target.closest && e.target.closest(".cv-under .cf-lead [data-cf-at]");
+      if (pie || li || lb) {
+        let id = pie ? pieHit(pie, e) : li ? li.dataset.g : null;
+        if (lb) {
+          const r = read();
+          const at = +lb.dataset.cfAt;
+          const g = r && r.segs.find((q) => Math.abs(q.from - at) < 1e-6);
+          id = g ? g.curiosity : null;
+          if (r) V().seek(at);
+        }
+        if (!id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        return frontMenu(id, e);
+      }
+      const hit = laneHit(e);
+      if (!hit) return;
       e.preventDefault();
-      openCurve(sg, e);
+      e.stopPropagation();
+      laneMenu(hit, e);
     });
     document.addEventListener("pointerdown", (e) => {
       if (cpop && !cpop.contains(e.target) && !segAt(e)) closeCurve();
@@ -1781,7 +2229,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     });
     document.addEventListener("pointerdown", (e) => {
       const d = e.target.closest && e.target.closest(".cv-under .cf-ln-dot");
-      if (d) return laneDrag(e, d);
+      if (d && e.button === 0) return laneDrag(e, d);
       const g = e.target.closest && e.target.closest(".cv-under [data-cf-grip]");
       if (g) gripDrag(e, g);
     });
