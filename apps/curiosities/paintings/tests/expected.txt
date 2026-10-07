@@ -1,0 +1,64 @@
+# The 62 paintings as Jeremy's spec lists them (2026-10-06): number | name | artist | categories | five colours.
+# paintings/tests/run.js checks paintings-data.js against this, row by row.
+1 | Flowers, 1964 | Andy Warhol | Beach, Neon, Warm | #F26386 #F588AF #A4D984 #FCBC52 #FD814E
+2 | Dance (I) | Henri Matisse | Blues, Beach, Greens | #2168A6 #165F8C #03735E #078C66 #F2A29B
+3 | The Scream (Pastel) | Edvard Munch | Blues, Beach, Pastel | #5059A1 #EFC337 #1F386E #D1AE82 #BE3B2C
+4 | Boating | Édouard Manet | Blues, Browns, Pastel, Classy | #6486AD #2D345D #D9BE7F #5A3A26 #C6A490
+5 | A Bigger Splash | David Hockney | Blues, Pastel, Neutral, Classy | #79BED9 #126599 #CABD8A #497E58 #B28D7B
+6 | Abstraction Blue | Georgia O'Keeffe | Blues, Pastel, Neutral, Classy | #0E122D #182044 #51628E #91A1BA #AFD0C9
+7 | The Great Wave Off Kanagawa | Katsushika Hokusai | Blues, Pastel, Neutral, Classy | #1F284C #2D4472 #6E6352 #D9CCAC #ECE2C6
+8 | Red Tights With Fragment 9 | Claes Oldenburg | Bright, Beach, Blues | #95B1C9 #263656 #698946 #F8D440 #C82720
+9 | Dance At Le Moulin De La Galette | Pierre-Auguste Renoir | Bright, Beach, Pastel | #2B5275 #A69F55 #F1D395 #FFFBDD #D16647
+10 | Diver | Bridget Riley | Bright, Beach, Pastel | #FAB9AC #7BBC53 #DE6736 #67C1EC #E6B90D
+11 | The Kiss | Gustav Klimt | Bright, Classy, Neutral | #4A5FAB #609F5C #E3C454 #A27CBA #B85031
+12 | Gravity | M.C. Escher | Bright, Neon, Beach | #C1395E #AEC17B #F0CA50 #E07B42 #89A7C2
+13 | Nude | Jack Bush | Bright, Neon, Beach | #A1D8B6 #D2C48E #F45F40 #F9AE8D #80B9CE
+14 | Rainbow | Billy Apple | Bright, Neon, Beach | #F24D98 #813B7C #59D044 #F3A002 #F2F44D
+15 | Untitled (Black King Catch Scorpio) | Jean-Michel Basquiat | Bright, Neon, Beach | #8CABD9 #F6A7B8 #F1EC7A #1D4D9F #F08838
+16 | Untitled, 1961 | CY Twombly | Bright, Neon, Beach | #F2788F #F591EA #F0C333 #F5C2AF #F23B3F
+17 | The Creation of Adam | Michelangelo | Browns, Blues, Neutral, Pastel, Cityscape | #42819F #86AA7D #CBB396 #555234 #4D280F
+18 | Woman and Dog in Front of the Moon | Joan Miró | Browns, Blues, Neutral, Pastel, Cityscape | #C04759 #3B6C73 #383431 #F1D87F #EDE5D2
+19 | The Night Watch | Rembrandt | Browns, Cityscape, Greens, Classy, Neutral | #DBC99A #A68329 #5B5224 #8A350C #090A04
+20 | Las Meninas | Diego Velázquez | Browns, Cityscape, Pastel, Neutral, Classy | #413A2C #241F1A #C5B49B #A57F5B #5C351E
+21 | Bicycle Rider by the Loire | Milton Avery | Browns, Classy, Neutral | #F3C937 #7B533E #BFA588 #604847 #552723
+22 | American Gothic | Grant Wood | Browns, Classy, Neutral, Cityscape | #A6BDB0 #8B842F #41240B #9C4823 #D6AA7E
+23 | Wine Barrels Sailing Barge | Johann Jacob Ulrich | Browns, Pastel, Neutral, Classy | #FDDDAB #E7A974 #A87250 #7B533D #6A4531
+24 | A Basket of Clams | Winslow Homer | Browns, Yellows, Pastel, Neutral, Classy | #A9944A #F2D9B3 #725435 #8E9DBF #BD483C
+25 | Leatherstocking's Rescue | John Quidor | Browns, Yellows, Pastel, Neutral, Classy | #B79A59 #826C37 #54442F #DBCEAF #C4AA52
+26 | Girl with a Pearl Earring | Johannes Vermeer | Cityscape, Pastel, Browns | #0C0B10 #707DA6 #CCAD9D #B08E4A #863B34
+27 | Number 1 | Jackson Pollock | Cityscape, Pastel, Classy | #D89CA9 #1962A0 #F1ECD7 #E8C051 #1A1C23
+28 | Street Shadows | Jacob Lawrence | Classy, Neutral, Cityscape | #614671 #BE994A #C8B595 #BD4335 #8B3834
+29 | Turnsole | Kenneth Noland | Classy, Neutral, Cityscape | #D0D8CD #586180 #E2AC29 #1A1915 #E6E1CE
+30 | Radioactive Cats | Sandy Skoglund | Greens, Bright, Neutral, Classy | #D7F96E #457D24 #879387 #E1C39F #394835
+31 | Bouquet of Sunflowers | Claude Monet | Greens, Browns, Neutral | #184430 #548150 #DEB738 #734321 #852419
+32 | The Large Piece of Turf | Albrecht Dürer | Greens, Browns, Pastel, Neutral, Classy | #657359 #9AA582 #8B775F #D7C9BE #F1E4DB
+33 | Harmony | Remedios Varo | Greens, Pastel, Classy, Neutral | #C8DAAD #989E53 #738D60 #DEBC31 #9D471A
+34 | Apple Tree | Wassily Kandinsky | Greens, Pastel, Neutral, Classy | #5D7388 #A08F27 #E5A729 #4F4D1D #8AAE8A
+35 | Anthracite Minuet | Gene Davis | Neutral, Classy | #293757 #568D4B #D5BB56 #D26A1B #A41D1A
+36 | Poker Game, 1894 | C.M. Coolidge | Neutral, Dark, Classy | #204035 #4A7169 #BEB59C #735231 #49271B
+37 | Mystery and Melancholy of a Street | Giorgio De Chirico | Neutral, Dark, Greens, Classy | #27403D #48725C #212412 #F3E4C2 #D88F2E
+38 | Hide-And-Seek | Pavel Tchelitchew | Neutral, Warm | #AC2527 #F8CC5A #5C8447 #61221A #2B4868
+39 | A Mountain Scene, Val D'Aosta | J. M. W. Turner | Pastel, Cityscape, Browns, Neutral | #F1ECCE #9EA3B5 #E9D688 #A85835 #AE8045
+40 | Marilyn Monroe, I | James Rosenquist | Pastel, Cityscape, Classy | #E25D75 #3F4C8C #6A79B0 #D7BC1F #DCCFAB
+41 | Rhythm of a Russian Dance | Theo Van Doesburg | Pastel, Cityscape, Classy | #BD748F #3D578E #BFAB68 #DAD7D0 #272928
+42 | The Starry Night | Vincent Van Gogh | Pastel, Cityscape, Classy | #1A3431 #2B41A7 #6283C8 #CCC776 #C7AD24
+43 | Girl With A Kitten | Lucian Freud | Pastel, Cityscape, Neutral, Classy | #E1D2BD #A77E5E #2D291D #85868B #83774D
+44 | Mauve District | Helen Frankenthaler | Pastel, Cityscape, Neutral, Classy | #5D7342 #D7AE04 #ECD7B8 #A58B8C #272727
+45 | Harlem | Karl Zerbe | Pastel, Classy, Neutral, Cityscape | #46734F #CAAB6C #D0CCAF #617F97 #9A352D
+46 | The Letter | Mary Cassatt | Pastel, Classy, Neutral, Cityscape | #1C5679 #BBB592 #CAC3B2 #808C5C #5F4B3B
+47 | Portrait Of Dante | Sandro Botticelli | Pastel, Classy | #272725 #DDBD85 #DA694F #A54A48 #FDFFE5
+48 | The Persistence Of Memory | Salvador Dalí | Pastel, Cool, Neutral, Classy | #40798C #BCA455 #BFB37F #805730 #514A2E
+49 | Destruction And Hope | Paul Klee | Pastel, Neutral, Classy | #A7B3CD #E6DA9E #676155 #CDB296 #CCD7AD
+50 | I Saw The Figure 5 In Gold | Charles Demuth | Pastel, Neutral, Classy | #E4AF79 #DF9C41 #AF7231 #923621 #2D2A28
+51 | La Mariée Sous Le Baldaquin | Marc Chagall | Pastel, Neutral, Classy | #3F6F76 #69B7CE #C65840 #F4CE4B #62496F
+52 | Landscape | Marcel Duchamp | Pastel, Neutral, Classy | #D0CEC2 #7BAA80 #4B6B5E #BF9A41 #980019
+53 | Les Demoiselles D'Avignon | Pablo Picasso | Pastel, Neutral, Classy | #CD6C74 #566C7D #DD9D91 #A1544B #D5898D
+54 | Rift Scull | James Jean | Pastel, Neutral, Classy | #51394E #F6DE7D #C8AF8A #658385 #B04838
+55 | Self-Portrait | Frida Kahlo | Pastel, Neutral, Classy | #121510 #6D8325 #D6CFB7 #E5AD4F #BD5630
+56 | The Siesta | Paul Gauguin | Pastel, Neutral, Classy | #21344F #8AAD05 #E2CE1B #DF5D22 #E17976
+57 | Woman, Old Man, And Flower | Max Ernst | Pastel, Neutral, Classy | #91323A #3A4960 #D7C969 #6D7345 #554540
+58 | Untitled (Pink And Orange) | Rupprecht Geiger | Warm, Bright, Neon, Beach | #FF62A9 #F77177 #FA9849 #FE6E3A #FD5A35
+59 | Suspended Forms | Terry Frost | Warm, Bright, Neon, Beach | #EF5950 #8D5A78 #C66F26 #FB6B22 #DC2227
+60 | Untitled (1968) | Mark Rothko | Warm, Browns, Classy, Neutral | #E49A16 #E19713 #D67629 #DA6E2E #D85434
+61 | Target | Jasper Johns | Yellows, Bright, Pastel, Neon, Beach | #4B6892 #F9E583 #FED43F #F6BD28 #BE4C46
+62 | Tobacco Rose | Mel Ramos | Yellows, Pastel, Neutral | #C13E43 #376EA5 #565654 #F9D502 #E7CA6B
