@@ -15,7 +15,7 @@ paintings as five-colour swatches, so things in the film can take colours a grea
   the default is `localStorage` `curio-paintings-default-v1` (this device's preference, outside the
   `curiosities-*` project keys). A painted thing keeps its own colour in `o.paintWas` for Forget the colours.
 - Hooks only: three `<script>` tags in index.html. No change to the Viewer's files.
-- The window has two tabs. **Recolor project elements**: the painting the paint strip offers, kept with the
+- The window has two tabs. **Recolor project curiosities**: the painting the paint strip offers, kept with the
   project as above. **Recolor the app**: a painting for the app itself (`theme.js`, `window.CurioPaintTheme`,
   section 4 of the spec), per device in `curio-paintings-app-v2` (none = the app's own colours, the start).
   The Viewer, the Screen and these menus take its five as their colour tokens (`--c-*`, `--cc-*`), ranked by
