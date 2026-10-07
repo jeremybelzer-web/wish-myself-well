@@ -148,24 +148,41 @@
       delete root.dataset.cvbAt;
       return sides();
     }
-    const below = winCount(root) > 1 || window.innerWidth <= 760;
-    root.dataset.cvbAt = below ? "below" : "right";
     const rr = root.getBoundingClientRect();
     const mr = main.getBoundingClientRect();
-    const st = root.querySelector(".cv-stage").getBoundingClientRect();
+    /* measured with the layout each spot gives (the storyboard shrinks under a window below the pictures) */
+    const look = (at) => {
+      root.dataset.cvbAt = at;
+      const st = root.querySelector(".cv-stage").getBoundingClientRect();
+      const pic = root.querySelector(".cv-wins .cv-win");
+      return {
+        st,
+        pr: pic ? pic.getBoundingClientRect() : st,
+        strip: root.querySelector(".cv-strip").getBoundingClientRect(),
+        pb: Math.max(st.top, ...[...root.querySelectorAll(".cv-wins .cv-win")].map((w) => w.getBoundingClientRect().bottom)),
+      };
+    };
+    /* Where there is room for it: beside one picture, or under two. On a short or narrow screen neither may have room
+       (the picture fills the width, or reaches the storyboard), and the window then came out 2px wide and could not
+       be seen, so the rail seemed to do nothing (Jeremy 2026-10-07). Then it covers the right part of the screen. */
+    let at = winCount(root) > 1 || window.innerWidth <= 760 ? "below" : "right";
+    let m = look(at);
+    if (at === "right" && (mr.right - m.pr.right - 14 < 380 || m.st.height < 240)) m = look((at = "below"));
+    if (at === "below" && window.innerWidth > 760 && m.strip.top - m.pb - 10 < 240) m = look((at = "over"));
+    const { st, pr, strip, pb } = m;
     const S = win.style;
     S.top = S.bottom = S.left = S.right = S.width = S.height = "";
-    if (below) {
+    if (at === "below") {
       /* under the pictures, over Front and center and most of the storyboard, which shrinks to a tiny strip */
-      const strip = root.querySelector(".cv-strip").getBoundingClientRect();
-      const pb = Math.max(st.top, ...[...root.querySelectorAll(".cv-wins .cv-win")].map((w) => w.getBoundingClientRect().bottom));
       const pl = window.innerWidth <= 760 ? mr.left + 6 : player.getBoundingClientRect().left;
       Object.assign(S, { left: pl - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: pb - rr.top + 6 + "px", bottom: rr.bottom - strip.top + 4 + "px" });
-    } else {
+    } else if (at === "right") {
       /* the picture keeps its size and moves to the left; the window takes all the blank room on top beside it */
-      const pic = root.querySelector(".cv-wins .cv-win");
-      const pr = pic ? pic.getBoundingClientRect() : st;
       Object.assign(S, { left: pr.right + 8 - rr.left + "px", right: rr.right - mr.right + 6 + "px", top: mr.top - rr.top + 6 + "px", bottom: rr.bottom - st.bottom + "px" });
+    } else {
+      /* over the right part of the screen, from the top bar to the bottom, at least 420px wide */
+      const w = Math.min(rr.width - 12, Math.max(420, Math.round(rr.width * 0.5)));
+      Object.assign(S, { width: w + "px", right: "6px", top: mr.top - rr.top + 6 + "px", bottom: "6px" });
     }
     sides();
   }
