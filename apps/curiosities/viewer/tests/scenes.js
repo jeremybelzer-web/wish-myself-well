@@ -69,6 +69,26 @@ const ok = (cond, msg) => {
   ok(colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2], `each scene's storyboards have their own color (${colors.join(" / ")})`);
   ok((await L(() => (document.querySelector('.cv-card[data-i="5"] .cs-tag') || {}).textContent || "")).startsWith("Scene 2"), "the first storyboard of scene 2 carries its name");
   ok(await page.isVisible('.cv-strip-head [data-cs="join"]'), "on a scene's first panel the button offers Join the scene before");
+  page.on("dialog", (d) => {
+    errors.push("a pop-up question opened: " + d.message());
+    d.dismiss();
+  });
+  await page.click('.cv-strip-head [data-cs="rename"]');
+  await page.waitForTimeout(100);
+  ok(await L(() => document.activeElement && document.activeElement.classList.contains("cs-name")), "Rename scene opens a name box in the storyboard's top row, ready to type");
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("The mirror");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  ok((await L(() => CurioScenes.list()[1].name)) === "The mirror", "typing a name and Enter renames the scene");
+  ok((await L(() => document.querySelector('.cv-card[data-i="5"] .cs-tag').textContent)) === "Scene 2: The mirror", "the storyboard shows the new name");
+  await page.click('.cv-strip-head [data-cs="rename"]');
+  await page.keyboard.type("Nope");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(100);
+  ok((await L(() => CurioScenes.list()[1].name)) === "The mirror" && !(await L(() => document.querySelector(".cs-name"))), "Escape leaves the name as it was");
+  await L(() => CurioViewer.undo());
+  await page.waitForTimeout(100);
 
   /* zoom: This scene follows the playhead */
   await page.click('.cv-under [data-cf-zoom="scene"]');

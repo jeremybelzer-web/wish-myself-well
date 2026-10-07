@@ -13,7 +13,8 @@
 
    Needs viewer/viewer.js (CurioViewer.film, starts, live, edit, changed, onDraw, onChange). API:
    window.CurioScenes: list(), at(seconds), ofPanel(i), picked(), pick([i...]), clear(), onPick(fn),
-   startHere(i, name), join(i), rename(n, name), COLORS. */
+   startHere(i, name), join(i), rename(n, name), COLORS. Rename scene types the name in a box in the top row
+   (no pop-up question: those do not open inside the app link). */
 (function () {
   "use strict";
   if (window.CurioScenes) return;
@@ -126,7 +127,7 @@
     const P = V().film().panels;
     if (!(i > 0 && i < P.length)) return false;
     const before = ofPanel(i - 1);
-    edit("scene", (film) => {
+    edit("scene-split", (film) => {
       film.panels[i].scene = String(name || "Scene " + (list().length + 1));
       /* the panels after it that carried the old scene's name stay with the new scene */
       for (let k = i + 1; k < film.panels.length && before && nameOf(film.panels[k]) === before.name; k++) delete film.panels[k].scene;
@@ -136,7 +137,7 @@
   function join(i) {
     const sc = ofPanel(i);
     if (!sc || sc.n === 0) return false;
-    edit("scene", (film) => {
+    edit("scene-join", (film) => {
       for (let k = sc.first; k <= sc.last; k++) delete film.panels[k].scene;
     });
     return true;
@@ -144,7 +145,7 @@
   function rename(n, name) {
     const sc = list()[n];
     if (!sc || !String(name || "").trim()) return false;
-    edit("scene", (film) => {
+    edit("scene-name", (film) => {
       film.panels[sc.first].scene = String(name).trim();
       for (let k = sc.first + 1; k <= sc.last; k++) delete film.panels[k].scene;
     });
@@ -162,6 +163,7 @@
 .cv-root .cs-tools { display: inline-flex; gap: 4px; align-items: center; }
 .cv-root .cs-hint { color: var(--c-dim, #9b9ba3); font-size: 11px; }
 .cv-root .cs-hint b { color: #fff; font-weight: 600; }
+.cv-root .cs-name { width: 180px; font: inherit; font-size: 12px; padding: 3px 6px; border-radius: 5px; border: 1px solid #fde68a; background: #1d1d21; color: #fff; }
 `;
   function style() {
     if (document.getElementById("cs-css")) return;
@@ -178,7 +180,7 @@
     const cards = root.querySelectorAll(".cv-card[data-i]");
     const L = list();
     const cur = v.live().cur;
-    const sig = [cards.length, cache && cache.sig, picks.join(","), cur, cards[0] && cards[0].dataset.csN == null].join("|");
+    const sig = [cards.length, cache && cache.sig, picks.join(","), cur, cards[0] && cards[0].dataset.csN == null, naming && naming.n].join("|");
     if (sig === marked) return;
     marked = sig;
     style();
@@ -202,10 +204,14 @@
     });
     tools(root, L, cur);
   }
+  /* Rename scene: a name box right in the storyboard's top row (the browser's own pop-up question doesn't open
+     inside the app link, Jeremy 2026-10-07). Enter or Save keeps the name, Escape or Cancel leaves it. */
+  let naming = null;
   function tools(root, L, cur) {
     const head = root.querySelector(".cv-strip-head");
     if (!head) return;
     let box = head.querySelector(".cs-tools");
+    if (naming && box && box.querySelector(".cs-name")) return;
     if (!box) {
       box = document.createElement("span");
       box.className = "cs-tools";
@@ -213,6 +219,15 @@
       head.insertBefore(box, k ? k.nextSibling : head.firstChild);
     }
     const sc = ofPanel(cur);
+    if (naming && L[naming.n]) {
+      const nsc = L[naming.n];
+      box.innerHTML = `<label class="cs-hint" for="cs-name-in">Name for scene ${nsc.n + 1}</label><input id="cs-name-in" class="cs-name" type="text" maxlength="80" value="${esc(nsc.name)}" aria-label="Name for scene ${nsc.n + 1}"><button type="button" data-cs="save">Save</button><button type="button" data-cs="cancel">Cancel</button>`;
+      const inp = box.querySelector(".cs-name");
+      inp.focus();
+      inp.select();
+      return;
+    }
+    naming = null;
     const starts = sc && sc.first === cur && cur > 0;
     const pk = picked();
     box.innerHTML =
@@ -235,9 +250,26 @@
     if (b.dataset.cs === "rename") {
       const sc = ofPanel(cur);
       if (!sc) return;
-      const name = window.prompt("Name this scene", sc.name);
-      if (name != null) rename(sc.n, name);
+      naming = { n: sc.n };
+      marked = "";
+      return mark();
     }
+    if (b.dataset.cs === "save") return saveName();
+    if (b.dataset.cs === "cancel") return stopNaming();
+  }
+  function stopNaming() {
+    naming = null;
+    marked = "";
+    const box = document.querySelector(".cv-root .cs-tools");
+    if (box) box.innerHTML = "";
+    mark();
+  }
+  function saveName() {
+    const inp = document.querySelector(".cv-root .cs-name");
+    const n = naming && naming.n;
+    const name = inp ? inp.value.trim() : "";
+    stopNaming();
+    if (n != null && name) rename(n, name);
   }
 
   function wire() {
@@ -252,6 +284,17 @@
     });
     document.addEventListener("click", onCardClick, true);
     document.addEventListener("click", onToolClick, true);
+    /* typing a name: no other part of the app reacts to these keys */
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (!(e.target && e.target.classList && e.target.classList.contains("cs-name"))) return;
+        e.stopPropagation();
+        if (e.key === "Enter") return void (e.preventDefault(), saveName());
+        if (e.key === "Escape") return void (e.preventDefault(), stopNaming());
+      },
+      true,
+    );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && picks.length && !(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) setPicks([]);
     });
