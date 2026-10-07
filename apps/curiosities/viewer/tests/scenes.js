@@ -152,9 +152,9 @@ const ok = (cond, msg) => {
   ok(await L(() => document.querySelector(".cf-pie").classList.contains("cf-across")), "the pie is the attention across the picked panels");
   const pieSig = await L(() => document.querySelector(".cf-list").dataset.sig || "");
   ok(/^2-4:/.test(pieSig), "the list beside the pie is the picked panels'");
-  await page.click('.cv-card[data-i="6"]', { modifiers: ["Control"] });
+  await page.click('.cv-card[data-i="6"]', { modifiers: ["Alt"] });
   await page.waitForTimeout(150);
-  ok((await L(() => CurioScenes.picked().panels.join(","))) === "2,3,4,6", "Ctrl+click adds one more panel");
+  ok((await L(() => CurioScenes.picked().panels.join(","))) === "2,3,4,6", "Alt+click (⌘+click on a Mac) adds one more panel");
   await page.click('.cv-under [data-cf-zoom="unpick"]');
   await page.waitForTimeout(150);
   ok((await L(() => CurioScenes.picked())) === null && !(await L(() => document.querySelector(".cf-pie").classList.contains("cf-across"))), "✕ Unpick goes back to the playhead");

@@ -309,5 +309,8 @@ any more. API `window.CurioScenes`. Test: `node viewer/tests/scenes.js`.
 Grab a storyboard in the middle and drag it: a copy rides under the pointer and a bright line shows where it
 lands (one undo step). At a storyboard's left or right edge the pointer turns into resize arrows; drag to make the
 panel longer or shorter in quarter seconds. "One size" in the storyboard's top row switches to "Relative size",
-where longer panels are wider (kept per device in `curio-strip-size-v1`). API `window.CurioStripDrag`. Test:
+where longer panels are wider (kept per device in `curio-strip-size-v1`). Picked panels drag and stretch
+together. Right-click or Ctrl+click a storyboard for its menu: Play from here, Copy, Cut, Paste after, Duplicate,
+Split in two, Join into one panel, Freeze frame after, Reverse their order, Length, Twice as fast, Half speed,
+Move to the start or end, Pick the whole scene, New scene here, Delete. ⌘+click (Alt+click) picks one more. API `window.CurioStripDrag`. Test:
 `node viewer/tests/strip-drag.js`.

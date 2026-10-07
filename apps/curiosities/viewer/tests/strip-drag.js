@@ -4,7 +4,8 @@
    Near a storyboard's edge the pointer is the resize arrows, in the middle a hand. Dragging from the middle
    carries a copy of the storyboard under the pointer and drops the panel where it is let go (one undo step);
    dragging the right edge makes the panel longer in quarter seconds, with a label saying how long; One size
-   switches to Relative size, where a longer panel is wider; no page errors. */
+   switches to Relative size, where a longer panel is wider; panels picked together drag and stretch together;
+   right-click and Ctrl+click open the storyboard menu, whose commands work on the picked panels; no page errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -111,6 +112,70 @@ const ok = (cond, msg) => {
   await page.click(".csd-size");
   await page.waitForTimeout(100);
   ok((await page.textContent(".csd-size")) === "One size", "clicking again goes back to One size");
+
+
+  /* several picked panels drag together */
+  await page.click('.cv-card[data-i="1"]');
+  await page.click('.cv-card[data-i="2"]', { modifiers: ["Shift"] });
+  ok((await L(() => CurioScenes.picked().panels.join(","))) === "1,2", "Shift+click picks panels 2 and 3");
+  const g0 = await notes();
+  const b2 = await box(2);
+  const b5 = await box(5);
+  await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b2.x + b2.width / 2 + 40, b2.y + b2.height / 2, { steps: 4 });
+  ok(/2 panels/.test(await L(() => (document.querySelector(".csd-ghost .csd-count") || {}).textContent || "")), "the copy under the pointer says it carries 2 panels");
+  ok((await L(() => document.querySelectorAll(".cv-card.csd-lifted").length)) === 2, "both picked storyboards are lifted");
+  await page.mouse.move(b5.x + b5.width * 0.75, b5.y + b5.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  const g1 = await notes();
+  ok(g1[4] === g0[1] && g1[5] === g0[2] && g1[1] === g0[3], "dropping after panel 6 moves both, still in order");
+  ok((await L(() => (CurioScenes.picked() || { panels: [] }).panels.join(","))) === "4,5", "and they stay picked");
+  await L(() => CurioViewer.undo());
+
+  /* several picked panels stretch together */
+  await L(() => CurioScenes.pick([1, 2]));
+  const t0 = await L(() => [1, 2].map((i) => CurioViewer.film().panels[i].sec));
+  const e1 = await box(1);
+  await page.mouse.move(e1.x + e1.width - 3, e1.y + e1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(e1.x + e1.width - 3 + e1.width / 4, e1.y + e1.height / 2, { steps: 5 });
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+  const t1 = await L(() => [1, 2].map((i) => CurioViewer.film().panels[i].sec));
+  ok(t1[0] - t0[0] === 0.5 && t1[1] - t0[1] === 0.5, `stretching one picked panel's edge stretches both (${t0.join(", ")} → ${t1.join(", ")} s)`);
+  await L(() => CurioViewer.undo());
+
+  /* the menu */
+  await L(() => CurioScenes.pick([3, 4]));
+  const n0 = await L(() => CurioViewer.film().panels.length);
+  await page.click('.cv-card[data-i="3"]', { button: "right" });
+  ok(await page.isVisible(".csd-menu"), "right-click opens the storyboard menu");
+  ok(/2 panels/i.test(await page.textContent(".csd-menu header")), "it works on the 2 picked panels");
+  await page.click('.csd-menu [data-csm="duplicate"]');
+  await page.waitForTimeout(150);
+  ok((await L(() => CurioViewer.film().panels.length)) === n0 + 2 && !(await L(() => document.querySelector(".csd-menu"))), "Duplicate adds a copy of both after them and closes the menu");
+  await L(() => CurioViewer.undo());
+  ok((await L(() => CurioViewer.film().panels.length)) === n0, "one undo takes the copies out");
+
+  await L(() => CurioScenes.clear());
+  await page.click('.cv-card[data-i="2"]', { modifiers: ["Control"] });
+  ok(await page.isVisible(".csd-menu"), "Ctrl+click opens the menu too");
+  const s2 = await L(() => CurioViewer.film().panels[2].sec);
+  await page.click('.csd-menu [data-csm="split"]');
+  await page.waitForTimeout(150);
+  const sp = await L(() => [2, 3].map((i) => CurioViewer.film().panels[i].sec));
+  ok(sp[0] + sp[1] === s2 && (await L(() => CurioViewer.film().panels.length)) === n0 + 1, `Split in two makes two panels that add up to the old one (${sp.join(" + ")} = ${s2} s)`);
+  await L(() => CurioViewer.undo());
+  await page.click('.cv-card[data-i="2"]', { button: "right" });
+  await page.click('.csd-menu [data-csm="len"][data-len="5"]');
+  await page.waitForTimeout(100);
+  ok((await L(() => CurioViewer.film().panels[2].sec)) === 5, "Length 5 s sets the panel to 5 seconds");
+  await L(() => CurioViewer.undo());
+  await page.click('.cv-card[data-i="2"]', { button: "right" });
+  await page.keyboard.press("Escape");
+  ok(!(await L(() => document.querySelector(".csd-menu"))), "Escape closes the menu");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

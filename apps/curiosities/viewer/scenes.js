@@ -7,8 +7,9 @@
      each.
    - Each scene's storyboards get their own color: a colored frame, the scene's name on its first panel, and a
      little gap between one scene and the next. Front and center (focus-lane.js) uses the same colors.
-   - Shift+click a storyboard picks every panel from the selected one to it; Ctrl+click (⌘+click on a Mac)
-     adds or takes out one panel. A plain click goes back to one panel. Front and center then shows just the
+   - Shift+click a storyboard picks every panel from the selected one to it; ⌘+click (Alt+click on Windows)
+     adds or takes out one panel. Ctrl+click and right-click open the storyboard menu (strip-drag.js).
+     A plain click goes back to one panel. Front and center then shows just the
      picked panels in its lanes, and the pie becomes the attention across them.
 
    Needs viewer/viewer.js (CurioViewer.film, starts, live, edit, changed, onDraw, onChange). API:
@@ -99,7 +100,8 @@
       setPicks(next);
       return;
     }
-    if (e.ctrlKey || e.metaKey) {
+    if (e.ctrlKey) return;
+    if (e.metaKey || e.altKey) {
       e.preventDefault();
       e.stopPropagation();
       const base = picks.length ? picks.slice() : [V().live().cur];
@@ -233,7 +235,7 @@
     box.innerHTML =
       (pk
         ? `<span class="cs-hint"><b>Panels ${pk.first + 1} to ${pk.last + 1} picked</b> (${pk.panels.length})</span><button type="button" data-cs="clear" title="Back to one panel">✕ Unpick</button>`
-        : `<span class="cs-hint" title="Shift+click a storyboard to pick every panel up to it; Ctrl+click (⌘+click) to add or take out one">Shift+click to pick several</span>`) +
+        : `<span class="cs-hint" title="Shift+click a storyboard to pick every panel up to it; ⌘+click (Alt+click) to add or take out one; right-click or Ctrl+click for the menu">Shift+click to pick several</span>`) +
       (starts
         ? `<button type="button" data-cs="join" title="This panel starts a scene: make it part of the scene before">Join the scene before</button>`
         : `<button type="button" data-cs="split" title="Start a new scene at this panel"${cur > 0 ? "" : " disabled"}>✂ New scene here</button>`) +
