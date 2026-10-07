@@ -50,7 +50,9 @@
       box.style.removeProperty("--cf-fit-tail");
       delete box.dataset.fitScrolled;
     };
-    if (box.hidden || !box.hasAttribute("data-cvd-sized") || !box.closest(".cvd-on")) return clear();
+    /* only under the picture: beside it or under the storyboards it has its own room (viewer/workspace.js) */
+    const ws = box.closest(".cv-root") && box.closest(".cv-root").dataset.wsLanes;
+    if (box.hidden || !box.hasAttribute("data-cvd-sized") || !box.closest(".cvd-on") || (ws && ws !== "below")) return clear();
     const H = box.clientHeight;
     const tail = box.style.getPropertyValue("--cf-fit-tail");
     const top = box.scrollTop;
@@ -97,7 +99,7 @@
       st.style.removeProperty("--cv-fit");
     };
     const root = st.closest(".cv-root");
-    if (!st.hasAttribute("data-cvd-sized") || !root.classList.contains("cvd-on") || root.classList.contains("cv-comic")) return clear();
+    if (!st.hasAttribute("data-cvd-sized") || !root.classList.contains("cvd-on") || root.classList.contains("cv-comic") || root.dataset.wsStrip) return clear();
     const cs = getComputedStyle(st);
     const gap = parseFloat(cs.rowGap) || 0;
     /* the room left for the cards: the strip less its padding and everything above the cards */

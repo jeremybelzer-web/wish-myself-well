@@ -33,7 +33,7 @@ server.listen(0, "127.0.0.1", async () => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.addInitScript(() => sessionStorage.getItem("big-set") || (localStorage.setItem("curio-viewer-big-v1", "1"), sessionStorage.setItem("big-set", "1")));
+  await page.addInitScript(() => sessionStorage.getItem("big-set") || (localStorage.setItem("curio-viewer-big-v1", "1"), localStorage.setItem("curio-viewer-workspace-v1", JSON.stringify({ lanes: "below" })), sessionStorage.setItem("big-set", "1")));
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html?viewer=1`);
   await page.waitForSelector(".cv-root.cv-big .cvb-rail button", { timeout: 15000 });
   await page.waitForTimeout(500);
