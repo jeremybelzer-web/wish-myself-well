@@ -1,7 +1,9 @@
-/* viewer/fullscreen.js: a Full screen button right after the name Curiomatic, in the Viewer's top bar and the Screen's
+/* viewer/fullscreen.js: a Full screen button right after the name Curiomatic, in the Viewer's top bar
    (Jeremy 2026-10-07: "it didn't fill the whole window ... I couldn't make larger"; the app link opens inside a
-   frame). Esc or the button leaves full screen. Where the page may not go full screen, the button says so for a
-   moment. It started in the app link's wrapper and now lives in the app. */
+   frame). Not in the Screen's bar (?screen=1): that bar is redrawn on every change and the button changed its
+   height, which redrew the Screen's lanes and took the keyboard off a lane's level bar. Esc or the button leaves
+   full screen. Where the page may not go full screen, the button says so for a moment. It started in the app link's
+   wrapper and now lives in the app. */
 (function () {
   "use strict";
   if (window.CurioFullscreen) return;
@@ -32,13 +34,10 @@
     return b;
   }
   const viewerBtn = make("cv-fs");
-  const screenBtn = make("sc-fs");
-  /* the Screen redraws its bar now and then, so the button is put back whenever it goes missing */
+  /* the Viewer may rebuild its bar, so the button is put back whenever it goes missing */
   function place() {
     const brand = d.querySelector(".cv-root .cv-bar > .cv-brand");
     if (brand && brand.nextSibling !== viewerBtn) brand.after(viewerBtn);
-    const title = d.querySelector(".sc-page > .sc-bar > .sc-title");
-    if (title && title.nextSibling !== screenBtn) title.after(screenBtn);
   }
   d.addEventListener("fullscreenchange", () => buttons.forEach((b) => (b.textContent = label())));
   d.addEventListener("webkitfullscreenchange", () => buttons.forEach((b) => (b.textContent = label())));
