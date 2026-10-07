@@ -1,7 +1,7 @@
 /* Front and center, the lane under the Viewer's picture: node apps/curiosities/viewer/tests/focus-lane.js [--shots dir]
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
 
-   The lane is under the picture with its three rows (Leading, With it, Suite). In the sample, the attention
+   The lane is under the picture with its rows (Scene, Leading, With it, Suite). In the sample, the attention
    model puts something in front in every panel, one or two at a time; the phone coming into the scene sets off
    the cut to an insert of it (a proximity, marked ⚡ with what set it off); the line above names what is in
    front at the playhead and follows Play; clicking a block jumps there; an edit (hiding the phone) changes the
@@ -61,7 +61,7 @@ const ok = (cond, msg) => {
   });
   ok(box.below && box.aboveTransport, "it sits right under the picture, above Play");
   const rows = await page.$$eval(".cv-under .cf-rows > span", (s) => s.map((x) => x.textContent));
-  ok(rows.join() === "Leading,With it,Suite", "its rows: " + rows.join(", "));
+  ok(rows.join() === "Scene,Leading,With it,Suite", "its rows: " + rows.join(", "));
   const r = await page.evaluate(() => CurioFocusLane.read());
   ok(r.length === 13 && r.every((p) => p.lead), "every panel has a curiosity in front (" + r.map((p) => p.lead).join(" / ") + ")");
   ok(r.every((p) => [p.lead, p.second].filter(Boolean).length <= 2), "one or two at a time");
@@ -80,15 +80,112 @@ const ok = (cond, msg) => {
   ok(await page.isVisible(".cv-under .cf-pie") && await page.isVisible(".cv-under .cf-graph"), "the attention pie and graph are both shown");
   const items = await page.$$eval(".cv-under .cf-list li", (l) => l.map((x) => x.textContent));
   ok(items.length >= 3 && /Shot size/.test(items[0] + items[1]), "the list names every curiosity on, by share: " + items.slice(0, 4).join(" / "));
-  await page.click(".cv-under .cf-pie");
+  /* Jeremy 2026-10-05: two tabs, Viewer focus (the top 2 or 3 things, the pie, the graph, the list) and Moments */
+  const focus5 = await page.textContent(".cv-under .cf-focus");
+  ok(/ \+ /.test(focus5) && /Shot size/.test(focus5), "Viewer focus names the things holding attention: " + focus5);
+  ok((await page.textContent(".cv-under .cf-force")).length > 2, "the force driving the scene is the title: " + (await page.textContent(".cv-under .cf-force")));
+  const cards = await page.$$eval(".cv-card .cv-force", (l) => l.map((x) => x.textContent));
+  ok(cards.length === 13 && cards.every(Boolean), "every storyboard panel is titled with its force: " + cards.slice(0, 4).join(" / "));
+  const labels = await page.$$eval(".cv-card .cv-focus", (l) => l.map((x) => x.textContent));
+  ok(labels.every((x) => / \+ /.test(x)), "and labelled with 2 or 3 things holding attention: " + labels.slice(0, 3).join(" / "));
+  /* Jeremy 2026-10-05: the graph is one view of the automation lanes, nodes and lines you can drag */
+  const gd = await page.locator(".cv-under .cf-graph .cf-ln-dot.cf-ed").first();
+  ok((await page.locator(".cv-under .cf-graph .cf-ln-dot").count()) >= 13 && (await page.locator(".cv-under .cf-graph path").count()) >= 2, "the graph is lines with a node per panel for the top curiosities");
+  const g0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  const gb = await gd.boundingBox();
+  await page.mouse.move(gb.x + 5, gb.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(gb.x + 5, gb.y + 40, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) !== g0, "dragging a node on the graph changes that panel's value");
+  await page.evaluate(() => CurioViewer.undo());
   await page.waitForTimeout(150);
-  ok(!(await page.isVisible(".cv-under .cf-graph")) && (await page.$eval(".cv-under .cf-pie", (c) => c.clientWidth)) >= 100, "clicking the pie hides the graph and makes the pie bigger");
-  await page.click(".cv-under .cf-pie");
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) === g0, "and Undo puts it back");
+  /* Jeremy 2026-10-05: a color in the pie picks that lane in the graph; Ctrl+click a line opens the curve window */
+  const pie = await page.locator(".cv-under .cf-pie").boundingBox();
+  await page.mouse.click(pie.x + pie.width / 2 + 4, pie.y + 8);
   await page.waitForTimeout(150);
-  ok(await page.isVisible(".cv-under .cf-graph"), "clicking it again shows both");
+  const pk = await page.evaluate(() => CurioFocusLane.picked());
+  ok(!!pk && (await page.locator(`.cv-under .cf-graph .cf-g.on[data-g="${pk}"]`).count()) === 1 && (await page.locator(".cv-under .cf-list li.on").count()) === 1, "clicking a color in the pie picks that lane in the graph and the list: " + pk);
+  const seg = page.locator(".cv-under .cf-graph .cf-g.on .cf-seg").first();
+  const sb = await seg.boundingBox();
+  const sgI = +(await seg.getAttribute("data-seg"));
+  const sgId = await seg.getAttribute("data-ln");
+  await page.keyboard.down("Control");
+  await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2);
+  await page.keyboard.up("Control");
+  await page.waitForTimeout(150);
+  ok(await page.isVisible(".cf-cpop"), "Ctrl+click on a line opens the curve window");
+  await page.keyboard.press("Escape");
+  ok(!(await page.isVisible(".cf-cpop")), "Esc closes it (the Curve window has its own test, viewer/tests/curve.js)");
+  await page.evaluate(() => CurioFocusLane.pick(CurioFocusLane.picked()));
+  ok(!(await page.isVisible(".cv-under .cf-rows")), "the colored blocks wait in the Moments tab");
+  await page.click('.cv-under [data-cf-tab="moments"]');
+  await page.waitForTimeout(150);
+  ok(await page.isVisible(".cv-under .cf-rows") && !(await page.isVisible(".cv-under .cf-pie")), "Moments shows the blocks instead of the charts");
   await page.hover(".cv-under .cf-lead button:nth-of-type(4)");
-  const full = await page.textContent(".cv-under .cf-name");
-  ok(/^Leading: .{12,}/.test(full), "pointing at a shortened name shows it in full: " + full);
+  const full = await page.textContent(".cv-under .cf-pick");
+  ok(full.length > 20, "pointing at a block reads it in full at the top: " + full);
+  await page.click('.cv-under [data-cf-tab="lanes"]');
+  await page.waitForTimeout(150);
+  const big = await page.evaluate(() => ({ card: document.querySelector(".cv-card").offsetWidth, on: document.querySelector(".cv-root").classList.contains("cf-big"), shown: [...document.querySelectorAll(".cv-under .cf-lanes .cf-ln")].filter((l) => { const a = l.getBoundingClientRect(), b = document.querySelector(".cv-under .cf-lanes").getBoundingClientRect(); return a.top >= b.top - 1 && a.bottom <= b.bottom + 1; }).length }));
+  ok(big.on && big.card < 120 && big.shown >= 4, `the Automation lanes tab shrinks the storyboards (${big.card}px) and shows the top lanes large (${big.shown} in view)`);
+  const lanes = await page.$$eval(".cv-under .cf-ln", (l) => l.map((x) => x.dataset.ln || "suite:" + x.dataset.lnSuite));
+  ok(lanes.length >= 8 && lanes.some((x) => x.startsWith("suite:")), "Automation lanes: a lane per curiosity and suite (" + lanes.slice(0, 5).join(", ") + " ...)");
+  /* Jeremy 2026-10-05: a pop-up button at the end of each lane opens that curiosity's window, with a search button */
+  const pops = await page.locator(".cv-under .cf-lanes .cf-ln[data-ln] .cf-ln-pop").count();
+  ok(pops === (await page.locator(".cv-under .cf-lanes .cf-ln[data-ln]").count()) && pops > 0, `every curiosity lane ends in a window button (${pops})`);
+  await page.evaluate(() => CurioViewer.select(2));
+  const popB = page.locator('.cv-under .cf-lanes .cf-ln[data-ln="tensionCurve"] .cf-ln-pop');
+  await popB.scrollIntoViewIfNeeded();
+  await popB.click();
+  await page.waitForTimeout(150);
+  ok(await page.isVisible(".cf-cwin") && /Tension/.test(await page.textContent(".cf-cwin header b")), "it opens that curiosity's window: " + (await page.textContent(".cf-cwin header b")));
+  const wv0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels[2].v));
+  const ctl = page.locator(".cf-cwin [data-cw-set]").first();
+  const lid = await ctl.getAttribute("data-cw-set");
+  if ((await ctl.evaluate((e) => e.tagName)) === "SELECT") await ctl.selectOption({ index: 2 });
+  else await ctl.evaluate((e) => { e.value = e.max; e.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("change", { bubbles: true })); });
+  await page.waitForTimeout(200);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels[2].v))) !== wv0 && (await page.locator(`.cv-under .cf-ln[data-ln="${lid}"]`).count()) === 1, `a slider in the window sets this panel, on its lane (${lid})`);
+  await page.evaluate(() => CurioViewer.undo());
+  await page.waitForTimeout(200);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels[2].v))) === wv0, "and Undo puts it back");
+  /* without the scene inspiration search, Search opens the plain docked search window */
+  await page.evaluate(() => { window.__ci = window.CurioInspire; window.CurioInspire = undefined; });
+  await page.click('.cf-cwin [data-cw="search"]');
+  await page.waitForTimeout(150);
+  const docked = await page.evaluate(() => { const a = document.querySelector(".cf-cwin").getBoundingClientRect(); const b = document.querySelector(".cf-swin").getBoundingClientRect(); return Math.abs(b.top - a.top) < 2 && (Math.abs(b.left - a.right - 6) < 2 || Math.abs(a.left - b.right - 6) < 2); });
+  ok(docked, "Search opens a search window docked beside it");
+  await page.keyboard.press("Escape");
+  ok(!(await page.isVisible(".cf-swin")) && (await page.isVisible(".cf-cwin")), "Esc closes the search first");
+  /* with the scene inspiration search loaded, Search hands it this curiosity and the window to sit beside */
+  const asked = await page.evaluate(() => {
+    let got = null;
+    window.CurioInspire = { openSearch: (id, o) => (got = [id, !!(o && o.anchor && o.anchor.classList.contains("cf-cwin"))]) };
+    document.querySelector('.cf-cwin [data-cw="search"]').click();
+    window.CurioInspire = window.__ci;
+    return got;
+  });
+  ok(asked && asked[0] === "tensionCurve" && asked[1] && !(await page.isVisible(".cf-swin")), "with the inspiration search loaded, Search opens it on this curiosity, beside the window: " + JSON.stringify(asked));
+  await page.keyboard.press("Escape");
+  ok(!(await page.isVisible(".cf-cwin")), "then the window");
+  const v0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  const dot = await page.locator(".cv-under .cf-ln-edit .cf-ln-dot").first().boundingBox();
+  await page.mouse.move(dot.x + 5, dot.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(dot.x + 5, dot.y + 28, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  const v1 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  ok(v0 !== v1, "dragging a dot changes that panel's value");
+  await page.evaluate(() => CurioViewer.undo());
+  await page.waitForTimeout(150);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) === v0, "and Undo puts it back");
+  await page.click('.cv-under [data-cf-tab="moments"]');
+  await page.waitForTimeout(150);
+  ok(!(await page.evaluate(() => document.querySelector(".cv-root").classList.contains("cf-big"))), "leaving the tab gives the storyboards their size back");
   const head0 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   await page.evaluate(() => CurioViewer.select(0));
   await page.evaluate(() => CurioViewer.play(true));
@@ -97,6 +194,14 @@ const ok = (cond, msg) => {
   const head1 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   ok(head1 > 0 && head1 !== head0, "the playhead line follows Play");
 
+  /* the space bar plays and stops even right after picking from the Pause menu */
+  await page.focus('[data-k="afterstop"]');
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(300);
+  ok(await page.evaluate(() => CurioViewer.playing && CurioViewer.playing()), "space plays after picking from the Pause menu");
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(100);
+  ok(!(await page.evaluate(() => CurioViewer.playing && CurioViewer.playing())), "and space stops it");
   const target = await page.$eval(".cv-under .cf-lead button:nth-of-type(8)", (b) => +b.dataset.cfAt);
   await page.click(".cv-under .cf-lead button:nth-of-type(8)");
   await page.waitForTimeout(200);

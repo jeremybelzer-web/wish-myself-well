@@ -295,3 +295,48 @@ from the scenes in the curiosity database (`CuriosityDB.data.scenes`), worked ou
 AI; as the scene library grows, the ideas grow with it. Change applies the ticked options as one undo step;
 Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
 `window.CurioSceneFocus`. Test: `node viewer/tests/scene-focus.js`.
+
+### The big Viewer (`viewer/big.js`, `window.CurioBigView`)
+
+Jeremy, 2026-10-06: the screen felt crammed. Now the picture gets the room: In the scene and Details leave the sides for a slim rail on the left (In the scene, Move it, Camera & lens, Words and every tab another part adds). A rail button opens that panel as one big window with tabs over the right half, so the picture stays in view; ✕ or Esc closes it. Front and center runs from the rail to the right edge, the Storyboard across the bottom, and a second window is as big as the first. "Side panels" at the bottom of the rail puts the three columns back (`curio-viewer-big-v1`, per device). `CurioBigView.show("things" | tab id | "")` opens a panel (the App Walkthrough uses it). Browser tests start with the side panels unless that key is "1". Test: `viewer/tests/big.js`.
+
+## Scenes, picking storyboards and zoom (viewer/scenes.js, Jeremy 2026-10-06)
+
+A panel with `panel.scene` (a name) starts a new scene; the panels after it belong to it. The storyboard's top row
+has ✂ New scene here, Join the scene before and Rename scene (one undo step each). Each scene's storyboards get
+their own color, and the scene's name on its first panel. Shift+click a storyboard picks every panel up to it,
+Ctrl+click (⌘+click) adds or takes out one; Front and center then shows just those panels and its pie is the
+attention across them. At the top of Front and center: This scene (follows the playhead), Whole film, and a zoom
+slider with − and + (kept per device in `curio-focus-zoom-v1`). Moving from one panel to the next makes no sound
+any more. API `window.CurioScenes`. Test: `node viewer/tests/scenes.js`.
+
+## Dragging and stretching storyboards (viewer/strip-drag.js, Jeremy 2026-10-07)
+
+Grab a storyboard in the middle and drag it: a copy rides under the pointer and a bright line shows where it
+lands (one undo step). At a storyboard's left or right edge the pointer turns into resize arrows; drag to make the
+panel longer or shorter in quarter seconds. "One size" in the storyboard's top row switches to "Relative size",
+where longer panels are wider (kept per device in `curio-strip-size-v1`). Picked panels drag and stretch
+together. Right-click or Ctrl+click a storyboard for its menu: Play from here, Copy, Cut, Paste after, Duplicate,
+Split in two, Join into one panel, Freeze frame after, Reverse their order, Length, Twice as fast, Half speed,
+Move to the start or end, Pick the whole scene, New scene here, Delete. Ctrl+click (⌘+click on a Mac) picks
+one more; on a Mac Ctrl+click is a right-click; on a PC the menu key or Shift+F10 opens it too. Right-clicking an
+automation lane in Front and center opens the same kind of menu (`window.CurioMenu`): go to the panel, the
+curiosity's window, the curve, copy and paste the value, hold the value before, ramp from first to last, set to
+lowest, middle or highest, step up or down, clear the panel's own value, pick the lane, show this scene or the
+whole film; it works on every picked panel. Test: `node viewer/tests/lane-menu.js`. API `window.CurioStripDrag`. Test:
+`node viewer/tests/strip-drag.js`.
+
+## Panel names, front and center by hand, curiosity suites, the window's pad (Jeremy, 2026-10-07)
+
+- **Rename panel**: in the storyboard menu, or click the number on the picked panel. A small name box (Enter or
+  Save keeps it, Escape or Cancel doesn't, empty takes the name off). Stored as `panel.name`, shown on the card's
+  number. One undo step.
+- **Front and center by hand**: right-click the pie, the list beside it, a block in the Leading row, or any lane's
+  node or line. Put X front and center, Put X with it, Take X out of front and center, Let the app decide again.
+  Stored per panel as `panel.front = { lead, with, out: [ids] }` and applied in `read()` (focus-lane.js): the
+  Leading row, card titles, pie and graph all follow. Works on every picked panel when the panel is one of them.
+- **Show curiosity suite** (lane menu): every setting inside that curiosity opens as its own lane under it, set
+  or not, so each can be set from the lane menu. Remembered in `curio-lane-suites-v1`.
+- **The pad** in each curiosity's window: two settings at once, across and up (pick which in the two menus).
+  Click, drag or arrow keys; one undo step per drag. The Screen's hand-made windows (knobs, the floor plan from
+  above, the color wheel, the curve over the film; `screen/windows.js`) are not in the Viewer yet.

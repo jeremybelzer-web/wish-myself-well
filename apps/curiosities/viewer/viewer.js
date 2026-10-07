@@ -1474,8 +1474,15 @@
 .cv-title { font-size: 14px; color: var(--c-dim); padding: 2px 6px; border-radius: 4px; outline: none; }
 .cv-title:focus { background: var(--c-raised); color: var(--c-text); }
 .cv-bar-r { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cv-views { position: relative; }
+.cv-views-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; min-width: 250px; display: grid; gap: 2px; padding: 4px; background: var(--c-raised); border: 1px solid var(--c-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
+.cv-views-menu[hidden] { display: none; }
+.cv-views-menu button { display: grid; text-align: left; gap: 1px; }
+.cv-views-menu small { color: var(--c-dim); font-size: 11px; }
 .cv-main { display: grid; grid-template-columns: 190px minmax(0, 1fr) 330px; gap: 6px; padding: 6px; min-height: 0; }
 .cv-pane { background: var(--c-panel); border-radius: 8px; min-height: 0; overflow: auto; }
+/* Jeremy 2026-10-05: the side panels scroll when their contents don't fit. */
+.cv-things, .cv-details .cv-body { overflow-y: auto; }
 .cv-things { padding: 10px; display: grid; align-content: start; gap: 6px; }
 .cv-things h3, .cv-details h3 { margin: 4px 0 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); }
 .cv-thing { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
@@ -1545,13 +1552,23 @@
 .cv-strip-head b { font-size: 13px; }
 .cv-strip-head .cv-k { color: var(--c-dim); font-size: 12px; margin-right: auto; }
 .cv-cards { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 6px; scroll-snap-type: x proximity; }
-.cv-card { flex: 0 0 228px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
+.cv-card { flex: 0 0 172px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
 .cv-root .cv-card { background: #f4efe3; color: #111; padding: 0; border-radius: 3px; }
 .cv-root .cv-card:hover { background: #fffaf0; }
 .cv-card.on { outline: 3px solid var(--c-accent); outline-offset: 2px; }
+/* the picked panel keeps its own dark, readable words; only the outline is blue (Jeremy 2026-10-05) */
+.cv-root .cv-card.on .cv-cap, .cv-root .cv-card.on .cv-focus { color: #111; }
+.cv-root .cv-card.on .cv-how { color: #6a5d4c; }
 .cv-card.now { outline: 3px solid var(--c-warm); outline-offset: 2px; }
 .cv-card canvas { width: 100%; aspect-ratio: 16 / 9; display: block; border-bottom: 3px solid #111; background: #333; }
 .cv-card .cv-cap { padding: 4px 7px 6px; font-size: 11px; line-height: 1.3; font-family: ${COMIC}; }
+/* Jeremy 2026-10-05: each panel is titled with the force driving the scene, and labelled at the bottom with the
+   2 (or 3) things holding the audience's attention, from Front and center (CurioFocusLane.panel). */
+.cv-card .cv-force { display: block; padding: 3px 44px 3px 7px; background: #111; color: #fde68a; font: 700 11px/1.3 system-ui, sans-serif; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-card .cv-focus { display: block; padding: 3px 7px 4px; border-top: 2px solid #111; background: #e6dcc6; color: #2b2418; font: 600 10.5px/1.3 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-card .cv-force:empty, .cv-card .cv-focus:empty { display: none; }
+/* the words scroll inside the card (two fingers on a trackpad, or the wheel) */
+.cv-root:not(.cv-comic) .cv-card .cv-cap { height: 4.1em; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .cv-card .cv-num { position: absolute; top: 4px; right: 4px; background: #111; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-family: system-ui; }
 .cv-card .cv-how { display: block; color: #6a5d4c; font-family: system-ui; font-size: 10px; margin-top: 2px; }
 .cv-addcard { flex: 0 0 120px; border: 2px dashed var(--c-line); background: transparent; color: var(--c-dim); border-radius: 6px; }
@@ -1610,7 +1627,13 @@
           <button type="button" data-act="redo" title="Redo (⇧⌘Z)">Redo</button>
           <button type="button" data-act="comic" title="See every panel big, like a comic book page">Read as a comic</button>
           <button type="button" data-act="sample" title="Throw away your changes and load the Episode 1 sample again">Start over</button>
-          <button type="button" class="cv-primary" data-act="close" title="The full editor: every curiosity, the timeline and the automation lanes">Full editor ▸</button>
+          <span class="cv-views"><button type="button" data-act="views" aria-haspopup="true" aria-expanded="false" title="Open one part of the editor on its own, big and easy to read">Views ▾</button><span class="cv-views-menu" role="menu" hidden>
+            <button type="button" data-view="lib" role="menuitem">Curiosity library<small>every curiosity, to add to your film</small></button>
+            <button type="button" data-view="insp" role="menuitem">Details<small>everything about the curiosity you picked</small></button>
+            <button type="button" data-view="momentum" role="menuitem">Momentum<small>what holds attention, and for how long</small></button>
+            <button type="button" data-view="tl" role="menuitem">Timeline<small>a lane for each curiosity, to automate it</small></button>
+          </span></span>
+          <button type="button" data-act="close" title="The other pages: My film boards, Storyboard, the Workspaces and the Library. The Viewer button there brings you back.">More pages ▸</button>
         </div>
       </header>
       <div class="cv-main">
@@ -2163,7 +2186,7 @@
     const ps = film.panels;
     if (box.children.length !== ps.length + 1) {
       box.innerHTML =
-        ps.map((p, i) => `<button type="button" class="cv-card" data-i="${i}"><canvas width="480" height="270"></canvas><span class="cv-num"></span><span class="cv-cap"></span></button>`).join("") +
+        ps.map((p, i) => `<button type="button" class="cv-card" data-i="${i}"><span class="cv-force"></span><canvas width="480" height="270"></canvas><span class="cv-num"></span><span class="cv-cap"></span><span class="cv-focus"></span></button>`).join("") +
         `<button type="button" class="cv-addcard" data-act="addend">+ New panel<br/>at the end</button>`;
       thumbsDirty = true;
     }
@@ -2171,8 +2194,17 @@
     box.querySelectorAll(".cv-card").forEach((el, i) => {
       const p = ps[i];
       el.classList.toggle("on", i === cur);
-      el.querySelector(".cv-num").textContent = `${i + 1} · ${p.sec}s`;
+      const num = el.querySelector(".cv-num");
+      num.textContent = p.name ? `${i + 1} · ${p.name} · ${p.sec}s` : `${i + 1} · ${p.sec}s`;
+      num.title = i === cur ? "Click to rename this panel" : p.name || "";
       el.querySelector(".cv-cap").innerHTML = `${esc(p.note || "(nothing written yet)")}<span class="cv-how">${esc(panelLine(p))}</span>`;
+      const fl = window.CurioFocusLane && typeof window.CurioFocusLane.panel === "function" ? window.CurioFocusLane.panel(i) : null;
+      const fe = el.querySelector(".cv-force");
+      const fo = el.querySelector(".cv-focus");
+      fe.textContent = (fl && fl.force) || "";
+      fe.title = fl && fl.force ? `What drives the scene and the plot forward here: ${fl.force}` : "";
+      fo.textContent = fl && fl.focus.length ? fl.focus.join(" + ") : "";
+      fo.title = fl && fl.focus.length ? `What holds the audience's attention here: ${fl.focus.join(", ")}` : "";
       el.title = "Click to work on this panel. Double-click to play from here.";
       if (thumbsDirty || el.dataset.drawn !== JSON.stringify([p, film.objects, film.look])) {
         const cv = el.querySelector("canvas");
@@ -2426,9 +2458,11 @@
 
   function onClick(e) {
     if (!e.target.closest(".cv-wmenu, .cv-wname")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
+    if (!e.target.closest(".cv-views")) viewsMenu(false);
     const b = e.target.closest("button, [data-thing]");
     if (!b || !root.contains(b)) return;
     const d = b.dataset;
+    if (d.view && b.closest(".cv-views-menu")) return openView(d.view);
     if (d.tab) {
       tab = d.tab;
       drawDetails();
@@ -2516,6 +2550,8 @@
         return selectPanel(panelAt(T).i + 1);
       case "close":
         return close();
+      case "views":
+        return viewsMenu();
       case "comic":
         root.classList.toggle("cv-comic");
         thumbsDirty = true;
@@ -2948,7 +2984,11 @@
   function onKey(e) {
     if (!root || root.hidden) return;
     const t = e.target;
-    const typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    /* the space bar plays and stops even after picking from a menu (Jeremy 2026-10-05): a menu or a slider keeps
+       its own keys, but not the space bar */
+    const spaceOk = e.key === " " && t && (t.tagName === "SELECT" || (t.tagName === "INPUT" && /^(range|checkbox|radio|button)$/.test(t.type)));
+    if (spaceOk && t.blur) t.blur();
+    const typing = !spaceOk && t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
     const mod = e.metaKey || e.ctrlKey;
     if (mod && (e.key === "z" || e.key === "Z")) {
       if (typing && t.tagName !== "INPUT") return;
@@ -2992,6 +3032,23 @@
     drawAll();
     /* the layout settles after fonts and the first paint */
     requestAnimationFrame(() => draw());
+  }
+  /* Views ▾ (Jeremy 2026-10-05): the full editor showed every part at once and was too hard to read, so each of
+     its parts opens on its own instead, big, with a way back here (CurioScreen.solo in screen/ui.js). */
+  function viewsMenu(show) {
+    const m = root && root.querySelector(".cv-views-menu");
+    if (!m) return;
+    const on = show === undefined ? m.hidden : !!show;
+    m.hidden = !on;
+    const b = root.querySelector('[data-act="views"]');
+    if (b) b.setAttribute("aria-expanded", String(on));
+  }
+  function openView(part) {
+    viewsMenu(false);
+    const S = window.CurioScreen;
+    if (!S || typeof S.solo !== "function") return;
+    close();
+    S.solo(part);
   }
   function close() {
     setPlaying(false);
