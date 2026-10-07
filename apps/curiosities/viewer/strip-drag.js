@@ -60,6 +60,11 @@
 body.csd-dragging, body.csd-dragging * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
 body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select: none !important; -webkit-user-select: none !important; }
 .cv-root .csd-size[aria-pressed="true"] { background: #fde68a; color: #2b2418; }
+.csd-name { position: fixed; z-index: 2147483001; display: flex; gap: 4px; align-items: center; background: #1d1d21; border: 1px solid #fde68a; border-radius: 6px; padding: 4px; box-shadow: 0 6px 20px rgba(0,0,0,.5); font: 12px system-ui, sans-serif; }
+.csd-name input { width: 170px; font: inherit; padding: 3px 6px; border-radius: 4px; border: 1px solid #555; background: #111; color: #fff; }
+.csd-name button { font: inherit; padding: 3px 8px; border-radius: 4px; border: 1px solid #555; background: #2a2a30; color: #fff; cursor: pointer; }
+.cv-root .cv-card .cv-num { max-width: calc(100% - 12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-root .cv-card.on .cv-num { cursor: text; }
 `;
   function style() {
     if (document.getElementById("csd-css")) return;
@@ -489,6 +494,7 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
     };
     return showMenu(x, y, n > 1 ? `${n} panels` : `Panel ${i + 1}`, [
       { label: "Play from here", run: run("play") },
+      { label: "Rename panel…", run: () => renamePanel(i), off: n > 1, hint: n > 1 ? "Rename one panel at a time" : "Give this panel a name" },
       "-",
       { label: "Copy", run: run("copy") },
       { label: "Cut", run: run("cut"), off: n >= P.length },
@@ -512,6 +518,59 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
       "-",
       { label: "Delete", run: run("del"), off: n >= P.length },
     ]);
+  }
+  /* ---------- rename a panel (Jeremy 2026-10-07): from the menu, or click the number on the picked panel ----------
+     A small name box over the card (prompt() is blocked in the app link). Enter or Save keeps it, Escape or Cancel
+     doesn't; an empty name takes the name off. One undo step. The name shows on the card's number. */
+  let nameEl = null;
+  function closeName() {
+    if (nameEl) nameEl.remove();
+    nameEl = null;
+  }
+  function renamePanel(i) {
+    closeMenu();
+    closeName();
+    style();
+    const p = live().film.panels[i];
+    if (!p) return;
+    const card = document.querySelector(`.cv-root .cv-card[data-i="${i}"]`);
+    const b = card ? card.getBoundingClientRect() : { left: innerWidth / 2 - 120, top: innerHeight / 2, width: 0 };
+    const m = document.createElement("div");
+    m.className = "csd-name";
+    m.setAttribute("role", "dialog");
+    m.setAttribute("aria-label", `Name for panel ${i + 1}`);
+    m.innerHTML = `<input type="text" maxlength="60" aria-label="Name for panel ${i + 1}" placeholder="Name for panel ${i + 1}"><button type="button" data-csn="save">Save</button><button type="button" data-csn="cancel">Cancel</button>`;
+    document.body.appendChild(m);
+    const inp = m.querySelector("input");
+    inp.value = p.name || "";
+    m.style.left = clamp(b.left, 4, innerWidth - m.offsetWidth - 4) + "px";
+    m.style.top = clamp(b.top - m.offsetHeight - 4, 4, innerHeight - m.offsetHeight - 4) + "px";
+    nameEl = m;
+    const save = () => {
+      const name = inp.value.trim().slice(0, 60);
+      closeName();
+      const q = live().film.panels[i];
+      if (!q || (q.name || "") === name) return;
+      V().remember("panel-name-" + q.id);
+      if (name) q.name = name;
+      else delete q.name;
+      V().changed(true);
+    };
+    m.addEventListener("click", (e) => {
+      const k = e.target.closest("[data-csn]");
+      if (!k) return;
+      e.stopPropagation();
+      if (k.dataset.csn === "save") save();
+      else closeName();
+    });
+    inp.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") (e.preventDefault(), save());
+      else if (e.key === "Escape") (e.preventDefault(), closeName());
+    });
+    inp.focus();
+    inp.select();
+    return m;
   }
   function onMenuClick(e) {
     const b = e.target.closest && e.target.closest(".csd-menu [data-csm]");
@@ -548,6 +607,18 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
       "pointerdown",
       (e) => {
         if (menuEl && !menuEl.contains(e.target)) closeMenu();
+        if (nameEl && !nameEl.contains(e.target)) closeName();
+      },
+      true,
+    );
+    /* click the number on the picked panel to rename it */
+    document.addEventListener(
+      "click",
+      (e) => {
+        const num = e.target.closest && e.target.closest(".cv-root:not(.cv-comic) .cv-card.on .cv-num");
+        if (!num || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+        e.stopPropagation();
+        renamePanel(+num.closest(".cv-card").dataset.i);
       },
       true,
     );
@@ -589,5 +660,5 @@ body.csd-sizing, body.csd-sizing * { cursor: col-resize !important; user-select:
   else setTimeout(wire, 0);
 
   window.CurioMenu = { open: showMenu, close: closeMenu, spot, isOpen: () => !!menuEl };
-  window.CurioStripDrag = { relative: () => rel, setRelative, move, moveGroup, stretch, stretchGroup, openMenu, closeMenu, run: (cmd, list) => COMMANDS[cmd] && COMMANDS[cmd](list) };
+  window.CurioStripDrag = { relative: () => rel, setRelative, move, moveGroup, stretch, stretchGroup, openMenu, closeMenu, renamePanel, run: (cmd, list) => COMMANDS[cmd] && COMMANDS[cmd](list) };
 })();

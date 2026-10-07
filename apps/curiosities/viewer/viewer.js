@@ -2186,7 +2186,9 @@
     box.querySelectorAll(".cv-card").forEach((el, i) => {
       const p = ps[i];
       el.classList.toggle("on", i === cur);
-      el.querySelector(".cv-num").textContent = `${i + 1} · ${p.sec}s`;
+      const num = el.querySelector(".cv-num");
+      num.textContent = p.name ? `${i + 1} · ${p.name} · ${p.sec}s` : `${i + 1} · ${p.sec}s`;
+      num.title = i === cur ? "Click to rename this panel" : p.name || "";
       el.querySelector(".cv-cap").innerHTML = `${esc(p.note || "(nothing written yet)")}<span class="cv-how">${esc(panelLine(p))}</span>`;
       const fl = window.CurioFocusLane && typeof window.CurioFocusLane.panel === "function" ? window.CurioFocusLane.panel(i) : null;
       const fe = el.querySelector(".cv-force");

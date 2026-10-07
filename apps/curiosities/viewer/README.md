@@ -319,3 +319,18 @@ curiosity's window, the curve, copy and paste the value, hold the value before, 
 lowest, middle or highest, step up or down, clear the panel's own value, pick the lane, show this scene or the
 whole film; it works on every picked panel. Test: `node viewer/tests/lane-menu.js`. API `window.CurioStripDrag`. Test:
 `node viewer/tests/strip-drag.js`.
+
+## Panel names, front and center by hand, curiosity suites, the window's pad (Jeremy, 2026-10-07)
+
+- **Rename panel**: in the storyboard menu, or click the number on the picked panel. A small name box (Enter or
+  Save keeps it, Escape or Cancel doesn't, empty takes the name off). Stored as `panel.name`, shown on the card's
+  number. One undo step.
+- **Front and center by hand**: right-click the pie, the list beside it, a block in the Leading row, or any lane's
+  node or line. Put X front and center, Put X with it, Take X out of front and center, Let the app decide again.
+  Stored per panel as `panel.front = { lead, with, out: [ids] }` and applied in `read()` (focus-lane.js): the
+  Leading row, card titles, pie and graph all follow. Works on every picked panel when the panel is one of them.
+- **Show curiosity suite** (lane menu): every setting inside that curiosity opens as its own lane under it, set
+  or not, so each can be set from the lane menu. Remembered in `curio-lane-suites-v1`.
+- **The pad** in each curiosity's window: two settings at once, across and up (pick which in the two menus).
+  Click, drag or arrow keys; one undo step per drag. The Screen's hand-made windows (knobs, the floor plan from
+  above, the color wheel, the curve over the film; `screen/windows.js`) are not in the Viewer yet.
