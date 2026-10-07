@@ -1411,6 +1411,12 @@
       return !saveError;
     },
     MAX_PER,
+    /* Turn the flip book to scene si, panel pi (a recorded performance plays its page turns back this way). */
+    showAt(si, pi) {
+      if (!active || !active.isLive()) return false;
+      active.showAt(Number(si) || 0, Number(pi) || 0);
+      return true;
+    },
     on(fn) {
       if (typeof fn === "function") listeners.push(fn);
       return () => listeners.splice(listeners.indexOf(fn) >>> 0, 1);
