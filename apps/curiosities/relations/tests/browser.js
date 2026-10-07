@@ -167,6 +167,8 @@ const ok = (cond, msg) => {
       const rMid = await call((c) => c.stage.orb.r);
       ok(!(await page.locator(".rl-inside").count()) && rMid < r0, `double-clicking a cube flies you into it first (${r0.toFixed(1)} to ${rMid.toFixed(1)})`);
       await page.waitForSelector(".rl-inside.rl-jarvis");
+      // the fly-in can still be finishing when the screens appear on a slow machine: wait for it to land (up to 3 s)
+      await page.waitForFunction(() => document.getElementById("relations")._curioRelations.view().inner().stage.orb.r < 1, null, { timeout: 3000 }).catch(() => {});
       const rIn = await call((c) => c.stage.orb.r);
       ok(rIn < 1, `then you are inside it (${rIn.toFixed(2)})`);
       const scr = await call((c) => c.inside().screens());
