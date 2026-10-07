@@ -33,7 +33,7 @@ server.listen(0, "127.0.0.1", async () => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.addInitScript(() => sessionStorage.getItem("big-set") || (localStorage.setItem("curio-viewer-big-v1", "1"), sessionStorage.setItem("big-set", "1")));
+  await page.addInitScript(() => sessionStorage.getItem("big-set") || (localStorage.setItem("curio-viewer-big-v1", "1"), localStorage.setItem("curio-viewer-workspace-v1", JSON.stringify({ lanes: "below" })), sessionStorage.setItem("big-set", "1")));
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html?viewer=1`);
   await page.waitForSelector(".cv-root.cv-big .cvb-rail button", { timeout: 15000 });
   await page.waitForTimeout(500);
@@ -84,6 +84,18 @@ server.listen(0, "127.0.0.1", async () => {
   ok(w2.t >= Math.max(...pics) - 1 && w2.h > 250, `with two pictures the window sits under them (${Math.round(w2.t)} under ${Math.round(Math.max(...pics))}, ${Math.round(w2.h)} tall)`);
   await page.screenshot({ path: path.join(SHOTS, "viewer-big-two-camera.png") });
   await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+  /* a shorter screen with one picture: the window still opens big enough to use (it came out 2px wide, 2026-10-07) */
+  await page.click(".cv-wins .cv-win:nth-child(2) [data-act=closewin], .cv-wins .cv-win:last-child .cv-win-x").catch(() => {});
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.waitForTimeout(500);
+  await page.click('.cvb-rail [data-cvb="move"]');
+  await page.waitForTimeout(400);
+  const w3 = await box(".cvb-win");
+  ok(w3 && w3.w >= 400 && w3.h >= 300 && w3.r <= 1281, `on a 1280×720 screen Move it opens big enough to use (${w3 && Math.round(w3.w)}×${w3 && Math.round(w3.h)})`);
+  await page.screenshot({ path: path.join(SHOTS, "viewer-big-short.png") });
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(300);
   await page.click(".cvb-rail [data-cvb-old]");
   await page.waitForTimeout(300);
