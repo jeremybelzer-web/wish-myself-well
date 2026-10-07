@@ -303,3 +303,11 @@ Ctrl+click (⌘+click) adds or takes out one; Front and center then shows just t
 attention across them. At the top of Front and center: This scene (follows the playhead), Whole film, and a zoom
 slider with − and + (kept per device in `curio-focus-zoom-v1`). Moving from one panel to the next makes no sound
 any more. API `window.CurioScenes`. Test: `node viewer/tests/scenes.js`.
+
+## Dragging and stretching storyboards (viewer/strip-drag.js, Jeremy 2026-10-07)
+
+Grab a storyboard in the middle and drag it: a copy rides under the pointer and a bright line shows where it
+lands (one undo step). At a storyboard's left or right edge the pointer turns into resize arrows; drag to make the
+panel longer or shorter in quarter seconds. "One size" in the storyboard's top row switches to "Relative size",
+where longer panels are wider (kept per device in `curio-strip-size-v1`). API `window.CurioStripDrag`. Test:
+`node viewer/tests/strip-drag.js`.
