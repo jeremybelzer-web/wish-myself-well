@@ -389,6 +389,8 @@ const ok = (cond, msg) => {
     } else ok(await page.locator(".rl-cube .rl-note").count(), "without three.js the 3D views say so");
 
 
+    // the new curiosity is tied to what is selected; pick one trait here, whichever views ran above (with or without three.js)
+    await page.evaluate(() => document.getElementById("relations")._curioRelations.select("tr-suspicious-authority"));
     await page.click('[data-act="add"]');
     await page.fill("#rl-new-name", "Distrust of doctors");
     await page.selectOption("#rl-new-family", "character");
