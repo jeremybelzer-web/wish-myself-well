@@ -15,13 +15,16 @@
 
   const V = () => window.CurioViewer;
   const S = () => window.CurioScreen;
-  const goViewer = (tab) => {
+  const goViewer = (tab, panel) => {
     const go = () => {
       if (V() && !V().isOpen()) V().open();
       if (tab) {
         const b = document.querySelector(`.cv-tabs [data-tab="${tab}"]`);
         if (b) b.click();
       }
+      /* The big Viewer (viewer/big.js) keeps In the scene and the Details tabs in a big window: open the one shown. */
+      const big = window.CurioBigView;
+      if (big && big.on() && big.panel() !== (tab || panel || "")) big.show(tab || panel || "");
     };
     go.tab = tab || "";
     return go;
@@ -36,6 +39,12 @@
       if (was && !was.view) was.view = S().view();
       S().view("screen");
     }
+    /* In the big viewer layout the library and Details live in a tabbed window: shut it between steps. */
+    if (S() && S().panel) S().panel("");
+  };
+  const goPanel = (id) => () => {
+    goScreen();
+    if (S() && S().panel) S().panel(id);
   };
   const goApp = () => {
     if (V() && V().isOpen()) V().close();
@@ -43,7 +52,7 @@
   };
 
   /* Each step: where it is (go), what to light up (sel; none = the middle of the screen), a title and the words. */
-  const STEPS = [
+  const ALL_STEPS = [
     { go: goViewer("move"), title: "Welcome to Curiomatic", text: "This walk shows you every part of the app, one at a time, for Jeremy and Sharani. Press Next (or the → key). You can stop any time and open it again from Help ▸ App Walkthrough at the top." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-win", title: "The picture of your film", text: "This is your film as a moving picture. Things in the scene are simple shapes, so it opens fast and you can change anything. Drag a shape to move it. Drag empty space to swing the camera around." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-win", title: "Move yourself around", text: "Drag anywhere in the picture to swing the camera around and look from a new side, even from underneath. Hold Control and drag to slide yourself through the world, like grabbing a map. Double-click a spot to zoom in there, like Google Maps; Shift and double-click zooms out. The scroll wheel goes closer or farther. To move a thing instead, click it once to pick it, then drag it." },
@@ -52,7 +61,7 @@
     { part: "The Viewer", go: goViewer(), sel: '[data-act="perform"]', title: "Performance and recording", text: "Curiomatic is also a performance app. Performance ▾ opens the Transport: a small window with Play, Back, Advance and Record that floats over every page, so it never hides when you add windows. Press ● Record and perform: every panel jump, storyboard page, curiosity or suite change and Catalyst you set off is kept with its time, as a take you can play back. Right-click ● Record (Control-click on a Mac) for Performance and recording: your takes, 🎹 Learn MIDI, and Live inputs, which sets curiosities off with MIDI, a camera watching the performer, or your spoken words." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-under", title: "Front and center", text: "Usually only one or two curiosities at a time move the story forward and hold the audience's attention. This lane shows which ones, moment by moment: Leading is the one holding attention, With it is the strongest other one changing, and Suite shows a group of them when most of it is on. A ⚡ means the one in front was set off by something else (a spark), and the line above says by what. Click any block to jump there; point at a shortened name to read it in full. On the right, the pie shows how the audience's attention is shared right now and the graph shows it through the whole film; click either to see it bigger." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-transport", title: "Play", text: "Plays the film one panel at a time. Things glide from where they stand in one panel to where they stand in the next. The slider jumps anywhere in the film. Space bar plays and stops." },
-    { part: "The Viewer", go: goViewer(), sel: ".cv-things", title: "In the scene", text: "Everything in this scene, in a list you can scroll. Click a name to pick it; + adds another one like it, the eye hides it in this panel, the lock keeps it from moving by mistake. 3D next to a person turns them into a 3D character: a body with real joints, dressed from words, posed and picked like the block figure. At the top: Object search, Setting search (where the scene takes place) and Character search (bring people and animals in or take them out). Add a shape, also a list with a + on each, puts a new person, box, ball, tree, lamp post, building or block into every panel." },
+    { part: "The Viewer", go: goViewer("", "things"), sel: ".cv-things", title: "In the scene", text: "Everything in this scene, in a list you can scroll. Click a name to pick it; + adds another one like it, the eye hides it in this panel, the lock keeps it from moving by mistake. 3D next to a person turns them into a 3D character: a body with real joints, dressed from words, posed and picked like the block figure. At the top: Object search, Setting search (where the scene takes place) and Character search (bring people and animals in or take them out). Add a shape, also a list with a + on each, puts a new person, box, ball, tree, lamp post, building or block into every panel." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-details", title: "Move it", text: "Moves the thing you picked: left, right, up, down or on a diagonal with the arrows. Turn it, or make it face the camera, stand side on, or turn its back. Change its size and pose. Changes are for the panel you are on. Hold Control and drag a thing to spin it; Control+click it (or right-click it) for what it can do: lie down, run, swim and more for people, sleep or fly away for animals, crumble, catch fire or break apart for things." },
     { part: "The Viewer", go: goViewer("camera"), sel: ".cv-details", title: "Camera & lens", text: "How the camera sees this panel. Fisheye bends straight lines. Foreshortening makes near things huge and far things small (a wide lens up close) or flattens everything (a long lens far away). Also camera height (all the way round to underneath), side, and lean, which turns the lens a full circle. A color filter tints the whole picture (warm, cool, noir, neon and more), and Background blur softens everything behind the thing the camera looks at. Each slider says what it does, and the map shows the camera from above." },
     { part: "The Viewer", go: goViewer("flight"), sel: ".cv-details", title: "Flight path", text: "Fly the camera through a panel like a drone. Press ● Record: the panel plays while you fly, and the camera's path is kept. Drag to swing round, the wheel to go closer, W A S D to fly, R and F to go up and down, Q and E to turn the lens. Below, the 3D graph shows the path from outside: drag it to turn it, drag a numbered waypoint to move it, Shift-drag to raise or lower it. Like a drone pilot's app, you choose where the camera looks (where you pointed it, at one thing the whole way, or ahead along the path), how smooth the corners are, and how far the lens spins on the way." },
@@ -62,21 +71,32 @@
     { part: "The Viewer", go: goViewer("build"), sel: '.cvb-finds [data-find="objects"]', title: "Search objects, settings and characters", text: "Hundreds of simple everyday things: kitchens and bedrooms, city streets and the people in them, farms and forests, boats, birds and planes. Pick a world, then a place, then a type, like Omnisphere's columns, or just type what you want. Setting search puts a whole place around your characters; Character search brings people and animals in or takes them out, or makes someone from words (\"Ida: spiky red hair, overalls, boots\"), and their look can be changed part by part in the Properties window." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-strip", title: "The comic strip", text: "Every panel of your film, with its picture and its words, like a comic strip. The orange line with the ▼ is the playhead: drag along the ruler above the panels to scrub through the film and hear it (voices, rain, a tick at each new panel; 🔊 Sound turns that off). Click anywhere in a panel to jump to that moment. Double-click to play from it. + New panel adds the next moment. When you pause, the film goes back to where you pressed Play; under the picture you can choose to stay where it stopped instead." },
     { part: "The Viewer", go: goViewer(), sel: '[data-act="comic"]', title: "Read as a comic", text: "Shows every panel big, like a comic book page. Press Play there and each panel comes alive in its place. Layout picks the page: Simple grid, Modern comic (wide panels for big views, a large splash for the big moments, small insets for small things, tall panels for views from high or low, slanted frames for tilted shots), or Zine (photocopied cut-outs on paper)." },
-    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="close"]', title: "Full editor", text: "The Viewer is the simple, picture-first way in. The full editor is the rest of the app behind it, laid out like CapCut: the library of every curiosity, a player, the Details panel, and a timeline where every curiosity gets its own lane you can automate. Use it when you want to change things the Viewer doesn't show yet. The Viewer button at the top of the full editor brings you back here." },
+    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="views"]', title: "Views", text: "Opens one part of the editor on its own, big and easy to read: the Curiosity library (every curiosity, to add to your film), Details (everything about the curiosity you picked), Momentum (what holds the audience's attention, and for how long) or the Timeline (a lane for each curiosity, to automate it). The bar at the top of each view switches between them, and ◂ Viewer brings you back here." },
+    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="close"]', title: "More pages", text: "The Viewer is your main view: the picture of your film with the comic strip under it. More pages takes you to the older pages of the app: My film boards, Storyboard, the Workspaces and the Library. The Viewer button at the top of those pages brings you back here." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-bar", title: "The Screen", text: "The full editor, laid out like CapCut. Screen shows the library, the player, the details and the timeline. Arrange shows every curiosity as a track, left to right." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-look", title: "Looking through", text: "A curiosity is one thing about a scene you can look at and change: how close the camera is, a feeling, a joke's timing. A suite is a group of them. A spark is when one leads to another soon after. Pick which kind you are looking through here." },
-    { part: "The Screen", go: goScreen, sel: ".sc-page .sc-lib", title: "The curiosity library", text: "Every curiosity, sorted by filmmaking category like CapCut's media tabs. Press + on a card to put it into your film at the playhead." },
+    { part: "The Screen", go: goPanel("lib"), sel: ".sc-page .sc-lib", title: "The curiosity library", text: "Every curiosity, sorted by filmmaking category like CapCut's media tabs. Press + on a card to put it into your film at the playhead." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-player", title: "The player", text: "Inspiration films and your film side by side. The strip under them is the whole film, one picture per moment. Play, step and loop are under it." },
-    { part: "The Screen", go: goScreen, sel: ".sc-page .sc-inspector", title: "Details", text: "Everything about the curiosity you picked: what it is, how it pushes the story forward and moves the audience's attention, and what to try." },
+    { part: "The Screen", go: goPanel("insp"), sel: ".sc-page .sc-inspector", title: "Details", text: "Everything about the curiosity you picked: what it is, how it pushes the story forward and moves the audience's attention, and what to try." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-timeline", title: "The timeline", text: "Your film from left to right. Each curiosity gets a lane with dots and lines, like automation in Ableton: click a line to add a dot, drag a dot to change it, double-click a dot to delete it. Join two dots across lanes to make a spark." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .ccw-btn", title: "◎ Categories", text: "A window for each big group of suites, like Emotion or Herd mentality. A pie chart shows which suites play at this moment. Turn a suite's knob to push the whole group of curiosities toward it, or move one curiosity with its slider. A graph shows how they change across your film." },
     { part: "The Screen", go: goScreen, sel: ".sc-page [data-cat-open]", title: "⚗ Catalyst", text: "What sets curiosities off. A Spark is one thing that sets many off, like a crash cymbal or a word. An Elixir only works once every ingredient lines up, like a key in a lock or a flask filling up. Make your own in either tab." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-close", title: "Back to the app", text: "Leaves the Screen for the rest of the app, with the older pages and the Library." },
     { part: "The rest of the app", go: goApp, sel: "#tabs .tabs-top", title: "My film, Storyboard and Library", text: "My film is the first board: change a measurable thing about a scene and the storyboard changes. Storyboard keeps many scenes to flip through. Library holds curated films, the Prism, every curiosity and the Maya manual." },
-    { part: "The rest of the app", go: goApp, sel: "#ws-buttons", title: "Workspaces", text: "One page per big area of filmmaking: Camera, People, Look, Sound, Feeling, Comedy and Story. Each page shows those curiosities in your film, lets you automate them, borrow them from a film, and use its tools." },
+    { part: "The rest of the app", go: goApp, sel: "#ws-pick", title: "Curiosity Browser", text: "Opens the Curiosity Browser, a pop-up window with every workspace in columns and a search box on top: Camera, People, Look, Sound, Feeling, Comedy and Story. Type a word to narrow it down, then pick one. Each workspace page shows those curiosities in your film, lets you automate them, borrow them from a film, and use its tools." },
     { part: "The rest of the app", go: goApp, sel: "#lib-btn", title: "Library", text: "Curated films and the Shelf, the Prism (split a whole film into its curiosities), All curiosities, the Maya manual, Words (every film word in plain language) and Print." },
     { part: "Help", go: goViewer("move"), sel: ".cv-bar .cw-help", title: "Help ▸ App Walkthrough", text: "That's the tour. Open it again any time from Help at the top of any page. Help ▸ Hover help (on to start with) shows a little bubble saying what anything does when you rest the pointer on it; turn it off there when you know your way around. Have fun making your film." },
   ];
+  /* Jeremy 2026-10-05: the full editor (the Screen) is no longer an option, so its steps only show when the
+     page is loaded with ?screen=1, the one way the Screen still opens (its own tests use it). */
+  const screenAllowed = (() => {
+    try {
+      return /[?&]screen=1\b/.test(location.search);
+    } catch (e) {
+      return false;
+    }
+  })();
+  const STEPS = ALL_STEPS.filter((s) => screenAllowed || s.part !== "The Screen");
 
   /* ---------- the look ---------- */
   const CSS = `
@@ -375,7 +395,14 @@
       skip = /[?&](walkthrough|viewer)=0\b/.test(q) || (!!navigator.webdriver && !/[?&]walkthrough=1\b/.test(q));
       seen = localStorage.getItem(SEEN) === "1";
     } catch (e) {}
-    if (!skip && !seen) setTimeout(() => start(0), 900);
+    /* The Screen's files load on their own after the page (screen/load.js), and with ?screen=1 it opens itself
+       when they arrive. Wait for it (a few seconds at most), so the tour remembers it was open and puts it back. */
+    const go = (tries) => {
+      const screenComing = document.querySelector('script[src*="screen/load.js"]') && !window.CurioScreen;
+      if (screenComing && tries < 25) return setTimeout(() => go(tries + 1), 200);
+      setTimeout(() => start(0), 300);
+    };
+    if (!skip && !seen) setTimeout(() => go(0), 600);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);

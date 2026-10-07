@@ -242,8 +242,14 @@ Data: `panel.words[k].rate`. Test: `node viewer/tests/speech.js`.
 - An orange playhead (line and ▼) on the storyboard strip, over a ruler with half-second ticks. Drag along
   the ruler to scrub (the strip scrolls along at its edges); click inside a panel to jump to that moment.
 - Sound while scrubbing and playing (Web Audio, no files): a blip for every syllable of a balloon at its rate
-  of speech, each speaker with their own pitch; a hiss over falling rain; a tick at each new panel. 🔊 Sound
+  of speech, each speaker with their own pitch; a hiss over falling rain. Crossing into a new panel makes no sound. 🔊 Sound
   in the strip head turns it off (key `curiosities-viewer-sound-v1`).
+- Scrubbing (Jeremy 2026-10-06): holding the playhead (the ruler's ▼ or the slider under the picture) and
+  moving it plays the sound at the hand's speed: right plays forwards, as fast as the drag (pitch rises with
+  speed); left plays backwards (last word first, each blip reversed) and the picture, rain included, runs
+  backwards. Your own videos in a window are scrubbed with their real sound (read once, kept forwards and
+  backwards) and play with sound. Jumps (a click, Stop going back) are silent. The space bar or ❚❚ stops
+  every sound at once (`CurioComic.hush`, `sounding()`, `scrubbed()`).
 - Pause goes back to where Play was pressed (default) or stays where it stopped, picked under the picture
   (key `curiosities-viewer-afterstop-v1`; `CurioViewer.onPlay`, `playing()`, `togglePlay()`).
 - Read as a comic → Layout: Simple grid, **Modern comic** (frame by shot and story: establishing = full tier,
@@ -265,6 +271,14 @@ browsers start with it off unless `?hoverhelp=1`). Test: `node viewer/tests/hove
 ### Borders (`viewer/borders.js`, `window.CurioBorders`)
 
 Every border between the Viewer's panels can be dragged, using the Screen's own border tool (`CurioScreen.splitter`, screen/ui.js) so they look and work the same: In the scene | the picture, the picture | Details, the picture | Front and center, and everything above | the storyboard. Hovering shows a cyan line and triangles pointing the ways it can go. The arrow keys move a focused border, double-click gives the usual size, and «, Enter or a drag past the smallest size folds a panel away completely; click or drag the thin edge left behind to bring it back. Sizes are kept with the film in `film.view.borders` ({ left, right, lane, strip, fold }), so Undo and Redo take a border move back like any other change (`CurioViewer.remember(tag)` adds an undo step without moving the playhead), and they come back after a reload. Only wider than 1100px and not in Read as a comic; phones keep their one column. Test: `viewer/tests/borders.js`.
+
+### Fitting to the size you drag (`viewer/fit.js`, `window.CurioFit`)
+
+Jeremy, 2026-10-07: what is inside a panel should change with its size so it stays readable and usable. Once you drag the Front and center border, its contents get tinier together (CSS zoom, so clicks and drags still land where you see them) until they fit; below 55% it stays at that size and scrolls to the part you work with, the nodes and lines of the open tab (the graph, the moments or the automation lanes), with the tabs and buttons a scroll up away. Once you drag the storyboard border, the cards shrink with it: first the whole card, then the words under the picture go, then only the picture and its number are left; every card can still be clicked. A size you drag wins over the Automation lanes tab's own sizes (`data-cvd-sized`, set by borders.js). Double-click a border for the usual size and everything is full size again. Test: `viewer/tests/fit.js`.
+
+### Your own workspace (`viewer/workspace.js`, `window.CurioWorkspace`)
+
+Jeremy, 2026-10-07: with one picture there is a lot of empty room beside it, and he wants to arrange the screen himself. In the big Viewer (wider than 1100px), Front and center, the storyboard and the menu on the left each have a ⠿ handle at their top-left corner: drag it and drop it on a spot that lights up, or click it for the same spots as a list. Front and center: Beside the picture (the default with one picture; the same width as the picture, its nodes and lines wrapping into 1 to 4 rows like lines of sheet music, more rows the narrower it is, the playhead running along them), Under the picture (the default with two or more) or Under the storyboards. The storyboard: At the bottom, Left of the picture or Right of the picture (its cards wrap into rows). The menu: Left, Right or Top. **Lanes follow the window** (Jeremy 2026-10-07, a switch at the top of Views ▾, on by default): when the top part is short enough that the pictures (one or more) leave at least 400px at their side, the pictures move over and Front and center takes that room; when it is tall enough for them to fill the width, Front and center drops under them. Putting Front and center somewhere with its handle turns the switch off; turning it on again lets it follow. Kept per device in `curio-viewer-workspace-v1`; `CurioWorkspace.set(part, spot)` moves one from code. The rows are copies of the lane's graph and lanes, each showing its stretch of the scene (`.ws-sheet`, `.ws-slice`); the lane's own redraws rebuild them. Test: `viewer/tests/workspace.js`.
 
 ### 3D characters (`viewer/rig-actors.js`, `window.CurioRigActors`)
 
@@ -289,3 +303,48 @@ from the scenes in the curiosity database (`CuriosityDB.data.scenes`), worked ou
 AI; as the scene library grows, the ideas grow with it. Change applies the ticked options as one undo step;
 Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
 `window.CurioSceneFocus`. Test: `node viewer/tests/scene-focus.js`.
+
+### The big Viewer (`viewer/big.js`, `window.CurioBigView`)
+
+Jeremy, 2026-10-06: the screen felt crammed. Now the picture gets the room: In the scene and Details leave the sides for a slim rail on the left (In the scene, Move it, Camera & lens, Words and every tab another part adds). A rail button opens that panel as one big window with tabs over the right half, so the picture stays in view; ✕ or Esc closes it. Front and center runs from the rail to the right edge, the Storyboard across the bottom, and a second window is as big as the first. "Side panels" at the bottom of the rail puts the three columns back (`curio-viewer-big-v1`, per device). `CurioBigView.show("things" | tab id | "")` opens a panel (the App Walkthrough uses it). Browser tests start with the side panels unless that key is "1". Test: `viewer/tests/big.js`.
+
+## Scenes, picking storyboards and zoom (viewer/scenes.js, Jeremy 2026-10-06)
+
+A panel with `panel.scene` (a name) starts a new scene; the panels after it belong to it. The storyboard's top row
+has ✂ New scene here, Join the scene before and Rename scene (one undo step each). Each scene's storyboards get
+their own color, and the scene's name on its first panel. Shift+click a storyboard picks every panel up to it,
+Ctrl+click (⌘+click) adds or takes out one; Front and center then shows just those panels and its pie is the
+attention across them. At the top of Front and center: This scene (follows the playhead), Whole film, and a zoom
+slider with − and + (kept per device in `curio-focus-zoom-v1`). Moving from one panel to the next makes no sound
+any more. API `window.CurioScenes`. Test: `node viewer/tests/scenes.js`.
+
+## Dragging and stretching storyboards (viewer/strip-drag.js, Jeremy 2026-10-07)
+
+Grab a storyboard in the middle and drag it: a copy rides under the pointer and a bright line shows where it
+lands (one undo step). At a storyboard's left or right edge the pointer turns into resize arrows; drag to make the
+panel longer or shorter in quarter seconds. "One size" in the storyboard's top row switches to "Relative size",
+where longer panels are wider (kept per device in `curio-strip-size-v1`). Picked panels drag and stretch
+together. Right-click or Ctrl+click a storyboard for its menu: Play from here, Copy, Cut, Paste after, Duplicate,
+Split in two, Join into one panel, Freeze frame after, Reverse their order, Length, Twice as fast, Half speed,
+Move to the start or end, Pick the whole scene, New scene here, Delete. Ctrl+click (⌘+click on a Mac) picks
+one more; on a Mac Ctrl+click is a right-click; on a PC the menu key or Shift+F10 opens it too. Right-clicking an
+automation lane in Front and center opens the same kind of menu (`window.CurioMenu`): go to the panel, the
+curiosity's window, the curve, copy and paste the value, hold the value before, ramp from first to last, set to
+lowest, middle or highest, step up or down, clear the panel's own value, pick the lane, show this scene or the
+whole film; it works on every picked panel. Test: `node viewer/tests/lane-menu.js`. API `window.CurioStripDrag`. Test:
+`node viewer/tests/strip-drag.js`.
+
+## Panel names, front and center by hand, curiosity suites, the window's pad (Jeremy, 2026-10-07)
+
+- **Rename panel**: in the storyboard menu, or click the number on the picked panel. A small name box (Enter or
+  Save keeps it, Escape or Cancel doesn't, empty takes the name off). Stored as `panel.name`, shown on the card's
+  number. One undo step.
+- **Front and center by hand**: right-click the pie, the list beside it, a block in the Leading row, or any lane's
+  node or line. Put X front and center, Put X with it, Take X out of front and center, Let the app decide again.
+  Stored per panel as `panel.front = { lead, with, out: [ids] }` and applied in `read()` (focus-lane.js): the
+  Leading row, card titles, pie and graph all follow. Works on every picked panel when the panel is one of them.
+- **Show curiosity suite** (lane menu): every setting inside that curiosity opens as its own lane under it, set
+  or not, so each can be set from the lane menu. Remembered in `curio-lane-suites-v1`.
+- **The pad** in each curiosity's window: two settings at once, across and up (pick which in the two menus).
+  Click, drag or arrow keys; one undo step per drag. The Screen's hand-made windows (knobs, the floor plan from
+  above, the color wheel, the curve over the film; `screen/windows.js`) are not in the Viewer yet.

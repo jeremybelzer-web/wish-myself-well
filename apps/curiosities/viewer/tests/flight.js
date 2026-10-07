@@ -50,6 +50,8 @@ const ok = (cond, msg) => {
     localStorage.removeItem("curiosities-viewer-v1");
     localStorage.removeItem("curiosities-viewer-windows-v1");
     localStorage.removeItem("curiosities-viewer-winmode-v1");
+    /* Front and center stays under the picture, off the Details panel, so the drags below land on the flight path */
+    localStorage.setItem("curio-focus-out-v1", JSON.stringify({ l: 0, r: 0 }));
   });
   await page.reload();
   await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen(), null, { timeout: 20000 });
@@ -61,8 +63,9 @@ const ok = (cond, msg) => {
       const cv = CurioViewer.live().canvas;
       const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
       let sat = 0, n = 0, edge = 0;
-      /* the lower half only: the words (caption, balloons) stay clear on top of filters and blur */
-      for (let i = Math.floor(cv.height / 2) * cv.width * 4; i < d.length; i += 4 * 37) {
+      /* the lower 40% only: the words (caption, balloons) stay clear on top of filters and blur, and the
+         caption box can reach just past the middle on a shorter Viewer */
+      for (let i = Math.floor(cv.height * 0.6) * cv.width * 4; i < d.length; i += 4 * 37) {
         const mx = Math.max(d[i], d[i + 1], d[i + 2]);
         const mn = Math.min(d[i], d[i + 1], d[i + 2]);
         sat += mx - mn;

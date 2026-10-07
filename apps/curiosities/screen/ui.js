@@ -28,7 +28,8 @@
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
    window.CurioScreen = { open(), close(), isOpen(), view(v?), mountViewer(el, opts), state(), setRow(i), row(),
-     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off() }
+     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off(),
+     panel(id) (Big viewer layout: opens "lib", "insp" or "dock" in the tabbed window, "" shuts it; false in other layouts) }
    view() says which layout shows ("screen" or "arrange"); view("screen") switches to it (and leaves the
    full-screen Player), so the App Walkthrough can show the library, Player, Details and timeline, then put
    back the view you had.
@@ -43,6 +44,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const MAIN_SHOWN = 5;
 
+  /* Browser tests drive the Screen through the older four-panel layout, so they start there; people start in the big viewer. */
+  const AUTOMATED = typeof navigator !== "undefined" && !!navigator.webdriver;
   const DEFAULTS = {
     open: true,
     view: "screen",
@@ -63,7 +66,7 @@
     openCats: {},
     groups: {},
     search: "",
-    layout: "center",
+    layout: AUTOMATED ? "center" : "big",
     playerZoom: 1,
     libTab: "",
     ghost: false,
@@ -79,6 +82,7 @@
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
      the Player full height on the right. */
   const LAYOUTS = [
+    ["big", "Big viewer", "The viewer fills the top, one long lane strip under it, the storyboards across the bottom; everything else opens in a big window with tabs"],
     ["center", "Player in the middle", "Library, Player and Details across the top, the timeline under them (CapCut's default)"],
     ["media", "Library full height", "The library runs down the whole left side; Player and Details on the right, the timeline under them"],
     ["details", "Details full height", "Details runs down the whole right side; library and Player on the left, the timeline under them"],
@@ -209,7 +213,12 @@
   function load() {
     try {
       const p = JSON.parse(localStorage.getItem(KEY));
-      if (p && typeof p === "object") return Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), p);
+      if (p && typeof p === "object") {
+        /* The big viewer became the default on 2026-10-06: a layout saved before then switches over once. */
+        if (!p.bigOnce && !AUTOMATED) p.layout = "big";
+        p.bigOnce = true;
+        return Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), p);
+      }
     } catch (e) {}
     return JSON.parse(JSON.stringify(DEFAULTS));
   }
@@ -364,14 +373,49 @@
     if (!page) build();
     page.hidden = false;
     document.documentElement.classList.add("sc-open");
+    document.documentElement.classList.remove("sc-boot");
     prefs.open = true;
     save();
     takeOpenSnap();
     ensureFilm();
     drawAll();
   }
+  /* One part on its own, filling the window (Views ▾ in the Viewer). The way back closes the Screen and opens
+     the Viewer again. */
+  const SOLO = [
+    ["lib", "Curiosity library"],
+    ["insp", "Details"],
+    ["momentum", "Momentum"],
+    ["tl", "Timeline"],
+  ];
+  function solo(part) {
+    if (!SOLO.some(([id]) => id === part)) return false;
+    if (!page) build();
+    if (prefs.view !== "screen") setView("screen");
+    if (page.dataset.fullplayer) fullPlayer(false);
+    page.dataset.solo = part;
+    let bar = page.querySelector(":scope > .sc-solo-bar");
+    if (!bar) {
+      bar = document.createElement("header");
+      bar.className = "sc-solo-bar";
+      page.insertBefore(bar, page.firstChild);
+      bar.addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        if (b.dataset.soloTo) return solo(b.dataset.soloTo);
+        if (b.dataset.soloBack !== undefined) {
+          close();
+          if (window.CurioViewer && typeof window.CurioViewer.open === "function") window.CurioViewer.open();
+        }
+      });
+    }
+    bar.innerHTML = `<button type="button" data-solo-back title="Back to the picture of your film and the comic strip">◂ Viewer</button><strong>${esc(SOLO.find(([id]) => id === part)[1])}</strong>${SOLO.map(([id, label]) => `<button type="button" data-solo-to="${id}"${id === part ? ' class="on" aria-current="true"' : ""}>${esc(label)}</button>`).join("")}`;
+    open();
+    return true;
+  }
   function close() {
     play(false);
+    if (page) delete page.dataset.solo;
     if (page) page.hidden = true;
     document.documentElement.classList.remove("sc-open");
     prefs.open = false;
@@ -393,6 +437,7 @@
     page.addEventListener("keydown", winGripKey);
     trWire();
     txtWire();
+    page.addEventListener("click", bigClick);
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
@@ -428,6 +473,7 @@
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       if (e.key === "Escape" && keysOpen) return showKeys(false);
+      if (e.key === "Escape" && bigTab && isBig()) return bigShow("");
       if (e.key === "Escape" && page.dataset.fullplayer) return fullPlayer(false);
       /* Leave the browser's own copy alone when text is selected. */
       if (mod(e) && e.key.toLowerCase() === "c" && String(window.getSelection && window.getSelection()).length) return;
@@ -444,6 +490,7 @@
     /* Something outside the Screen changed what it shows (the Character tab's picked character). */
     window.addEventListener("curio-screen-redraw", () => !page.hidden && drawAll());
     window.addEventListener("resize", () => !page.hidden && lanes && lanes.draw());
+    window.addEventListener("resize", () => page && !page.hidden && isBig() && bigPlace(page.querySelector(".sc-main"), page.querySelector(":scope > .sc-bigwin") || document.createElement("i")));
   }
   function drawAll(fromEngine) {
     if (!page || page.hidden) return;
@@ -459,6 +506,7 @@
     drawInspector();
     drawTimeline(fromEngine);
     placePanels();
+    bigApply();
     sizesApply();
     tell();
   }
@@ -476,7 +524,7 @@
     if (!host || (PLACE[place] || PLACE.player) !== PLACE.player) return host;
     /* "under": a full-width strip under the Player, for a slim bar whose panel floats (the 3D actors). */
     const cls = place === "under" ? "sc-under" : "sc-docks";
-    let col = host.querySelector(":scope > ." + cls);
+    let col = host.querySelector(":scope > ." + cls) || (cls === "sc-docks" && page.querySelector(".sc-bigwin .sc-docks"));
     if (!col) {
       col = document.createElement("div");
       col.className = cls;
@@ -509,6 +557,111 @@
         }
       }
     });
+  }
+  /* ---------- the big viewer layout ----------
+     Jeremy, 2026-10-06 05:38Z: too many small windows on one screen felt crammed. The viewer fills the top (a second
+     viewer gets the same size, side by side), one long and short strip of curiosity lanes runs under it from the tab
+     rail on the left to the right edge, and the storyboards (the whole film strip) run across the whole bottom.
+     The library, Details and the docked side panels (Momentum) move into one big window with tabs, opened from
+     the rail. The elements are moved, not copied, so everything that draws or listens to them keeps working. */
+  let bigTab = "";
+  const isBig = () => !!page && prefs.view === "screen" && page.dataset.layout === "big";
+  function bigTabs() {
+    const docks = page.querySelector(".sc-bigwin .sc-docks, .sc-player > .sc-docks");
+    const names = docks ? [...docks.children].map((d) => d.getAttribute("aria-label") || "").filter(Boolean) : [];
+    const list = [
+      ["lib", "Library", "📚", "Every curiosity, suite, template and your favorites"],
+      ["insp", "Details", "🎚", "The settings at the playhead, for the curiosity you picked"],
+    ];
+    if (names.length) list.push(["dock", names.length === 1 ? names[0] : "Side panels", "📈", names.join(", ")]);
+    return list;
+  }
+  function bigApply() {
+    const main = page.querySelector(".sc-main");
+    const player = page.querySelector(".sc-player");
+    const lib = page.querySelector(".sc-lib");
+    const insp = page.querySelector(".sc-inspector");
+    const ov = page.querySelector(".sc-overview");
+    const docks = page.querySelector(".sc-bigwin .sc-docks, .sc-player > .sc-docks");
+    let win = page.querySelector(":scope > .sc-bigwin");
+    let rail = main.querySelector(":scope > .sc-rail");
+    if (!isBig()) {
+      if (win) {
+        main.insertBefore(lib, player);
+        main.insertBefore(insp, player.nextSibling);
+        if (docks) player.appendChild(docks);
+        win.remove();
+      }
+      if (rail) rail.remove();
+      if (ov.parentNode !== player) player.insertBefore(ov, player.querySelector(":scope > .sc-transport"));
+      bigTab = "";
+      return;
+    }
+    if (!win) {
+      win = document.createElement("div");
+      win.className = "sc-bigwin";
+      win.setAttribute("role", "dialog");
+      win.setAttribute("aria-label", "Library, Details and side panels");
+      win.innerHTML = `<header class="sc-bigwin-h"><nav class="sc-bigwin-tabs" role="tablist"></nav><button type="button" class="sc-bigwin-x" data-bigtab="" title="Close (Esc)" aria-label="Close">✕</button></header><div class="sc-bigwin-b"></div>`;
+      page.appendChild(win);
+    }
+    const body = win.querySelector(".sc-bigwin-b");
+    if (lib.parentNode !== body) body.appendChild(lib);
+    if (insp.parentNode !== body) body.appendChild(insp);
+    if (docks && docks.parentNode !== body) body.appendChild(docks);
+    if (!rail) {
+      rail = document.createElement("nav");
+      rail.className = "sc-rail";
+      rail.setAttribute("aria-label", "Open a panel");
+      main.insertBefore(rail, main.firstChild);
+    }
+    if (ov.parentNode !== main) main.appendChild(ov);
+    const tabs = bigTabs();
+    if (bigTab && !tabs.some((t) => t[0] === bigTab)) bigTab = "";
+    rail.innerHTML = tabs.map(([id, label, ico, tip]) => `<button type="button" data-bigtab="${id}" class="${bigTab === id ? "on" : ""}" title="${esc(tip)}" aria-pressed="${bigTab === id}"><span aria-hidden="true">${ico}</span>${esc(label)}</button>`).join("");
+    win.querySelector(".sc-bigwin-tabs").innerHTML = tabs.map(([id, label]) => `<button type="button" role="tab" data-bigtab="${id}" class="${bigTab === id ? "on" : ""}" aria-selected="${bigTab === id}">${esc(label)}</button>`).join("");
+    win.hidden = !bigTab;
+    win.dataset.tab = bigTab;
+    bigPlace(main, win);
+  }
+  /* Where the window goes (Jeremy 2026-10-06 14:03Z and 14:46Z): with one viewer the viewer keeps its size and moves
+     to the left, and the window takes all the blank room on top beside it; with two or more (and on a phone) the
+     window takes everything under the viewers, and the whole-film strip shrinks to a tiny row under it. */
+  function bigPlace(main, win) {
+    const S = win.style;
+    main.style.paddingRight = "";
+    S.top = S.left = S.right = S.bottom = S.width = S.height = "";
+    if (!bigTab || !isBig()) return void delete page.dataset.bigAt;
+    const n = page.querySelectorAll(".sc-viewers .sc-viewer").length;
+    page.dataset.bigAt = n <= 1 && window.innerWidth > 720 ? "right" : "below";
+    const pr = page.getBoundingClientRect();
+    const mr = main.getBoundingClientRect();
+    const vr = page.querySelector(".sc-viewers").getBoundingClientRect();
+    if (page.dataset.bigAt === "right") {
+      const v = page.querySelector(".sc-viewers .sc-viewer").getBoundingClientRect();
+      Object.assign(S, { top: mr.top - pr.top + "px", left: v.right + 8 - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - vr.bottom + "px" });
+      return;
+    }
+    const rail = main.querySelector(":scope > .sc-rail");
+    const ov = main.querySelector(":scope > .sc-overview");
+    const left = window.innerWidth > 720 && rail ? rail.getBoundingClientRect().right + 6 : mr.left + 6;
+    const bottom = ov && ov.offsetHeight ? ov.getBoundingClientRect().top - 4 : mr.bottom - 6;
+    Object.assign(S, { top: vr.bottom - pr.top + 6 + "px", left: left - pr.left + "px", right: pr.right - mr.right + 6 + "px", bottom: pr.bottom - bottom + "px" });
+  }
+
+  function bigShow(id) {
+    bigTab = id || "";
+    bigApply();
+    sizesApply();
+    /* The library measures its category tabs, which it can only do once the window shows. */
+    if (bigTab === "lib") drawLibrary();
+  }
+  function bigClick(e) {
+    const b = e.target.closest && e.target.closest("[data-bigtab]");
+    if (!b || !isBig()) return;
+    e.stopPropagation();
+    const id = b.dataset.bigtab;
+    bigShow(b.closest(".sc-rail") && id === bigTab ? "" : id);
   }
   function addPanel(spec) {
     if (!spec || !spec.id || typeof spec.mount !== "function") return false;
@@ -567,6 +720,7 @@
       ${exportMenuHtml()}
       ${historyMenuHtml()}
       ${window.CurioTriggers ? window.CurioTriggers.barHtml() : ""}
+      ${window.CuriosityWorkspaces && window.CuriosityWorkspaces.picker ? `<button type="button" data-act="workspaces" aria-haspopup="dialog" title="The Curiosity Browser: every workspace (Camera, People, Look, Feeling, Comedy, Story) in columns, with a search box">Curiosity Browser</button>` : ""}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
     if (histFocus) historyRefocus(histFocus);
@@ -4229,6 +4383,10 @@ document.addEventListener("click", function (e) {
       .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
       .join("")}</div><button type="button" data-act="ghost" class="sc-ghost-b${prefs.ghost ? " on" : ""}" aria-pressed="${!!prefs.ghost}" title="Ghosts: see the moments before and after faintly over your film (Maya's ghosting, an animator's onion skin)">Ghosts</button>`;
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
+    /* The big viewer sizes each frame from the picture's shape, so the frame never runs past the top half. */
+    const vb = page.querySelector(".sc-viewers .sc-frame svg");
+    const vbox = vb && vb.viewBox && vb.viewBox.baseVal;
+    if (vbox && vbox.width && vbox.height) page.querySelector(".sc-viewers").style.setProperty("--sc-ar", (vbox.width / vbox.height).toFixed(4));
     page.querySelector(".sc-overview").innerHTML = overviewHtml();
     showTimelineWindow();
     /* A redraw while ⋯ More or Captions ▾ is open keeps the focus on the same control inside it. */
@@ -4700,6 +4858,20 @@ document.addEventListener("click", function (e) {
         const room = Math.max(0, vh - wh - 16);
         return room > 0 ? 8 + ((82 + (n % 7) * 28) % (room + 1)) : 8;
       })(), focus: id === base ? "" : id });
+      /* In the Big viewer a new window never covers a viewer (Jeremy 2026-10-06 14:03Z): beside a single viewer when
+         there is room, otherwise under the viewers; each new one still steps along. */
+      const vs = isBig() ? [...page.querySelectorAll(".sc-viewers .sc-frame")].map((f) => f.getBoundingClientRect()) : [];
+      if (vs.length) {
+        const w = wins[wins.length - 1];
+        const right = Math.max(...vs.map((b) => b.right));
+        const bottom = Math.max(...vs.map((b) => b.bottom));
+        const step = (n % 5) * 24;
+        if (vs.length === 1 && vw - right - 16 >= ww) Object.assign(w, { x: Math.round(Math.min(right + 8 + step, vw - ww - 8)), y: Math.round(Math.max(8, vs[0].top + step)) });
+        else {
+          Object.assign(w, { x: Math.round(Math.max(8, Math.min(vs[0].left + step, vw - ww - 8))), y: Math.round(Math.min(bottom + 8 + step, vh - 200)) });
+          w.h = Math.round(Math.max(190, vh - w.y - 8));
+        }
+      }
     }
     drawWins();
   }
@@ -5611,6 +5783,10 @@ document.addEventListener("click", function (e) {
     }
     const act = d.act;
     if (act === "close") return close();
+    if (act === "workspaces") {
+      close();
+      return setTimeout(() => window.CuriosityWorkspaces.picker(true), 0);
+    }
     if (act === "shortcuts") return showKeys(!keysOpen);
     if (act === "find") return toggleFind(true);
     if (act === "export") return toggleExport();
@@ -6320,7 +6496,7 @@ document.addEventListener("click", function (e) {
       i = i % b.length;
       const vals = b[i].values || {};
       const cats = opts.category ? [opts.category] : (opts.curiosities || []).map((c) => L().categoryOf(c));
-      el.innerHTML = `<div class="sc-mini">${F().svg(vals, { highlight: cats, labels: (opts.curiosities || []).slice(0, 4).map((c) => [labelOf(c), vals[c]]), cast: Number(vals.peopleCount) || castOf() })}<div class="sc-mini-bar"><button type="button" data-m="play">${t ? "Pause" : "Play"}</button><span>${i + 1} / ${b.length}</span><button type="button" data-m="screen">Open the Screen</button></div></div>`;
+      el.innerHTML = `<div class="sc-mini">${F().svg(vals, { highlight: cats, labels: (opts.curiosities || []).slice(0, 4).map((c) => [labelOf(c), vals[c]]), cast: Number(vals.peopleCount) || castOf() })}<div class="sc-mini-bar"><button type="button" data-m="play">${t ? "Pause" : "Play"}</button><span>${i + 1} / ${b.length}</span>${allowed() ? `<button type="button" data-m="screen">Open the Screen</button>` : ""}</div></div>`;
     }
     el.onclick = (e) => {
       const b = e.target.closest("[data-m]");
@@ -6329,14 +6505,25 @@ document.addEventListener("click", function (e) {
         if (t) clearInterval(t);
         t = t ? null : setInterval(() => ((i += 1), draw()), 1100);
         draw();
-      } else open();
+      } else if (allowed()) open();
     };
     draw();
     return { draw, stop: () => t && clearInterval(t) };
   }
 
   /* ---------- into the app ---------- */
+  /* Jeremy 2026-10-05: the full editor was "way too hard to read" and should not be an option, so the
+     Viewer is the only main view. The Screen's code stays loaded (lanes, windows and other parts use its
+     hooks), but nothing opens it unless the page is loaded with ?screen=1 (screen/tests/browser.js does). */
+  function allowed() {
+    try {
+      return /[?&]screen=1\b/.test(location.search);
+    } catch (e) {
+      return false;
+    }
+  }
   function wire() {
+    if (!allowed()) return;
     const top = document.querySelector(".tabs-top");
     if (top && !top.querySelector("[data-screen]")) {
       const b = document.createElement("button");
@@ -6380,7 +6567,9 @@ document.addEventListener("click", function (e) {
       const q = location.search;
       skip = /[?&]screen=0\b/.test(q) || (!!navigator.webdriver && !/[?&]screen=1\b/.test(q));
     } catch (e) {}
+    /* index.html hid the page under a dark cover while the Screen was on its way; when it is not opening, lift it. */
     if (prefs.open && !skip) setTimeout(open, 0);
+    else document.documentElement.classList.remove("sc-boot");
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
@@ -6396,7 +6585,7 @@ document.addEventListener("click", function (e) {
     }
     return prefs.view;
   }
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, solo, soloPart: () => (page && !page.hidden && page.dataset.solo) || "", isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, panel: (id) => (isBig() ? (bigShow(id), true) : false), addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
@@ -6923,7 +7112,7 @@ html[data-sc-splitting="y"], html[data-sc-splitting="y"] * { cursor: row-resize 
     const s = sizesNow();
     const player = page.querySelector(".sc-player");
     const fit = (k, v) => Math.max(SPLIT.PANES[k].min, Math.min(paneMax(k), v));
-    const t = SPLIT.templates(s, page.dataset.layout, prefs.view, wide() ? fit : null, !!(player && !player.hidden));
+    const t = isBig() ? { cols: null, rows: null } : SPLIT.templates(s, page.dataset.layout, prefs.view, wide() ? fit : null, !!(player && !player.hidden));
     const set = (attr, prop, v) => {
       if (v) {
         main.setAttribute(attr, "");
@@ -6995,7 +7184,7 @@ html[data-sc-splitting="y"], html[data-sc-splitting="y"] * { cursor: row-resize 
       dock: playerShown && !!player.querySelector(":scope > .sc-docks > .sc-dock:not(.folded)") && page.dataset.layout !== "right",
       ov: playerShown && !!paneEl("ov") && (!!page.querySelector(".sc-ov-strip") || !prefs.overview),
     };
-    const list = wide() && !page.dataset.fullplayer ? SPLIT.borders(page.dataset.layout, prefs.view, has) : [];
+    const list = wide() && !page.dataset.fullplayer && !isBig() ? SPLIT.borders(page.dataset.layout, prefs.view, has) : [];
     const want = new Set(list.map((b) => b.id));
     Object.keys(splits).forEach((id) => {
       if (want.has(id) && splits[id].edge === list.find((b) => b.id === id).edge) return;
