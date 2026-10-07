@@ -1,7 +1,7 @@
 /* The Transport window in a real browser: node apps/curiosities/perform/tests/browser.js [--shots dir]
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
    The Viewer's play row stays in sight with four windows on a short screen; Performance ▾ opens the Transport;
-   Advance and Back move the panel; Record keeps panel jumps and Catalyst moves as a take; playing it back puts
+   Advance and Back move the panel; right-clicking Record and Help ▾ open Performance and recording; Record keeps panel jumps and Catalyst moves as a take; playing it back puts
    them back and clears its Catalysts at the end; the take survives a reload. */
 const http = require("http");
 const fs = require("fs");
@@ -64,15 +64,15 @@ const ok = (cond, msg) => {
 
     await page.click('.cv-viewer [data-act="perform"]');
     await page.click('.pf-menu [data-m="transport"]');
-    ok(await page.isVisible(".pf-win"), "Performance ▾ opens the Transport");
-    await page.click('.pf-win [data-pf="next"]');
+    ok(await page.isVisible(".pf-transport"), "Performance ▾ opens the Transport");
+    await page.click('.pf-transport [data-pf="next"]');
     ok((await page.evaluate(() => CurioViewer.panel())) === 1, "Advance goes to the next panel");
-    await page.click('.pf-win [data-pf="back"]');
+    await page.click('.pf-transport [data-pf="back"]');
     ok((await page.evaluate(() => CurioViewer.panel())) === 0, "Back goes to the panel before");
 
-    await page.click('.pf-win [data-pf="record"]');
+    await page.click('.pf-transport [data-pf="record"]');
     ok(await page.evaluate(() => CurioTransport.recording()), "Record starts a take");
-    await page.click('.pf-win [data-pf="next"]');
+    await page.click('.pf-transport [data-pf="next"]');
     await page.waitForTimeout(150);
     await page.evaluate(() => CurioViewer.select(4));
     await page.waitForTimeout(150);
@@ -80,13 +80,21 @@ const ok = (cond, msg) => {
       CurioEngine.perform("triggers", { lanes: {} });
       CurioEngine.perform("triggers", null);
     });
-    await page.click('.pf-win [data-pf="first"]');
+    await page.click('.pf-transport [data-pf="first"]');
     await page.waitForTimeout(150);
-    await page.click('.pf-win [data-pf="record"]');
+    await page.click('.pf-transport [data-pf="record"]');
     const take = await page.evaluate(() => CurioTransport.takes()[0]);
     ok(take && take.events.filter((e) => e.k === "panel").map((e) => e.i).join() === "1,4,0", "the take kept the panel jumps in order");
     ok(take && take.events.filter((e) => e.k === "layer").length === 2, "the take kept the Catalyst moves");
-    ok(await page.isVisible('.pf-win [data-pf-take]'), "the take is listed");
+    await page.click('.pf-transport [data-pf="record"]', { button: "right" });
+    ok(await page.isVisible(".pf-panel"), "right-clicking Record opens Performance and recording");
+    ok(!(await page.evaluate(() => CurioTransport.recording())), "right-clicking Record does not start recording");
+    ok(await page.isVisible('.pf-panel [data-pf-take]'), "the take is listed there");
+    await page.click('.pf-panel [data-pf="panel-close"]');
+    await page.click(".cv-viewer .cw-help");
+    await page.click('.cw-menu [data-cw="perform"]');
+    ok(await page.evaluate(() => CurioTransport.panelOpen() && document.querySelector(".pf-panel .pf-how").open), "Help ▾ opens it with How it works showing");
+    await page.click('.pf-panel [data-pf="panel-close"]');
 
     await page.evaluate(() => CurioViewer.select(7));
     await page.evaluate((id) => CurioTransport.play(id), take.id);
@@ -98,7 +106,7 @@ const ok = (cond, msg) => {
     await page.reload();
     await page.waitForFunction(() => window.CurioTransport);
     await page.waitForTimeout(500);
-    ok((await page.evaluate(() => CurioTransport.takes().length)) === 1 && (await page.isVisible(".pf-win")), "the take and the open Transport survive a reload");
+    ok((await page.evaluate(() => CurioTransport.takes().length)) === 1 && (await page.isVisible(".pf-transport")), "the take and the open Transport survive a reload");
     ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
     await page.close();
   }

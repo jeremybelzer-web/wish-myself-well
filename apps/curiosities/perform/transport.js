@@ -10,8 +10,10 @@
      The Transport window   a small window that floats over every page and never hides when windows are added:
                             ⏮ first, ◀ back, ▶ Play / ❚❚ Pause, ▶| advance, ● Record, and the takes. It drives
                             the Viewer when the Viewer is open, else the Screen's own play buttons.
-                            Its buttons can be learned to MIDI (🎹 Learn, then click a button, then press a key
-                            or move a knob). Voice reaches them by their words, like every visible button.
+                            Voice reaches its buttons by their words, like every visible button.
+     Performance and recording   a pop-up of its own: right-click (Control-click on a Mac) ● Record, or Help ▾:
+                            How it works, the takes (play back, rename, delete), Live inputs, Catalysts, and
+                            🎹 Learn MIDI for the Transport (then click a Transport button, then press a key).
      Recording (a take)     while ● is on, everything you perform is kept with its time: panel jumps in the
                             Viewer, page turns in the Storyboard, Play and Pause, every curiosity or suite change
                             (each engine command), and every Catalyst that fires (the engine's performance
@@ -19,8 +21,8 @@
      Playing a take back    puts the same things back at the same times: panel jumps and page turns, the
                             Catalysts as a performance of their own (put back when the take ends), and the
                             curiosity changes (each one an undo step, like doing them by hand).
-     Performance ▾          the Viewer's menu for this section: the Transport window, Live inputs (MIDI, the
-                            camera and words: screen/triggers.js), and the Catalysts window (screen/catalyst.js).
+     Performance ▾          the Viewer's menu for this section: the Transport window, the pop-up, Live inputs
+                            (MIDI, the camera and words: screen/triggers.js), and Catalysts (screen/catalyst.js).
 
    Saved under localStorage "curiosities-performances-v1" (takes) and "curiosities-transport-v1" (where the
    window sits, whether it is open, the MIDI map).
@@ -28,6 +30,8 @@
    window.CurioTransport
      open(), close(), toggle(), isOpen()       the Transport window
      menu(anchor)                              the Performance ▾ menu, under a button
+     panel(how?), closePanel(), panelOpen()    the Performance and recording pop-up (right-click ● Record);
+                                               how opens its "How it works" (Help ▾ uses it)
      record(on?), recording()                  start or stop a take
      takes(), play(id), stopTake(), playingTake(), rename(id, name), remove(id)
      note(kind, data)                          add an event to the take being recorded (for other parts)
@@ -379,47 +383,80 @@
 .pf-k { color: #a1a1aa; font-size: 12px; margin: 0; }
 .pf-win select { font: inherit; color: inherit; background: #26262d; border: 1px solid #34343c; border-radius: 6px; padding: 4px 6px; flex: 1; min-width: 0; }
 .pf-win .on-learn { box-shadow: 0 0 0 2px #fbbf24; }
+.pf-win h4 { margin: 4px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #a1a1aa; }
+.pf-how summary { cursor: pointer; color: #22d3ee; }
+.pf-how p { margin: 6px 0 0; color: #c8c8d0; }
+.pf-learn { color: #fbbf24; }
+.pf-transport { width: 390px; }
 .pf-menu { position: fixed; z-index: 2147483001; display: grid; background: #17171b; color: #ececf1; border: 1px solid #34343c; border-radius: 8px; padding: 4px; box-shadow: 0 10px 28px rgba(0,0,0,0.55); font: 13px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif; }
 .pf-menu b { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #a1a1aa; padding: 4px 8px 2px; }
 .pf-menu button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 6px; padding: 7px 10px; text-align: left; cursor: pointer; }
 .pf-menu button:hover, .pf-menu button:focus-visible { background: #26262d; outline: none; }
 .pf-toast { position: fixed; z-index: 2147483002; left: 50%; bottom: 84px; transform: translateX(-50%); background: #26262d; color: #ececf1; border: 1px solid #34343c; border-radius: 8px; padding: 8px 14px; font: 13px system-ui, sans-serif; max-width: min(520px, calc(100vw - 32px)); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
 `;
+  /* Two windows: the Transport (the buttons), and Performance and recording (takes, inputs, MIDI learn, how it
+     works), which pops up when you right-click ● Record (Jeremy 2026-10-07 01:19Z) or from Help ▾. */
   let win = null;
+  let pan = null;
+  function style() {
+    if (document.getElementById("pf-style")) return;
+    const st = document.createElement("style");
+    st.id = "pf-style";
+    st.textContent = CSS;
+    document.head.appendChild(st);
+  }
+  function makeWin(cls, label, pos) {
+    style();
+    const w = document.createElement("section");
+    w.className = "pf-win " + cls;
+    w.setAttribute("role", "dialog");
+    w.setAttribute("aria-label", label);
+    w.hidden = true;
+    w.pos = pos;
+    document.body.appendChild(w);
+    w.addEventListener("click", onClick);
+    dragBy(w);
+    return w;
+  }
   function build() {
     if (win) return win;
-    if (!document.getElementById("pf-style")) {
-      const st = document.createElement("style");
-      st.id = "pf-style";
-      st.textContent = CSS;
-      document.head.appendChild(st);
-    }
-    win = document.createElement("section");
-    win.className = "pf-win";
-    win.setAttribute("role", "dialog");
-    win.setAttribute("aria-label", "Transport");
-    win.hidden = true;
-    document.body.appendChild(win);
-    win.addEventListener("click", onClick);
-    win.addEventListener("change", (e) => {
+    win = makeWin("pf-transport", "Transport", "t");
+    win.addEventListener("contextmenu", (e) => {
+      if (!e.target.closest('[data-pf="record"]')) return;
+      e.preventDefault();
+      openPanel(false, e.target.closest("button"));
+    });
+    pan = makeWin("pf-panel", "Performance and recording", "p");
+    pan.addEventListener("change", (e) => {
       if (e.target.matches("[data-pf-take]")) {
         prefs.take = e.target.value;
         savePrefs();
-        draw();
+        drawPanel();
       }
     });
-    dragBy(win);
     return win;
   }
-  function place() {
-    const w = win.offsetWidth || 360;
-    const h = win.offsetHeight || 150;
-    let x = prefs.x == null ? innerWidth - w - 16 : prefs.x;
-    let y = prefs.y == null ? innerHeight - h - 96 : prefs.y;
-    x = Math.max(8, Math.min(innerWidth - w - 8, x));
+  function place(w, near) {
+    if (!w || w.hidden) return;
+    const k = w.pos;
+    const ww = w.offsetWidth || 360;
+    const h = w.offsetHeight || 150;
+    let x = prefs[k + "x"];
+    let y = prefs[k + "y"];
+    if (k === "t" && x == null) (x = prefs.x), (y = prefs.y);
+    if (x == null && near) {
+      /* beside the Transport, never over its buttons: to its left, else above it, else below */
+      const r = (near.closest(".pf-win") || near).getBoundingClientRect();
+      if (r.left - ww - 10 >= 8) (x = r.left - ww - 10), (y = r.bottom - h);
+      else if (r.top - h - 10 >= 8) (x = r.left), (y = r.top - h - 10);
+      else (x = r.left), (y = r.bottom + 10);
+    }
+    if (x == null) x = innerWidth - ww - 16;
+    if (y == null) y = innerHeight - h - 96;
+    x = Math.max(8, Math.min(innerWidth - ww - 8, x));
     y = Math.max(8, Math.min(innerHeight - h - 8, y));
-    win.style.left = x + "px";
-    win.style.top = y + "px";
+    w.style.left = x + "px";
+    w.style.top = y + "px";
   }
   function dragBy(w) {
     let d = null;
@@ -431,9 +468,9 @@
     });
     w.addEventListener("pointermove", (e) => {
       if (!d || e.pointerId !== d.id) return;
-      prefs.x = e.clientX - d.dx;
-      prefs.y = e.clientY - d.dy;
-      place();
+      prefs[w.pos + "x"] = e.clientX - d.dx;
+      prefs[w.pos + "y"] = e.clientY - d.dy;
+      place(w);
     });
     const end = (e) => {
       if (!d || e.pointerId !== d.id) return;
@@ -442,7 +479,7 @@
     };
     w.addEventListener("pointerup", end);
     w.addEventListener("pointercancel", end);
-    window.addEventListener("resize", () => win && !win.hidden && place());
+    window.addEventListener("resize", () => place(w));
   }
   function btn(a, text, title, cls) {
     const learnOn = learning && learnFor === a;
@@ -451,40 +488,55 @@
     return `<button type="button" data-pf="${a}" class="${cls || ""}${learnOn ? " on-learn" : ""}" title="${esc(t)}" aria-label="${esc(LABEL[a] || text)}">${text}</button>`;
   }
   function draw() {
+    drawPanel();
     if (!win || win.hidden) return;
     const playingNow = isPlaying();
-    const take = takes.find((t) => t.id === prefs.take) || takes[0];
     const r = rec.on();
     win.innerHTML = `
-      <header class="pf-head" title="Drag here to move the Transport"><b>Transport</b><span class="pf-k">Performance and recording</span><button type="button" class="pf-x" data-pf="close" title="Close the Transport (Performance ▾ opens it again)" aria-label="Close the Transport">×</button></header>
+      <header class="pf-head" title="Drag here to move the Transport"><b>Transport</b><button type="button" class="pf-x" data-pf="close" title="Close the Transport (Performance ▾ opens it again)" aria-label="Close the Transport">×</button></header>
       <div class="pf-body">
         <div class="pf-row pf-big">
           ${btn("first", "⏮", "First panel")}
           ${btn("back", "◀", "Back one panel")}
           ${btn("play", playingNow ? "❚❚ Pause" : "▶ Play", playingNow ? "Pause" : "Play", "pf-play")}
           ${btn("next", "▶|", "Advance to the next panel")}
-          ${btn("record", r ? "● Recording" : "● Record", r ? "Stop recording and keep this take" : "Record a take: every jump, curiosity change and Catalyst you perform, with its time", "pf-rec" + (r ? " on" : ""))}
-          <span class="pf-time" data-pf-time></span>
+          ${btn("record", r ? "● Recording" : "● Record", (r ? "Stop recording and keep this take" : "Record a take: every jump, curiosity change and Catalyst you perform, with its time") + ". Right-click for Performance and recording", "pf-rec" + (r ? " on" : ""))}
         </div>
-        <p class="pf-k" data-pf-count></p>
-        <div class="pf-row">
-          ${
-            takes.length
-              ? `<select data-pf-take aria-label="Takes">${takes.map((t) => `<option value="${esc(t.id)}"${take && t.id === take.id ? " selected" : ""}>${esc(t.name)} · ${fmt(t.length)}</option>`).join("")}</select>
-          <button type="button" data-pf="take" title="${player ? "Stop playing this take" : "Play this take back: the same jumps, changes and Catalysts at the same times"}">${player ? "■ Stop take" : "▶ Play take"}</button>
-          <button type="button" data-pf="rename" title="Give this take a name">Rename</button>
-          <button type="button" data-pf="remove" title="Throw this take away">Delete</button>`
-              : `<p class="pf-k">No takes yet. Press ● Record, perform, and press it again to keep a take.</p>`
-          }
-        </div>
-        ${take && takes.length ? `<p class="pf-k">${esc(summary(take))}</p>` : ""}
-        <div class="pf-row">
-          <button type="button" data-pf="inputs" title="Set curiosities off with MIDI, the camera watching a performer, or spoken words">Live inputs: MIDI, camera, voice</button>
-          <button type="button" data-pf="learn" class="${learning ? "on-learn" : ""}" title="Learn MIDI: click this, then a Transport button, then press a key or move a knob on your MIDI controller">${learning ? (learnFor ? "Now press a MIDI key…" : "Now click a button…") : "🎹 Learn"}</button>
-        </div>
+        <p class="pf-row pf-k"><span data-pf-count></span><span class="pf-time" data-pf-time></span></p>
+        ${learning ? `<p class="pf-k pf-learn">${learnFor ? `Now press a key or move a knob on your MIDI controller for ${esc(LABEL[learnFor])}.` : "Learning MIDI: click a Transport button."}</p>` : ""}
       </div>`;
     drawCount();
-    place();
+    place(win);
+  }
+  function drawPanel() {
+    if (!pan || pan.hidden) return;
+    const take = takes.find((t) => t.id === prefs.take) || takes[0];
+    const open = pan.dataset.how === "1" ? " open" : "";
+    pan.innerHTML = `
+      <header class="pf-head" title="Drag here to move this window"><b>Performance and recording</b><button type="button" class="pf-x" data-pf="panel-close" title="Close" aria-label="Close Performance and recording">×</button></header>
+      <div class="pf-body">
+        <details class="pf-how"${open}><summary>How it works</summary>
+          <p>Curiomatic is a performance app: anything can be automated. Press ● Record on the Transport and perform. Every panel jump, storyboard page, curiosity or suite change and every Catalyst that fires (a Spark, or an Elixir once all its ingredients line up) is kept with its time, as a take.</p>
+          <p>Play a take back and the same things happen at the same times. Set things off with a MIDI controller (worn by a dancer or a conductor too), a camera watching the performer, or spoken words: Live inputs. Right-click ● Record to come back here.</p>
+        </details>
+        <h4>Takes</h4>
+        ${
+          takes.length
+            ? `<div class="pf-row"><select data-pf-take aria-label="Takes">${takes.map((t) => `<option value="${esc(t.id)}"${take && t.id === take.id ? " selected" : ""}>${esc(t.name)} · ${fmt(t.length)}</option>`).join("")}</select></div>
+        <p class="pf-k">${esc(summary(take))}</p>
+        <div class="pf-row"><button type="button" data-pf="take" title="${player ? "Stop playing this take" : "Play this take back: the same jumps, changes and Catalysts at the same times"}">${player ? "■ Stop take" : "▶ Play take"}</button>
+        <button type="button" data-pf="rename" title="Give this take a name">Rename</button>
+        <button type="button" data-pf="remove" title="Throw this take away">Delete</button></div>`
+            : `<p class="pf-k">No takes yet. Press ● Record on the Transport, perform, and press it again to keep a take.</p>`
+        }
+        <h4>Set things off</h4>
+        <div class="pf-row">
+          <button type="button" data-pf="inputs" title="Set curiosities off with MIDI, the camera watching a performer, or spoken words">Live inputs: MIDI, camera, voice</button>
+          ${root.CurioCatalyst && root.CurioCatalyst.open ? `<button type="button" data-pf="catalysts" title="Sparks and Elixirs: what sets curiosities off">⚗ Catalysts</button>` : ""}
+          <button type="button" data-pf="learn" class="${learning ? "on-learn" : ""}" title="Put the Transport's buttons on your MIDI controller: click this, then a Transport button, then press a key or move a knob">${learning ? "Stop learning" : "🎹 Learn MIDI for the Transport"}</button>
+        </div>
+      </div>`;
+    place(pan);
   }
   let soon = 0;
   function drawSoon() {
@@ -492,7 +544,7 @@
     soon = requestAnimationFrame(() => {
       soon = 0;
       const p = win.querySelector('[data-pf="play"]');
-      if (p && (p.textContent.includes("Pause") !== isPlaying())) draw();
+      if (p && p.textContent.includes("Pause") !== isPlaying()) draw();
       else drawCount();
     });
   }
@@ -503,21 +555,21 @@
     const v = V();
     if (rec.on()) {
       if (time) time.textContent = "● " + fmt(rec.elapsed(now()));
-      if (count) count.textContent = `Recording: ${rec.count()} ${rec.count() === 1 ? "move" : "moves"} kept so far.`;
+      if (count) count.textContent = `Recording: ${rec.count()} ${rec.count() === 1 ? "move" : "moves"} kept`;
     } else if (player) {
       const take = takes.find((t) => t.id === player.id);
       if (time) time.textContent = "▶ " + fmt(now() - player.t0) + " / " + fmt(take ? take.length : 0);
-      if (count) count.textContent = "Playing the take back.";
+      if (count) count.textContent = "Playing a take back";
     } else {
-      if (time) time.textContent = v ? `Panel ${v.panel() + 1} of ${v.film().panels.length}` : "";
-      if (count) count.textContent = "";
+      if (time) time.textContent = "";
+      if (count) count.textContent = v ? `Panel ${v.panel() + 1} of ${v.film().panels.length}` : "";
     }
   }
   function onClick(e) {
     const b = e.target.closest("[data-pf]");
     if (!b) return;
     const a = b.dataset.pf;
-    if (learning && LABEL[a]) {
+    if (learning && LABEL[a] && b.closest(".pf-transport")) {
       learnFor = a;
       const A = root.CurioAuto;
       if (A && A.connectMidi) A.connectMidi();
@@ -525,12 +577,15 @@
     }
     if (act[a]) return act[a](), draw();
     if (a === "close") return close();
+    if (a === "panel-close") return closePanel();
     if (a === "learn") {
       learning = !learning;
       learnFor = null;
+      if (learning) open();
       return draw();
     }
     if (a === "inputs") return openInputs();
+    if (a === "catalysts") return root.CurioCatalyst && root.CurioCatalyst.open();
     const take = takes.find((t) => t.id === prefs.take) || takes[0];
     if (!take) return;
     if (a === "take") return player ? stopTake() : play(take.id);
@@ -575,8 +630,23 @@
     learning = false;
     prefs.open = false;
     savePrefs();
+    drawPanel();
   }
   const isOpen = () => !!(win && !win.hidden);
+  /* how: open "How it works" (from Help ▾); near: the button it pops up beside */
+  function openPanel(how, near) {
+    hookAll();
+    build();
+    pan.dataset.how = how ? "1" : "";
+    pan.hidden = false;
+    drawPanel();
+    place(pan, near || (isOpen() ? win.querySelector('[data-pf="record"]') : null));
+    const f = pan.querySelector(how ? "summary" : "button");
+    if (f) f.focus();
+  }
+  function closePanel() {
+    if (pan) pan.hidden = true;
+  }
 
   /* ---------- the Performance ▾ menu ---------- */
   let menuEl = null;
@@ -594,6 +664,7 @@
     menuEl.innerHTML = `<b>Performance and recording</b>
       <button type="button" role="menuitem" data-m="transport">${isOpen() ? "Hide the Transport" : "Transport: play, advance, record"}</button>
       <button type="button" role="menuitem" data-m="record">${rec.on() ? "Stop recording" : "● Record a take"}</button>
+      <button type="button" role="menuitem" data-m="panel">Takes, inputs and MIDI (right-click ● Record)</button>
       <button type="button" role="menuitem" data-m="inputs">Live inputs: MIDI, camera, voice</button>
       ${C && C.open ? `<button type="button" role="menuitem" data-m="catalysts">⚗ Catalysts: Sparks and Elixirs</button>` : ""}`;
     document.body.appendChild(menuEl);
@@ -646,6 +717,9 @@
     toggle: () => (isOpen() ? close() : open()),
     isOpen,
     menu,
+    panel: (how) => openPanel(!!how),
+    closePanel,
+    panelOpen: () => !!(pan && !pan.hidden),
     record,
     recording: () => rec.on(),
     takes: () => clone(takes),
