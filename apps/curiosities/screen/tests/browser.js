@@ -4025,6 +4025,8 @@ const ok = (cond, msg) => {
     await p.click('.sc-mybar [data-my-new="curiosity"]');
     ok(await formOpen(), "+ New curiosity opens a small form over the Screen");
     ok(await p.evaluate(() => { const t = document.querySelector(".sc-mydlg").textContent; return /What it is/.test(t) && /How it moves the story forward and the audience's attention/.test(t) && /What to try/.test(t) && /Named steps/.test(t) && /A number range/.test(t) && document.querySelector('.sc-mydlg [name="cat"]').value === "feeling"; }), "it asks in plain words: name, what it is, how it moves the story and the audience's attention, what to try, category (the tab you are in) and its scale");
+    ok(await p.evaluate(() => { const i = document.querySelector('.sc-mydlg [name="label"]'); return i.value === "My curiosity" && document.activeElement === i && i.selectionStart === 0 && i.selectionEnd === i.value.length; }), "a new curiosity starts named My curiosity, selected so typing replaces it");
+    await p.fill('.sc-mydlg [name="label"]', "");
     await p.click('.sc-mydlg [data-my-do="save"]');
     ok((await formOpen()) && /Give it a name/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "saving with no name says what's missing and keeps the form open");
     await p.fill('.sc-mydlg [name="label"]', "Tension in the room");
@@ -4083,6 +4085,7 @@ const ok = (cond, msg) => {
     ok(!!(await p.$('.sc-mybar [data-my-new="suite"].on')), "the Suites group's bar offers + New suite");
     await p.click('.sc-mybar [data-my-new="suite"]');
     ok(await formOpen(), "+ New suite opens its form");
+    ok((await p.$eval('.sc-mydlg [name="label"]', (i) => i.value)) === "My suite", "a new suite starts named My suite");
     await p.fill('.sc-mydlg [name="label"]', "The calm before the storm");
     await p.fill(".sc-mydlg [data-my-filter]", "tension");
     await p.click(`.sc-mydlg [data-my-pickcur="${ID}"]`);
