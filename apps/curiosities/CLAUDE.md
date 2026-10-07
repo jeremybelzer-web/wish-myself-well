@@ -115,6 +115,10 @@ There is no Studio tab: each tool opens as a Tool in its workspaces (Camera in C
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.
 
+## Paintings (paintings/)
+
+**Paint ▾** in the Viewer's bar: the Paintings window (62 famous paintings as five-colour swatches, from Jeremy's music app) and the paint strip (Control-click empty space in the picture), which gives things in the picture a painting's colours, one undo step each. The project's painting is `film.painting`; the default is per device in `curio-paintings-default-v1`. The window's second tab, Recolor the app, gives the Viewer, the Screen and the menus a painting's five colours, made readable first (`paintings/theme.js`; per device in `curio-paintings-app-v2`). Read `paintings/README.md`.
+
 ## Saving
 
 `project.js` (`window.CuriosityProject`) bundles every `curiosities-*` localStorage key into one `.curio` file (JSON, format `curiosities-project`, version 1): Save, Save as, Open and New project from the Library menu, with a save indicator in the bar. Autosave history keeps the last 20 snapshots in IndexedDB; any snapshot can be restored and the restore undone.

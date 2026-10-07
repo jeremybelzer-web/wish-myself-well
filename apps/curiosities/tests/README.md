@@ -44,6 +44,7 @@ On GitHub a failing suite's FAIL lines also appear as notes on the check's page,
 | screen / engine / momentum in a browser | `*/tests/browser.js` | each piece inside the real app, as a person uses it |
 | flip book | `tests/flipbook.js` | the Storyboard: next, previous, wrap, Play and Pause, arrow keys, jump, duplicate and delete a scene, reload |
 | save and open | `tests/save-open.js` | Save project to a file, New project, Open the file: everything comes back; a broken file is refused; History restores |
+| paintings | `paintings/tests/run.js`, `paintings/tests/browser.js` | the 62 paintings match the spec; choosing, defaults, undo, the paint strip and painting a thing |
 | every control | `tests/every-control.js` | every button, dropdown and checkbox on every page, on a laptop and a phone |
 | whole-app stress run | `engine/tests/app-fuzz.js` | thousands of random clicks, undo chains, broken saved data |
 
