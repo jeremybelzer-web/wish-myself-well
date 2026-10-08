@@ -381,6 +381,9 @@
     <script src="data/windows/look-depth-belonging.js"></script>
     <script src="data/windows/look-depth-relations.js"></script>
     <script src="data/windows/look-depth-alone.js"></script>
+    <!-- The writing app's language curiosities and their ladder, on ?writing=1 (written for apps/curiosities-writing), so every
+         view here (the Viewer's overlay, the lanes, the relationship map) can automate them. -->
+    <script>if (/[?&]writing=1\b/.test(location.search)) document.write('<script src="data/writing/db-writing-language.js"><\/script><script src="data/writing/db-writing-ladder.js"><\/script>');</script>
     <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
     <script src="reference.js"></script>
     <script src="suites.js"></script>

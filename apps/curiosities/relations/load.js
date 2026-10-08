@@ -42,7 +42,12 @@
       load().then((R) => R.open()).catch(() => {});
     });
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
-  else setTimeout(wire, 0);
+  /* ?relations=1 opens the map as the page loads (the writing app's "3D relationship map" link). */
+  function start() {
+    wire();
+    if (/[?&]relations=1\b/.test(location.search)) load().then((R) => R.open()).catch(() => {});
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else setTimeout(start, 0);
   window.CurioRelationsLoad = { load, FILES: FILES.slice() };
 })();

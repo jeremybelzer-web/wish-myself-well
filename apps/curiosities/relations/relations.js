@@ -22,7 +22,7 @@
   const KEY = "curio-relations-v1";
   const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
   const FAMILY_COLOR = { character: "#b04a7a", feeling: "#c45c26", body: "#2f8a57", look: "#2d6fb8", sound: "#8a5bd0", story: "#8a7a2d" };
-  const TYPE_COLOR = { mine: "#1c1712", leads: "#c45c26", suite: "#2d6fb8", shows: "#d13b3b", feels: "#b04a7a", reacts: "#7a3fb0", moves: "#2f8a57", film: "#8a7a2d", word: "#6b5f52" };
+  const TYPE_COLOR = { mine: "#1c1712", leads: "#c45c26", suite: "#2d6fb8", shows: "#d13b3b", feels: "#b04a7a", reacts: "#7a3fb0", moves: "#2f8a57", film: "#8a7a2d", word: "#6b5f52", near: "#2a8f8a" };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
   function load() {
