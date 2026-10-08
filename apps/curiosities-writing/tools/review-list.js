@@ -3,8 +3,8 @@
 const fs = require("fs");
 const path = require("path");
 const DB = require("../../curiosities/data/load-db.js");
-require("../data/db-writing-language.js");
-require("../data/db-writing-ladder.js");
+require("../../curiosities/data/writing/db-writing-language.js");
+require("../../curiosities/data/writing/db-writing-ladder.js");
 
 const SHARED = ["narration", "byCharacter", "byVoice", "change", "often", "place", "spacing", "gap", "subject", "amount", "push", "pointsAhead", "themeLink"];
 const ws = Object.fromEntries(DB.data.workspaces.map((w) => [w.id, w.label]));

@@ -10,6 +10,10 @@
     <header>
       <h1>Curiosities for writing</h1>
       <p class="sub">Every curiosity from Curiomatic, same ids, sorted into the three lanes: what is seen, the words on the page, and what is heard.</p>
+      <p class="open">Automate these in Curiomatic's views:
+        <a href="../curiosities/index.html?writing=1">Overlaid view (the Viewer)</a>
+        <a href="../curiosities/index.html?writing=1&amp;screen=1">Stacked lanes</a>
+        <a href="../curiosities/index.html?writing=1&amp;relations=1">3D relationship map</a></p>
       <nav id="tabs"></nav>
       <input id="find" type="search" placeholder="Find a curiosity" />
     </header>
@@ -71,8 +75,8 @@
     <script src="../curiosities/data/db-model-scenes-10.js"></script>
     <!-- film-db:end -->
     <!-- Writing-only curiosities, loaded after Curiomatic's database. -->
-    <script src="data/db-writing-language.js"></script>
-    <script src="data/db-writing-ladder.js"></script>
+    <script src="../curiosities/data/writing/db-writing-language.js"></script>
+    <script src="../curiosities/data/writing/db-writing-ladder.js"></script>
     <script src="lanes.js"></script>
     <script src="app.js"></script>
   </body>

@@ -1,10 +1,11 @@
-/* data/db-writing-language.js: the elements of language, each as a curiosity (Jeremy, 2026-10-08: "create curiosities
+/* data/writing/db-writing-language.js: the elements of language, each as a curiosity (Jeremy, 2026-10-08: "create curiosities
    for verb structures and frequency. Verb tense ... Sentence structure. Placement of nouns, placement of adjectives,
    placement of similes, placement of metaphors, placement of personification, placement of alliteration, frequency
    of all of these things, frequency between different characters, frequency from the third person narrative or the
    narrative voice ... Every category we can think of that can be a curiosity, we should make one. And then I can
    review it later.").
-   Writing-only, so it lives in the writing app and loads after Curiomatic's database. Ideas Curiomatic already has
+   Writing-only: Curiomatic loads it only on ?writing=1; the writing app always does. It sits in Curiomatic's data/
+   folder so both apps reach it online. Loads after Curiomatic's database. Ideas Curiomatic already has
    (typeTalk, unreliableView, listenerPlace, themeAloud, wordplay, wordsAmount, vocalTone, understatement) are linked to, not repeated.
    Every countable thing (a word class, a figure of speech, a punctuation mark) carries the same nine sliders, so the
    app can read them off a passage and automate them sentence by sentence:
@@ -414,4 +415,4 @@
     [["often", "How often", [0, 100], "How often a line hides its meaning."],
      ["gapSize", "Size of the gap", [0, 100], "0 = means exactly what they say, 100 = means the opposite."]],
     "Write a love scene where no one says anything about love.");
-})(typeof window !== "undefined" ? window.CuriosityDB : require("../../curiosities/data/curiosity-db.js"));
+})(typeof window !== "undefined" ? window.CuriosityDB : require("../curiosity-db.js"));

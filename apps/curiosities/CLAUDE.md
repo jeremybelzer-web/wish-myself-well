@@ -49,6 +49,8 @@ In code the old names stay so saved projects keep working: sparks are `PROXIMITI
 
 State is `localStorage` key `curiosities-board-v2`.
 
+**The writing app's curiosities** (`apps/curiosities-writing/`): load the page with `?writing=1` and `index.html` also loads `data/writing/db-writing-language.js` and `db-writing-ladder.js` before `CuriosityDB.install`, so the language curiosities, their suites, sparks and elixirs are automatable in every view here, and the relationship map draws their proximities (`DB.writingProximities`, edge type `near`). Without the flag nothing changes. `?relations=1` opens the relationship map on load.
+
 ## The bar: My film, Storyboard, the workspaces, and the Library
 
 **My film** is the Board: the controls and the strip, the whole scene. It works as it always has. Its **Save into the storyboard** button keeps the panels as a new scene and opens the Storyboard.

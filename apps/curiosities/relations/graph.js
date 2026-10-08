@@ -35,6 +35,7 @@
     film: { label: "Made on screen with", back: "Used for" },
     word: { label: "A word on", back: "Has the word" },
     mine: { label: "Your tie: leads to", back: "Your tie: follows from" },
+    near: { label: "Related to", back: "Related to" },
   };
   const SUITE_CAP = 12; // a suite bigger than this is a whole look, not a direct tie between its members
 
@@ -106,6 +107,8 @@
     (data.proximities || []).forEach((p) => {
       if (p.when && p.then && p.when.curiosity && p.then.curiosity) edge(p.when.curiosity, p.then.curiosity, "leads", p.label, /^my-/.test(p.id) ? p.id : "");
     });
+    /* Proximities proper (how related, setting nothing off), from the writing app's ladder when it is loaded. */
+    (data.near || []).forEach((p) => edge(p.a, p.b, "near", p.why));
     (data.suites || []).forEach((s) => {
       const ids = [...new Set((s.members || []).map((m) => m.curiosity).filter(Boolean))];
       if (ids.length < 2 || ids.length > SUITE_CAP) return;
@@ -138,7 +141,7 @@
   /* Read the database the app has loaded: CuriosityDB keeps the four levels in arrays on .data. */
   function fromDB(DB) {
     const d = DB && DB.data ? DB.data : DB;
-    return { workspaces: d.workspaces || [], curiosities: d.curiosities || [], suites: d.suites || [], proximities: d.proximities || [] };
+    return { workspaces: d.workspaces || [], curiosities: d.curiosities || [], suites: d.suites || [], proximities: d.proximities || [], near: (DB && DB.writingProximities) || [] };
   }
 
   const api = { build, fromDB, FAMILIES, TYPES, KIND_LABEL, familyOf };

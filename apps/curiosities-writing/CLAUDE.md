@@ -19,6 +19,10 @@ dialogue driven by each character's Enneagram type. Jeremy's full handoff is the
 - Jeremy's drafts and private material never go into this repo (it is public).
 - Static HTML, CSS and JS. No build step. Branch off `curiosities-beta`; Jeremy merges by hand.
 
+## Automating in Curiomatic's views
+
+The first screen links to Curiomatic with `?writing=1` (the Viewer's overlaid view), `?writing=1&screen=1` (stacked lanes) and `?writing=1&relations=1` (the 3D relationship map). With that flag Curiomatic loads the writing data files (kept in its `data/writing/` so both apps reach them online) before its install, so every curiosity, suite, spark and elixir here becomes an automation lane there. Keep the data files free of page code so that keeps working.
+
 ## Files
 
 | File | Job |
@@ -26,16 +30,17 @@ dialogue driven by each character's Enneagram type. Jeremy's full handoff is the
 | `index.html` | The first screen: every curiosity, with All / Visual / Writing / Audio tabs and Find |
 | `lanes.js` | `window.WritingLanes`: `tag(row)`, `tagAll(DB)`, the workspace table and overrides |
 | `app.js` | Draws the first screen |
-| `data/db-writing-language.js` | The writing-only language curiosities (verbs, sentences, words, figures, sound, voice, dialogue), each with frequency, placement, spacing, and spread by character and narrative voice. Seven `w-` workspaces |
-| `data/db-writing-ladder.js` | The language curiosities set into the ladder: suites, proximities (`window.WritingProximities`, related pairs 0 to 100 that set nothing off), catalysts (sparks, `DB.proximity`) and elixirs (`DB.proximitySuite`, every spark must line up). Beats are sentences |
+| `../curiosities/data/writing/db-writing-language.js` | The writing-only language curiosities (verbs, sentences, words, figures, sound, voice, dialogue), each with frequency, placement, spacing, and spread by character and narrative voice. Seven `w-` workspaces |
+| `../curiosities/data/writing/db-writing-ladder.js` | The language curiosities set into the ladder: suites, proximities (`window.WritingProximities`, related pairs 0 to 100 that set nothing off), catalysts (sparks, `DB.proximity`) and elixirs (`DB.proximitySuite`, every spark must line up). Beats are sentences |
 | `LANGUAGE-REVIEW.md` | Jeremy's keep / drop list for those, made by `node tools/review-list.js`. Honor a drop |
 | `tools/sync-scripts.js` | Keeps the database script tags in step with Curiomatic's `data/files.json` |
+| `tests/browser.js` | `node apps/curiosities-writing/tests/browser.js`: the writing curiosities load in Curiomatic on ?writing=1, become lanes, and the 3D map opens; Curiomatic is unchanged without the flag |
 | `tests/check.js` | `node apps/curiosities-writing/tests/check.js`: every curiosity tagged, shared ids present, scripts in step |
 
 ## Next (Jeremy's handoff, section 12)
 
 1. Done: import Curiomatic's database and tag every curiosity Visual / Writing / Audio.
 2. The listener's perspective curiosity with its fine-tune window and presets.
-3. Started: the language curiosities (`data/db-writing-language.js`). Still to come from handoff section 8: forms, persuasion, genre machinery, nonfiction, and more Enneagram dialogue curiosities.
+3. Started: the language curiosities (`../curiosities/data/writing/db-writing-language.js`). Still to come from handoff section 8: forms, persuasion, genre machinery, nonfiction, and more Enneagram dialogue curiosities.
 4. The Outline view as the main view, with the beat board and the Viewer one click away.
 5. Later, when the apps join: the Visual / Writing / Audio lane tabs in Curiomatic.

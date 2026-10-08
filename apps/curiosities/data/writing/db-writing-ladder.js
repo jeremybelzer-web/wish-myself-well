@@ -1,4 +1,4 @@
-/* data/db-writing-ladder.js: the language curiosities (db-writing-language.js) set into the full ladder (Jeremy,
+/* data/writing/db-writing-ladder.js: the language curiosities (db-writing-language.js) set into the full ladder (Jeremy,
    2026-10-08: "categorize them into curiosities, and then curiosity suites, which all go together, and then curiosity
    proximities, which are tangentially related, and then curiosity catalysts ... And then there are sort of harder to
    align events, which require an unlocking ... curiosity elixirs. It's like a key that has to move all of the
@@ -152,4 +152,4 @@
   NEAR.forEach((p) => ["a", "b"].forEach((k) => { if (!DB.get("curiosity", p[k])) throw new Error("db-writing-ladder: unknown curiosity " + p[k]); }));
   root.WritingProximities = NEAR;
   DB.writingProximities = NEAR;
-})(typeof window !== "undefined" ? window.CuriosityDB : require("../../curiosities/data/curiosity-db.js"), typeof window !== "undefined" ? window : globalThis);
+})(typeof window !== "undefined" ? window.CuriosityDB : require("../curiosity-db.js"), typeof window !== "undefined" ? window : globalThis);
