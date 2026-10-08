@@ -638,6 +638,9 @@
   if (!wins.length) wins = ["mine"];
   const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
   let activeWin = 0;
+  /* the order the windows show in, by window number; dragging one's ⠿ corner swaps it with another (Jeremy 2026-10-08) */
+  let winOrder = [];
+  let pickedWin = 0;
   /* Two ways to see many windows: "fit" shrinks them all to fit the stage, "swipe" keeps one big window and
      you drag along its top edge (or click the dots) to see the others. */
   const MKEY = "curiosities-viewer-winmode-v1";
@@ -1149,10 +1152,7 @@
       tmp.width = W;
       tmp.height = H;
       tmp.getContext("2d").drawImage(ctx.canvas, 0, 0);
-      ctx.save();
-      ctx.filter = `blur(${(blur * W) / 90}px)`;
-      ctx.drawImage(tmp, 0, 0);
-      ctx.restore();
+      softDraw(ctx, tmp, (blur * W) / 90);
       polys.forEach((P) => P.depth <= subjD && drawPoly(P));
     } else polys.forEach(drawPoly);
     /* rain */
@@ -1372,6 +1372,48 @@
     if (a < 160) return "behind, toward " + side;
     return "behind them";
   }
+  /* some browsers (Safari before 18, some headless Chromes) ignore ctx.filter: there the blur shrinks the
+     picture and stretches it back, which softens it the same way */
+  let filterBlurWorks;
+  function canFilterBlur() {
+    if (filterBlurWorks !== undefined) return filterBlurWorks;
+    try {
+      const a = document.createElement("canvas");
+      a.width = a.height = 9;
+      const ac = a.getContext("2d");
+      ac.fillStyle = "#fff";
+      ac.fillRect(4, 4, 1, 1);
+      const b = document.createElement("canvas");
+      b.width = b.height = 9;
+      const bc = b.getContext("2d");
+      bc.filter = "blur(2px)";
+      bc.drawImage(a, 0, 0);
+      filterBlurWorks = bc.getImageData(1, 4, 1, 1).data[3] > 0;
+    } catch (e) {
+      filterBlurWorks = false;
+    }
+    return filterBlurWorks;
+  }
+  function softDraw(ctx, src, px) {
+    ctx.save();
+    if (canFilterBlur()) {
+      ctx.filter = `blur(${px}px)`;
+      ctx.drawImage(src, 0, 0);
+    } else {
+      const k = Math.max(1, px * 1.5);
+      const small = document.createElement("canvas");
+      small.width = Math.max(1, Math.round(src.width / k));
+      small.height = Math.max(1, Math.round(src.height / k));
+      const sc = small.getContext("2d");
+      sc.imageSmoothingEnabled = true;
+      sc.imageSmoothingQuality = "high";
+      sc.drawImage(src, 0, 0, small.width, small.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(small, 0, 0, src.width, src.height);
+    }
+    ctx.restore();
+  }
   function blurWords(b) {
     return b < 0.02 ? "none" : b < 0.35 ? "a little" : b < 0.7 ? "soft background" : "only the subject is sharp";
   }
@@ -1494,12 +1536,20 @@
 .cv-stage { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; }
 .cv-wins { display: grid; gap: 6px; justify-content: center; align-content: center; width: 100%; height: 100%; }
 .cv-win { position: relative; background: #000; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line); }
+.cv-win.cv-win-picked { box-shadow: inset 0 0 0 2px var(--c-accent, #22d3ee); }
+.cv-win.cv-win-picked::after { content: "Delete closes this window"; position: absolute; right: 6px; bottom: 6px; z-index: 3; padding: 3px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.75); color: #fff; font: 12px/1.3 system-ui, sans-serif; pointer-events: none; }
 .cv-win.is-mine { box-shadow: 0 0 0 1px var(--c-accent); }
 .cv-wins[data-n="1"] .cv-win.is-mine { box-shadow: none; }
 .cv-canvas, .cv-video { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; object-fit: contain; background: #000; }
 .cv-win:not(.is-mine) .cv-canvas { cursor: default; }
 .cv-wtab { position: absolute; left: 6px; top: 6px; display: flex; align-items: center; gap: 2px; background: rgba(12,12,14,0.78); border-radius: 6px; padding: 2px; touch-action: pan-y; user-select: none; max-width: calc(100% - 50px); z-index: 2; }
 .cv-root .cv-wtab button { background: transparent; padding: 3px 7px; font-size: 12px; }
+.cv-wgrip { position: absolute; left: 0; top: 0; z-index: 3; width: 18px; height: 18px; display: grid; place-items: center; font: 12px/1 system-ui, sans-serif; color: #d6d6db; background: rgba(12,12,14,0.78); border-bottom-right-radius: 6px; cursor: grab; touch-action: none; user-select: none; }
+.cv-wgrip:hover { background: #22d3ee; color: #062a31; }
+.cv-wins .cv-win:only-child .cv-wgrip { display: none; }
+.cv-wins .cv-win:not(:only-child) .cv-wtab { left: 22px; }
+.cv-win.cv-win-moving { opacity: 0.55; }
+.cv-win.cv-win-target { box-shadow: inset 0 0 0 3px #22d3ee; }
 .cv-root .cv-wtab .cv-wplus { background: #22d3ee; color: #062a31; font-weight: 700; font-size: 15px; line-height: 1; padding: 2px 8px; margin-left: 4px; border-radius: 5px; }
 .cv-wtop { display: none; position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 1; cursor: ew-resize; touch-action: pan-y; background: linear-gradient(rgba(34,211,238,0.35), transparent); }
 .cv-wins[data-mode="swipe"] .cv-wtop { display: flex; justify-content: center; align-items: center; }
@@ -1512,7 +1562,8 @@
 .cv-win.is-mine .cv-wname { color: var(--c-accent); }
 .cv-wmenu { position: absolute; left: 6px; top: 38px; z-index: 3; display: grid; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: calc(100% - 12px); }
 .cv-root .cv-wmenu button { background: transparent; text-align: left; }
-.cv-root .cv-wclose { position: absolute; right: 6px; top: 6px; z-index: 2; background: rgba(12,12,14,0.78); width: 28px; height: 28px; padding: 0; font-size: 16px; }
+.cv-root .cv-wclose { position: absolute; right: 4px; top: 4px; z-index: 2; background: rgba(12,12,14,0.6); width: 18px; height: 18px; padding: 0; font-size: 12px; line-height: 1; border-radius: 4px; opacity: 0.75; }
+.cv-root .cv-wclose:hover { opacity: 1; }
 .cv-root .cv-wadd { font-weight: 600; }
 .cv-root .cv-wuse { position: absolute; right: 6px; bottom: 6px; z-index: 2; font-size: 11px; background: rgba(12,12,14,0.8); }
 .cv-slide-l { animation: cv-sl 0.22s ease-out; }
@@ -1623,8 +1674,9 @@
         <span class="cv-title" contenteditable="true" spellcheck="false" title="The film's name. Click to change it."></span>
         <div class="cv-bar-r">
           <select data-k="look" title="The light of the whole film"><option value="dusk">Dusk light</option><option value="day">Daylight</option><option value="night">Night</option></select>
-          <button type="button" data-act="undo" title="Undo (⌘Z)">Undo</button>
-          <button type="button" data-act="redo" title="Redo (⇧⌘Z)">Redo</button>
+          <!-- people use ⌘Z and ⇧⌘Z (Jeremy 2026-10-08); the buttons stay hidden so the keys keep one place to go -->
+          <button type="button" data-act="undo" title="Undo (⌘Z)" hidden>Undo</button>
+          <button type="button" data-act="redo" title="Redo (⇧⌘Z)" hidden>Redo</button>
           <button type="button" data-act="perform" title="Performance and recording: the Transport (play, advance, record), Live inputs (MIDI, camera, voice) and Catalysts">Performance ▾</button>
           <button type="button" data-act="comic" title="See every panel big, like a comic book page">Read as a comic</button>
           <button type="button" data-act="sample" title="Throw away your changes and load the Episode 1 sample again">Start over</button>
@@ -1687,6 +1739,7 @@
       save();
     });
     document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", (e) => pickedWin && W_EL[pickedWin] && !W_EL[pickedWin].el.contains(e.target) && pickWin(0), true);
     window.addEventListener("resize", () => draw());
     /* the stage changes size without a window resize too (the Front and center lane arrives a moment after the
        first picture): fit the windows again then, so the picture never jumps and drags use fresh coordinates */
@@ -1710,22 +1763,75 @@
   }
 
   /* ---------- drawing the page ---------- */
+  /* drag a window by its ⠿ corner onto another: they swap places */
+  function gripWin(el, i) {
+    const g = el.querySelector(".cv-wgrip");
+    let drag = null;
+    g.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      drag = { id: e.pointerId };
+      try {
+        g.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      el.classList.add("cv-win-moving");
+    });
+    const over = (e) => W_EL.findIndex((w, j) => {
+      if (j === i) return false;
+      const r = w.el.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    });
+    g.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      W_EL.forEach((w, j) => w.el.classList.toggle("cv-win-target", j === over(e)));
+    });
+    const end = (e) => {
+      if (!drag) return;
+      drag = null;
+      el.classList.remove("cv-win-moving");
+      W_EL.forEach((w) => w.el.classList.remove("cv-win-target"));
+      const j = e && e.type === "pointerup" ? over(e) : -1;
+      if (j < 0) return;
+      [winOrder[i], winOrder[j]] = [winOrder[j], winOrder[i]];
+      W_EL.forEach((w, k) => (w.el.style.order = String(winOrder[k])));
+      window.dispatchEvent(new Event("resize"));
+    };
+    g.addEventListener("pointerup", end);
+    g.addEventListener("pointercancel", end);
+  }
   function buildWins() {
     const box = root.querySelector(".cv-wins");
     W_EL.forEach((w) => w.video && w.video.pause());
     box.innerHTML = "";
     W_EL.length = 0;
+    pickedWin = 0;
     wins.forEach((id, i) => {
       const el = document.createElement("div");
       el.className = "cv-win";
       el.dataset.w = i;
       el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Control-drag to slide around the world. Double-click to zoom in there. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
         <div class="cv-wtop" title="Drag left or right along the top edge to see your other open windows"><span class="cv-wdots">${wins.map((_, j) => `<i data-wshow="${j}" class="${j === shownWin ? "on" : ""}" title="Window ${j + 1}"></i>`).join("")}</span></div>
-        <div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button><button type="button" class="cv-wplus" data-act="addwin" title="Add a window, to watch another film beside this one" aria-label="Add a window">+</button></div>
+        <span class="cv-wgrip" data-wgrip="${i}" title="Drag to move this window to another place" aria-label="Move this window">⠿</span><div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
         ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
         <div class="cv-wmenu" hidden></div>
         <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
+      if (winOrder.length !== wins.length) winOrder = wins.map((_, j) => j);
+      el.style.order = String(winOrder[i]);
       box.appendChild(el);
+      gripWin(el, i);
+      /* click an extra window to pick it; Delete (or Backspace) then closes it (Jeremy 2026-10-07) */
+      /* anywhere on it counts, its name too (a click there was missed before, Jeremy 2026-10-08); capture, so the
+         picture's own drag handling can't swallow it */
+      if (i) el.addEventListener("pointerdown", (e) => !(e.target.closest && e.target.closest(".cv-wmenu, .cv-wclose, [data-wstep], .cv-wuse")) && pickWin(i), true);
+      /* right-click or Control-click: this window's own menu (on your film, only on its name, since a right-click in
+         its picture is for the things in it) */
+      el.addEventListener("contextmenu", (e) => {
+        if (!i && !(e.target.closest && e.target.closest(".cv-wtab"))) return;
+        e.preventDefault();
+        if (i) pickWin(i);
+        winActions(i);
+      });
       const w = { el, canvas: el.querySelector("canvas"), hud: el.querySelector(".cv-hud"), video: el.querySelector("video"), picks: [] };
       w.ctx = w.canvas.getContext("2d");
       const on = (fn) => (e) => {
@@ -1843,12 +1949,30 @@
     if (winMode === "swipe") showWin(shownWin);
     draw();
   }
+  /* the extra window picked by a click (pickedWin, 0: none; your film, window 0, is never closed) */
+  function pickWin(i) {
+    pickedWin = i > 0 && i < wins.length ? i : 0;
+    W_EL.forEach((w, k) => w.el.classList.toggle("cv-win-picked", k === pickedWin && k > 0));
+  }
   function closeWin(i) {
     if (!i || i >= wins.length) return;
+    pickedWin = 0;
     wins.splice(i, 1);
     saveWins();
     buildWins();
     draw();
+  }
+  /* a window's own menu: close it, show another film in it, copy its camera, add a window */
+  function winActions(i) {
+    const m = W_EL[i] && W_EL[i].el.querySelector(".cv-wmenu");
+    if (!m) return;
+    const theirs = i && wins[i] !== "mine" && filmFor(wins[i]).kind !== "video";
+    m.innerHTML =
+      `<button type="button" data-wlist="${i}">Show another film in this window…</button>` +
+      (theirs ? `<button type="button" data-wuse="${i}">Use this camera in my panel</button>` : "") +
+      `<button type="button" data-act="addwin">Add a window</button>` +
+      (i ? `<button type="button" data-wclose="${i}">Close this window (Delete)</button>` : "");
+    m.hidden = false;
   }
   function winMenu(i) {
     const m = W_EL[i] && W_EL[i].el.querySelector(".cv-wmenu");
@@ -2460,7 +2584,7 @@
   }
 
   function onClick(e) {
-    if (!e.target.closest(".cv-wmenu, .cv-wname")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
+    if (!e.target.closest(".cv-wmenu, .cv-wname") || e.target.closest("[data-wclose], [data-wuse], [data-act]")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
     if (!e.target.closest(".cv-views")) viewsMenu(false);
     const b = e.target.closest("button, [data-thing]");
     if (!b || !root.contains(b)) return;
@@ -2488,6 +2612,10 @@
       return winMenu(+d.wmenu);
     }
     if (d.wpick) return setWin(+d.wpick, d.film, 0);
+    if (d.wlist) {
+      W_EL[+d.wlist].el.querySelector(".cv-wmenu").hidden = true;
+      return winMenu(+d.wlist);
+    }
     if (d.wvideo) {
       videoFor = +d.wvideo;
       W_EL[videoFor].el.querySelector(".cv-wmenu").hidden = true;
@@ -3000,6 +3128,10 @@
       if (typing && t.type !== "range") return;
       e.preventDefault();
       return e.shiftKey ? restore(redo, undo) : restore(undo, redo);
+    }
+    if (pickedWin && !typing && !mod && (e.key === "Delete" || e.key === "Backspace")) {
+      e.preventDefault();
+      return closeWin(pickedWin);
     }
     if (!typing && HOOK.keys.some((fn) => fn(e))) return;
     if (typing || mod || e.altKey) return;

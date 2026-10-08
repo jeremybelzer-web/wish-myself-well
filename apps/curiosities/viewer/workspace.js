@@ -18,7 +18,7 @@
    - The storyboard: At the bottom, Left of the picture, or Right of the picture. At the side its cards run left to
      right and wrap onto the next row.
    - The menu on the left (the rail): Left, Right, or Top.
-   Kept per device (localStorage curio-viewer-workspace-v1). Only in the big Viewer on a screen wider than 1100px;
+   Kept per device (localStorage curio-viewer-workspace-v1). Only in the big Viewer on a screen wider than 760px;
    phones keep their one column. window.CurioWorkspace = { get(), set(part, spot), spots, apply() } */
 (function () {
   "use strict";
@@ -109,6 +109,25 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-stage { grid-column: 1; grid-row: 1; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-under { grid-column: 2; grid-row: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-transport { grid-column: 1 / -1; grid-row: 2; }
+.cv-root[data-ws-lanes="beside"] .cv-player > .ws-scrubrow { grid-column: 1; grid-row: 2; }
+/* the transport shares the top line, and the progress bar sits under the picture at its width (Jeremy 2026-10-08) */
+.ws-scrubrow { display: flex; align-items: center; min-width: 0; padding: 0 2px; }
+.ws-scrubrow > .cv-scrub { flex: 1 1 auto; width: 100%; margin: 0; height: 14px; }
+.cv-root[data-ws] > .cv-bar { flex-wrap: nowrap; overflow: hidden; padding: 3px 10px; gap: 6px 8px; }
+.cv-root[data-ws] > .cv-bar button, .cv-root[data-ws] > .cv-bar select { padding-top: 3px; padding-bottom: 3px; }
+.cv-root[data-ws] > .cv-bar .cv-brand { font-size: 14px; }
+.cv-root[data-ws] > .cv-bar > * { flex-shrink: 0; }
+.cv-root[data-ws] > .cv-bar .cv-title { flex: 0 1 auto; min-width: 90px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-root[data-ws] > .cv-bar > .cv-transport { flex-wrap: nowrap; gap: 4px; background: none; padding: 0; }
+.cv-root[data-ws] > .cv-bar > .cv-transport .cv-time { min-width: 0; font-size: 12px; }
+.cv-root[data-ws] > .cv-bar > .cv-transport button { padding: 4px 9px; }
+.cv-root[data-ws] .cvb-side { display: none !important; }
+.ws-topts-wrap { position: relative; }
+.ws-topts { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; display: grid; gap: 6px; padding: 8px; background: var(--c-panel, #1c1c1f); border: 1px solid var(--c-line, #2e2e33); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-width: 220px; }
+.ws-topts[hidden] { display: none; }
+.cv-root[data-ws] > .cv-bar > .cv-bar-r { flex-wrap: nowrap; }
+.ws-more .ws-topts { left: auto; right: 0; justify-items: stretch; }
+.ws-more .ws-topts > * { width: 100%; text-align: left; }
 .cv-root[data-ws-lanes="beside"] .cv-under > .cf-pane { flex: 1 1 auto; min-height: 0; }
 .cv-root[data-ws-lanes="beside"] .cv-under[data-tab="focus"] .cf-pane-focus { grid-template-rows: auto minmax(0, 1fr); }
 .cv-root[data-ws-lanes="beside"] .cf-charts { grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "pie list" "sheet sheet"; min-height: 0; }
@@ -124,16 +143,23 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .ws-follow[aria-checked="true"] .ws-sw::after { left: 16px; }
 .cf-charts > .ws-sheet { grid-area: sheet; }
 .ws-sheet { display: grid; grid-auto-rows: minmax(52px, 1fr); gap: 6px; min-height: 0; }
-.ws-sheet.ws-lanes { grid-auto-rows: auto; gap: 10px; }
+.ws-sheet.ws-lanes, .ws-sheet.ws-rows { grid-auto-rows: auto; gap: 10px; }
+.ws-sheet.ws-rows > .ws-sys > .ws-n { left: auto; right: 3px; top: -10px; }
+.ws-sheet.ws-rows > .ws-sys { padding-top: 10px; }
 .ws-sheet .cf-graph { height: auto; min-height: 52px; }
 .ws-sys { position: relative; }
+.ws-sys.ws-now { background: rgba(34, 211, 238, 0.07); box-shadow: inset 2px 0 0 rgba(34, 211, 238, 0.55); }
 .ws-sys > .ws-n { position: absolute; left: 3px; top: 1px; z-index: 2; font: 600 9.5px/1 system-ui, sans-serif; color: #8b8b94; pointer-events: none; }
 .ws-slice { position: absolute; top: 0; bottom: 0; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card > :not(canvas):not(.cv-num) { display: none; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card { flex-basis: 108px; }
+.cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card canvas { border-bottom: 0; }
 .ws-slice > .cf-ln-in { inset: 5px 0; }
 `;
 
   /* ---------- what is on now ---------- */
-  const wide = () => window.innerWidth > 1100;
+  /* wider than a phone (the app link opens in a frame narrower than the window, often under 1100px) */
+  const wide = () => window.innerWidth > 760;
   const active = (root) => !!root && root.classList.contains("cv-big") && !root.classList.contains("cv-comic") && wide();
   const pictures = (root) => root.querySelectorAll(".cv-wins .cv-win").length;
   /* "Lanes follow the window" (Jeremy 2026-10-07 01:29Z, on by default, at the top of Views ▾): when the top part is
@@ -142,15 +168,22 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   const LANE_MIN = 400;
   function fitSpot(root) {
     const player = root.querySelector(".cv-player");
-    const tr = player && player.querySelector(":scope > .cv-transport");
+    const tr = player && player.querySelector(":scope > .cv-transport, :scope > .ws-scrubrow");
     const win = root.querySelector(".cv-wins .cv-win");
     if (!player || !win || !win.offsetHeight) return { at: pictures(root) > 1 ? "below" : "beside" };
     const ratio = win.offsetWidth / win.offsetHeight;
     const n = pictures(root);
     /* the pictures' height beside the lanes: the Player less its padding, the transport row and the gap */
     const h = player.clientHeight - 12 - (tr ? tr.offsetHeight + 6 : 0) - 12;
-    const picsW = Math.round(n * h * ratio + (n - 1) * 10 + 16);
-    const room = player.clientWidth - 12 - picsW;
+    let picsW = Math.round(n * h * ratio + (n - 1) * 10 + 16);
+    /* one picture: the lanes always sit beside it, at the top, and the picture gives up room for them when the
+       window is narrow (Jeremy 2026-10-07 19:27Z: "the curiosity lanes ... in the window next to the viewer window
+       at the top ... only when we add a window ... underneath both of them") */
+    /* the room inside the Player (a curiosity window docked on its left takes some, viewer/curiosity-dock.js) */
+    const cs = getComputedStyle(player);
+    const inner = player.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (n === 1) return { at: "beside", picsW: Math.min(picsW, Math.round(inner * 0.62)) };
+    const room = inner - picsW;
     const was = root.dataset.wsLanes === "beside";
     return { at: room >= (was ? LANE_MIN - 40 : LANE_MIN) ? "beside" : "below", picsW };
   }
@@ -181,14 +214,18 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       set("wsLanes", lanes);
       set("wsStrip", on && ws.strip !== "bottom" ? ws.strip : "");
       set("wsRail", on && ws.rail !== "left" ? ws.rail : "");
+      /* two or more pictures with the lanes the long way under them: the storyboard gets smaller below, its cards
+         down to the picture and its number, so the pictures keep their room (Jeremy 2026-10-07 19:27Z) */
+      set("wsSmallStrip", lanes === "below" && pictures(root) > 1 && ws.strip === "bottom" ? "1" : "");
       /* following the window, the pictures keep their own width and the lanes take the rest */
       if (player) {
         /* only a real change moves it: the pictures' measured shape shifts a pixel or two with the room they get, and
            following every pixel made the layout flip back and forth each frame (the flashing, 2026-10-07) */
         const cur = parseFloat(player.style.getPropertyValue("--ws-stage-w")) || 0;
-        if (lanes === "beside" && fit && fit.picsW) {
+        if (lanes === "beside" && window.CurioBorders && CurioBorders.sideSet && CurioBorders.sideSet()) CurioBorders.apply();
+        else if (lanes === "beside" && fit && fit.picsW) {
           if (Math.abs(fit.picsW - cur) > 16) player.style.setProperty("--ws-stage-w", fit.picsW + "px");
-        } else if (cur) player.style.removeProperty("--ws-stage-w");
+        } else if (lanes !== "beside" || !/calc/.test(player.style.getPropertyValue("--ws-stage-w"))) player.style.removeProperty("--ws-stage-w");
       }
       toggle(root);
       /* under the storyboards it leaves the Player for the end of the page; anywhere else it goes back */
@@ -196,6 +233,8 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
         if (lanes === "bottom" && under.parentNode !== root) root.insertBefore(under, root.querySelector(":scope > .cv-strip").nextSibling);
         else if (lanes !== "bottom" && under.parentNode !== player) player.insertBefore(under, player.querySelector(":scope > .cv-transport"));
       }
+      dock(root, on);
+      oneLine(root, on);
       grips(root);
       stripCols(root);
       sheet(root);
@@ -265,8 +304,9 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     const box = root.querySelector(".cv-under");
     if (!box) return;
     const beside = root.dataset.wsLanes === "beside";
-    const n = beside ? rowsFor(box.clientWidth) : 1;
-    const srcs = [box.querySelector(".cf-graph:not(.ws-copy)"), box.querySelector(".cf-lanes:not(.ws-copy)")].filter(Boolean);
+    /* Automation lanes read like Ableton tracks: one long row that follows the playhead, never a cascade */
+    const n = beside && box.dataset.tab !== "lanes" && !box.classList.contains("cf-popped") ? rowsFor(box.clientWidth) : 1;
+    const srcs = [box.querySelector(".cf-graph:not(.ws-copy)"), box.querySelector(".cf-rows:not(.ws-copy)"), box.querySelector(".cf-lanes:not(.ws-copy)")].filter(Boolean);
     const sig = n + "|" + srcs.map((s) => s.dataset.wsGen || "").join(",");
     const fresh = srcs.every((s) => s.dataset.wsGen && s.nextElementSibling && s.nextElementSibling.classList.contains("ws-sheet"));
     if (n > 1 && fresh && sig === sheetSig) return;
@@ -278,13 +318,14 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       src.dataset.wsGen = String((+src.dataset.wsGen || 0) + 1);
       const isLanes = src.classList.contains("cf-lanes");
       const wrap = document.createElement("div");
-      wrap.className = "ws-sheet" + (isLanes ? " ws-lanes" : "");
+      wrap.className = "ws-sheet" + (isLanes ? " ws-lanes" : src.classList.contains("cf-rows") ? " ws-rows" : "");
       for (let k = 0; k < n; k++) {
         const c = src.cloneNode(true);
         c.classList.add("ws-copy", "ws-sys");
         delete c.dataset.wsGen;
-        /* each track shows its own stretch of the scene: the k-th of n, read left to right */
-        const tracks = c.classList.contains("cf-ln-track") ? [c] : [...c.querySelectorAll(".cf-ln-track")];
+        c.dataset.wsK = String(k);
+        /* each track (or Moments row) shows its own stretch of the scene: the k-th of n, read left to right */
+        const tracks = c.classList.contains("cf-ln-track") ? [c] : [...c.querySelectorAll(".cf-ln-track, .cf-row")];
         tracks.forEach((t) => {
           const sl = document.createElement("div");
           sl.className = "ws-slice";
@@ -304,6 +345,85 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     });
     sheetSig = n + "|" + srcs.map((s) => s.dataset.wsGen).join(",");
   }
+
+  /* ---------- the transport on the top line, the progress bar under the picture ---------- */
+  function dock(root, on) {
+    const bar = root.querySelector(":scope > .cv-bar");
+    const tr = root.querySelector(".cv-transport");
+    const player = root.querySelector(".cv-player");
+    const stage = player && player.querySelector(":scope > .cv-stage");
+    const scrub = root.querySelector(".cv-scrub");
+    if (!bar || !tr || !player || !stage || !scrub) return;
+    const docked = tr.parentNode === bar;
+    if (on && !docked) {
+      bar.insertBefore(tr, bar.querySelector(":scope > .cv-bar-r"));
+      const row = document.createElement("div");
+      row.className = "ws-scrubrow";
+      row.appendChild(scrub);
+      stage.after(row);
+      /* the settings used now and then fold into one small button, so the line stays one line */
+      const wrap = document.createElement("span");
+      wrap.className = "ws-topts-wrap";
+      wrap.innerHTML = `<button type="button" class="ws-topts-btn" aria-haspopup="true" aria-expanded="false" title="Speed, Loop, what Pause does, and how many windows show">Play options ▾</button><span class="ws-topts" hidden></span>`;
+      const box = wrap.querySelector(".ws-topts");
+      tr.querySelectorAll(':scope > [data-k="winmode"], :scope > [data-k="speed"], :scope > label, :scope > [data-k="afterstop"]').forEach((el) => box.appendChild(el));
+      tr.appendChild(wrap);
+    } else if (!on && docked) {
+      const wrap = tr.querySelector(".ws-topts-wrap");
+      if (wrap) {
+        [...wrap.querySelector(".ws-topts").children].forEach((el) => tr.appendChild(el));
+        wrap.remove();
+      }
+      const time = tr.querySelector(".cv-time");
+      if (time) time.after(scrub);
+      const row = player.querySelector(":scope > .ws-scrubrow");
+      if (row) row.remove();
+      player.appendChild(tr);
+    }
+  }
+  /* one line at the top: the buttons that don't fit go under More ▾ at its end, last ones first */
+  const moved = [];
+  function oneLine(root, on) {
+    const bar = root.querySelector(":scope > .cv-bar");
+    const r = bar && bar.querySelector(":scope > .cv-bar-r");
+    if (!r) return;
+    let more = r.querySelector(":scope > .ws-more");
+    /* put everything back first, then take out only what doesn't fit */
+    while (moved.length) {
+      const el = moved.pop();
+      if (more) r.insertBefore(el, more);
+      else r.appendChild(el);
+    }
+    if (!on) return more && more.remove();
+    if (!more) {
+      more = document.createElement("span");
+      more.className = "ws-topts-wrap ws-more";
+      more.innerHTML = `<button type="button" class="ws-topts-btn" aria-haspopup="true" aria-expanded="false" title="The buttons that don't fit on the top line">More ▾</button><span class="ws-topts" hidden></span>`;
+      r.appendChild(more);
+    }
+    const box = more.querySelector(".ws-topts");
+    const wrapped = () => bar.scrollWidth > bar.clientWidth + 1;
+    more.hidden = true;
+    for (let guard = 0; wrapped() && guard < 30; guard++) {
+      more.hidden = false;
+      const items = [...r.children].filter((el) => el !== more && !el.hidden && getComputedStyle(el).display !== "none");
+      const last = items[items.length - 1];
+      if (!last) break;
+      box.prepend(last);
+      moved.push(last);
+    }
+    more.hidden = !moved.length;
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest && e.target.closest(".ws-more .ws-topts > button")) setTimeout(() => document.querySelectorAll(".ws-more .ws-topts").forEach((b) => (b.hidden = true)), 0);
+    const b = e.target.closest && e.target.closest(".ws-topts-btn");
+    document.querySelectorAll(".ws-topts").forEach((box) => {
+      if (box.contains(e.target)) return;
+      const open = !!b && box.previousElementSibling === b && box.hidden;
+      box.hidden = !open;
+      box.previousElementSibling.setAttribute("aria-expanded", String(open));
+    });
+  });
 
   /* ---------- the handles, the list and the drop spots ---------- */
   function grips(root) {
@@ -446,6 +566,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     new MutationObserver(soon).observe(root.querySelector(".cv-wins"), { childList: true });
     const box = root.querySelector(".cv-under");
     new MutationObserver((ms) => {
+      /* a hidden original redrawn in place (zooming, an edit): its copies are made again */
+      ms.forEach((m) => {
+        const src = m.target.closest && m.target.closest(".ws-src");
+        if (src) delete src.dataset.wsGen;
+      });
       /* the lane's own redraws (its graph and lanes rebuilt), not our copies of them */
       if (ms.some((m) => ![...m.addedNodes, ...m.removedNodes].every((n) => n.nodeType !== 1 || n.classList.contains("ws-sheet") || n.classList.contains("ws-slice") || n.classList.contains("ws-n") || (n.closest && n.closest(".ws-sheet"))))) soon();
     }).observe(box, { childList: true, subtree: true });
@@ -455,6 +580,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       ro.observe(root.querySelector(".cv-player"));
     }
     window.addEventListener("resize", soon);
+    /* a handle stays in its corner when its panel scrolls, so the lanes can always be dragged back (Jeremy 2026-10-08) */
+    root.addEventListener("scroll", (e) => {
+      const g = e.target.querySelector && e.target.querySelector(":scope > .ws-grip");
+      if (g) g.style.transform = `translate(${e.target.scrollLeft}px, ${e.target.scrollTop}px)`;
+    }, true);
     apply();
     after();
   }

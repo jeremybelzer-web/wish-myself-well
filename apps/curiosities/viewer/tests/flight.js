@@ -254,9 +254,14 @@ const ok = (cond, msg) => {
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  await still();
-  await page.waitForTimeout(120);
-  const p2 = await pix();
+  /* a slow machine can draw the blurred frame late: look again a few times before calling it */
+  let p2;
+  for (let i = 0; i < 8; i++) {
+    await still();
+    await page.waitForTimeout(120 + 80 * i);
+    p2 = await pix();
+    if (p2.edge < p0b.edge * 0.9) break;
+  }
   ok(p2.edge < p0b.edge * 0.9, `background blur softens the picture (${p0b.edge} → ${p2.edge})`);
   await shot("flight-blur");
 

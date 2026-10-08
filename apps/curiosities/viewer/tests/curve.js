@@ -53,7 +53,7 @@ const SAMPLES = {
   await page.goto(base + "?viewer=1");
   await page.evaluate(() => {
     localStorage.removeItem("curiosities-viewer-v1");
-    localStorage.setItem("curio-focus-tab-v1", "lanes");
+    sessionStorage.setItem("curio-focus-tab-v1", "lanes");
   });
   await page.reload();
   await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen() && document.querySelector(".cv-under .cf-ln-edit .cf-seg"), null, { timeout: 20000 });

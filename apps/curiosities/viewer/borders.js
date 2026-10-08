@@ -16,7 +16,7 @@
   const V = () => window.CurioViewer;
   const S = () => window.CurioScreen;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const USUAL = { left: 190, right: 330, lane: 0, strip: 0 };
+  const USUAL = { left: 190, right: 330, lane: 0, strip: 0, side: 0 };
   const rootEl = () => document.querySelector(".cv-root.cv-viewer");
 
   function state() {
@@ -27,7 +27,8 @@
       right: +b.right || USUAL.right,
       lane: +b.lane || 0,
       strip: +b.strip || 0,
-      fold: Object.assign({ left: false, right: false, lane: false, strip: false }, b.fold || {}),
+      side: +b.side || 0,
+      fold: Object.assign({ left: false, right: false, lane: false, strip: false, side: false }, b.fold || {}),
     };
   }
   function put(name, px, folded, phase) {
@@ -44,7 +45,13 @@
     if (phase !== "move") v.changed(false);
     else v.redraw();
   }
-  const wide = () => window.innerWidth > 1100;
+  /* wider than a phone: the app link opens in a frame often under 1100px (as viewer/workspace.js) */
+  const wide = () => window.innerWidth > 760;
+  /* the room inside an element, less its padding (a curiosity window docked left of the picture pads the Player) */
+  const inner = (el) => {
+    const cs = getComputedStyle(el);
+    return el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  };
 
   /* ---------- the layout from the sizes ---------- */
   function apply() {
@@ -68,7 +75,8 @@
         under.style.height = "";
         under.removeAttribute("data-cvd-sized");
       }
-      root.classList.remove("cvd-lane-folded");
+      root.classList.remove("cvd-lane-folded", "cvd-side-folded", "cvd-stage-gone");
+      sideWidth(root, null);
       return place();
     }
     const L = s.left;
@@ -86,8 +94,25 @@
       under.style.height = s.lane && !s.fold.lane ? s.lane + "px" : "";
       under.toggleAttribute("data-cvd-sized", !!s.lane && !s.fold.lane);
     }
+    /* the picture | Front and center beside it: either side can go all the way (Jeremy 2026-10-08) */
+    const beside = root.dataset.wsLanes === "beside";
+    const pw = inner(root.querySelector(".cv-player"));
+    root.classList.toggle("cvd-side-folded", beside && s.fold.side);
+    root.classList.toggle("cvd-stage-gone", beside && !s.fold.side && !!s.side && s.side >= pw - 40);
+    sideWidth(root, beside && !s.fold.side && s.side ? s.side : null);
     place();
   }
+  /* how wide Front and center is beside the picture; null leaves it to viewer/workspace.js */
+  function sideWidth(root, px) {
+    const player = root.querySelector(".cv-player");
+    if (px) player.style.setProperty("--ws-stage-w", `calc(100% - ${Math.round(px)}px)`);
+    else if (/calc/.test(player.style.getPropertyValue("--ws-stage-w"))) player.style.removeProperty("--ws-stage-w");
+  }
+  /* a width you dragged (or a side folded away) wins over the workspace's own fit */
+  const sideSet = () => {
+    const s = state();
+    return !!(s.side || s.fold.side);
+  };
 
   /* ---------- the borders themselves ---------- */
   const B = {};
@@ -144,6 +169,19 @@
       set: (px, f, phase) => put("lane", px, f, phase),
       reset: () => put("lane", 0, false, "end"),
     });
+    make("side", {
+      axis: "x",
+      grow: -1,
+      name: "Front and center",
+      foldable: true,
+      size: sz("side", () => (rootEl().querySelector(".cv-under") || {}).offsetWidth || 360),
+      min: () => 160,
+      max: () => inner(rootEl().querySelector(".cv-player")),
+      folded: () => state().fold.side,
+      /* folded away from all the way open, it comes back at its usual width, not hiding the picture again */
+      set: (px, f, phase) => put("side", f && px >= inner(rootEl().querySelector(".cv-player")) - 40 ? 0 : px, f, phase),
+      reset: () => put("side", 0, false, "end"),
+    });
     make("strip", {
       axis: "y",
       grow: -1,
@@ -178,10 +216,17 @@
     pos("left", on, { left: player.left - rr.left - 8 + "px", top: main.top - rr.top + "px", height: main.height + "px" });
     pos("right", on, { left: player.right - rr.left - 2 + "px", top: main.top - rr.top + "px", height: main.height + "px" });
     const laneFold = root.classList.contains("cvd-lane-folded");
-    pos("lane", on && (!!ur || laneFold), {
+    pos("lane", on && root.dataset.wsLanes !== "beside" && (!!ur || laneFold), {
       left: player.left - rr.left + "px",
       width: player.width + "px",
       top: (ur && !laneFold ? ur.top : player.bottom - 50) - rr.top - 8 + "px",
+    });
+    const beside = root.dataset.wsLanes === "beside";
+    const sideFold = root.classList.contains("cvd-side-folded");
+    pos("side", on && beside && (!!ur || sideFold), {
+      left: (ur && !sideFold ? ur.left - 9 : player.right - 10) - rr.left + "px",
+      top: player.top - rr.top + "px",
+      height: (ur && !sideFold ? ur.height : player.height) + "px",
     });
     pos("strip", on, { left: "0px", width: rr.width + "px", top: strip.top - rr.top - 6 + "px" });
   }
@@ -189,6 +234,10 @@
   const CSS = `
 .cv-root.cv-viewer .cvd-border[hidden] { display: none; }
 .cv-root.cvd-lane-folded .cv-under { display: none !important; }
+.cv-root.cvd-side-folded[data-ws-lanes="beside"] .cv-under { display: none !important; }
+.cv-root.cvd-side-folded[data-ws-lanes="beside"] .cv-player { grid-template-columns: minmax(0, 1fr) 0 !important; }
+.cv-root.cvd-stage-gone[data-ws-lanes="beside"] .cv-player > .cv-stage { display: none !important; }
+.cv-root.cvd-stage-gone[data-ws-lanes="beside"] .cv-player { grid-template-columns: 0 minmax(0, 1fr) !important; }
 .cv-strip.cvd-folded { overflow: hidden; padding-top: 0; padding-bottom: 0; border-top-width: 3px; }
 .cv-root.cvd-on .cv-strip { overflow: auto; }
 .cv-root.cvd-on .cv-under { overflow: auto; }
@@ -247,5 +296,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioBorders = { state, apply, place, USUAL };
+  window.CurioBorders = { state, apply, place, USUAL, sideSet };
 })();

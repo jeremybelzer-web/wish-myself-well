@@ -117,12 +117,54 @@ server.listen(0, "127.0.0.1", async () => {
   d = await ds();
   ok(d.wsLanes === "below", "with two pictures Front and center goes back under them (" + d.wsLanes + ")");
   ok(!(await page.$(".cv-under .ws-sheet")), "in one long row again");
+  ok(d.wsSmallStrip === "1" && !(await page.isVisible(".cv-strip .cv-card .cv-cap")), "and the storyboard below gets smaller: its cards keep only the picture and number");
+  /* click the extra window and press Delete: it closes (Jeremy 2026-10-07 19:27Z); your film never does */
+  const second = await box(".cv-wins .cv-win:nth-child(2)");
+  await page.mouse.click(second.l + second.w / 2, second.t + second.h / 2);
+  await page.waitForTimeout(200);
+  ok(await page.evaluate(() => document.querySelectorAll(".cv-wins .cv-win")[1].classList.contains("cv-win-picked")), "clicking the extra window picks it");
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(800);
+  d = await ds();
+  ok((await page.$$(".cv-wins .cv-win")).length === 1 && d.wsLanes === "beside" && !d.wsSmallStrip, "Delete closes it; the lanes go back beside your film and the storyboard back to full size");
+  const first = await box(".cv-wins .cv-win");
+  await page.mouse.click(first.l + first.w / 2, first.t + first.h / 2);
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(300);
+  ok((await page.$$(".cv-wins .cv-win")).length === 1, "Delete never closes your own film");
+  await page.click('[data-act="addwin"]');
+  await page.waitForTimeout(800);
+  /* right-click a window: its own menu, with Close (Jeremy 2026-10-08) */
+  const sec2 = await box(".cv-wins .cv-win:nth-child(2)");
+  await page.mouse.click(sec2.l + sec2.w / 2, sec2.t + sec2.h / 2, { button: "right" });
+  await page.waitForTimeout(200);
+  ok(await page.isVisible(".cv-wins .cv-win:nth-child(2) .cv-wmenu [data-wclose]"), "right-clicking a window opens its own menu with Close");
+  ok(!(await page.$(".cv-wplus")), "no big + button on the windows");
+  /* drag a window's ⠿ corner onto another: they swap places (Jeremy 2026-10-08) */
+  const g2 = await box(".cv-wins .cv-win:nth-child(2) .cv-wgrip");
+  const w1 = await box(".cv-wins .cv-win:nth-child(1)");
+  await page.keyboard.press("Escape");
+  await page.mouse.move(g2.l + 8, g2.t + 8);
+  await page.mouse.down();
+  await page.mouse.move(w1.l + w1.w / 2, w1.t + w1.h / 2, { steps: 6 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  const [a1, a2] = [await box(".cv-wins .cv-win:nth-child(1)"), await box(".cv-wins .cv-win:nth-child(2)")];
+  ok(a2.l < a1.l || a2.t < a1.t, "dragging a window's ⠿ corner onto another swaps them");
+  await page.mouse.move(a1.l + 8, a1.t + 8);
+  await page.keyboard.press("Escape");
+  await page.mouse.click(5, 5);
   /* Lanes follow the window: a shorter top part leaves room beside two pictures, and the lanes move there */
-  const views = async () => (await page.isVisible(".cv-views-menu")) || page.click('[data-act="views"]');
+  const views = async () => {
+    if (await page.isVisible(".cv-views-menu")) return;
+    /* on a narrow top line Views ▾ may sit under More ▾ */
+    if (!(await page.isVisible('[data-act="views"]'))) await page.click(".ws-more > .ws-topts-btn");
+    await page.click('[data-act="views"]');
+  };
   await views();
   await page.waitForTimeout(200);
   ok((await page.getAttribute(".cv-views-menu > .ws-follow", "aria-checked")) === "true", "Views ▾ starts with a Lanes follow the window switch, on");
-  await page.evaluate(() => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: 540 }; CurioBorders.apply(); });
   await page.waitForTimeout(800);
   d = await ds();
   const pics = await page.$$eval(".cv-wins .cv-win", (els) => els.map((e) => e.getBoundingClientRect().right));
@@ -132,7 +174,7 @@ server.listen(0, "127.0.0.1", async () => {
   await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 0 }; CurioBorders.apply(); });
   await page.waitForTimeout(800);
   ok((await ds()).wsLanes === "below", "taller again, the pictures fill the width and the lanes drop under them");
-  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 540 }; CurioBorders.apply(); });
   await views();
   await page.click(".cv-views-menu > .ws-follow");
   await page.waitForTimeout(600);
@@ -142,6 +184,77 @@ server.listen(0, "127.0.0.1", async () => {
   ok((await ds()).wsLanes === "beside", "switched back on, they follow the window again");
   await page.evaluate(() => CurioWorkspace.set("lanes", "below"));
   ok((await page.evaluate(() => CurioWorkspace.get().follow)) === false, "putting the lanes somewhere yourself turns the switch off");
+
+  /* the app link opens in a frame narrower than the window: one picture still has the lanes beside it */
+  await page.evaluate(() => (CurioWorkspace.follow(true), localStorage.setItem("curio-viewer-workspace-v1", "{}")));
+  await page.setViewportSize({ width: 1000, height: 700 });
+  await page.reload();
+  await page.waitForSelector(".cv-root[data-ws-lanes] .cv-under .cf-charts", { timeout: 15000 });
+  await page.waitForTimeout(800);
+  const nw = await page.$$(".cv-wins .cv-win");
+  for (let i = nw.length - 1; i > 0; i--) await page.evaluate((i) => document.querySelector(`[data-wclose="${i}"]`).click(), i);
+  await page.waitForTimeout(800);
+  const p1 = await box(".cv-wins .cv-win");
+  const l1 = await box(".cv-under");
+  ok((await ds()).wsLanes === "beside" && l1.l >= p1.r - 2 && l1.t < p1.b, `in a 1000px window one picture has the lanes beside it at the top (${(await ds()).wsLanes})`);
+  await page.screenshot({ path: path.join(SHOTS, "viewer-workspace-1000.png") });
+
+  /* Jeremy 2026-10-08: Viewer focus first, the row the clip is in lit, Moments in rows too, lanes one long row */
+  ok((await page.getAttribute(".cv-under", "data-tab")) === "focus", "the lanes open on Viewer focus");
+  ok((await page.$$(".cv-under .ws-sheet > .ws-now")).length >= 1, "the row the clip is in is lit");
+  await page.click('.cv-under [data-cf-tab="moments"]');
+  await page.waitForTimeout(600);
+  ok((await page.$$(".cv-under .ws-rows > .cf-rows")).length > 1, "Moments cascade in rows too");
+  const mag = await box(".cv-under .cf-mag");
+  const rws = await box(".cv-under .ws-rows");
+  ok(mag.b <= rws.t + 2 && mag.w > mag.h * 3, "a wide description box sits above them");
+  await page.dblclick(".cv-under .cf-mag");
+  await page.waitForTimeout(200);
+  ok(await page.isVisible(".cf-magpop"), "double-clicking it opens everything in a pop-up");
+  await page.keyboard.press("Escape");
+  ok(!(await page.$(".cf-magpop")), "Escape closes it");
+  await page.click('.cv-under [data-cf-tab="lanes"]');
+  await page.waitForTimeout(800);
+  ok(!(await page.$(".cv-under .ws-lanes")), "Automation lanes stay one long row that follows the playhead");
+  const nm = await box(".cv-under .cf-ln:not(.ws-copy) .cf-ln-name");
+  ok(nm.w <= 100, `lane names take a narrow column (${Math.round(nm.w)}px)`);
+  await page.click(".cv-under [data-cf-pop]");
+  await page.waitForTimeout(600);
+  const pop = await box(".cv-under");
+  ok(pop.w > 900, "the ⤢ by This scene opens the lanes big over the app");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+  ok(!(await page.$(".cv-under.cf-popped")), "Escape puts them back");
+
+  /* the top line (Jeremy 2026-10-08): transport up there, one line, no Undo/Redo buttons, the progress bar under the picture */
+  await page.setViewportSize({ width: 1280, height: 760 });
+  await page.waitForTimeout(800);
+  const barH = await page.evaluate(() => document.querySelector(".cv-root > .cv-bar").offsetHeight);
+  ok(await page.evaluate(() => !!document.querySelector(".cv-root > .cv-bar > .cv-transport [data-act=play]")), "the transport shares the top line");
+  ok(barH < 56, `the top is one line (${barH}px)`);
+  ok(!(await page.isVisible('.cv-bar [data-act="undo"]')) && !(await page.isVisible('.cv-bar [data-act="redo"]')), "no Undo or Redo buttons");
+  const sr = await box(".ws-scrubrow");
+  const st = await box(".cv-stage");
+  ok(sr && Math.abs(sr.t - st.b) < 12 && Math.abs(sr.w - st.w) < 12, "the progress bar sits under the picture at its width");
+  /* the Curiosities tab: pick the window left of the picture */
+  await page.click(".cv-bar .cd-btn");
+  await page.waitForTimeout(200);
+  ok(await page.isVisible('.cd-pop [data-cd-pick="enneagram"]') && (await page.$$(".cd-pop [data-cd-pick]")).length > 30, "Curiosities opens a pop-up of windows: the ones Jeremy named and every other");
+  await page.click('.cd-pop [data-cd-pick="lighting"]');
+  await page.waitForTimeout(600);
+  const dk = await box(".cd-dock");
+  const st2 = await box(".cv-stage");
+  ok(dk && dk.r <= st2.l + 2, "Lighting docks left of the picture");
+  ok(!(await page.isVisible('.cv-bar [data-k="look"]')), "the Dusk light menu moved into it");
+  await page.click('.cd-dock [data-cd-look="night"]');
+  ok((await page.$eval('.cv-bar [data-k="look"]', (s) => s.value)) === "night", "its Night button lights the film for night");
+  await page.click(".cd-dock [data-cd-c]");
+  await page.waitForTimeout(300);
+  ok(await page.isVisible(".cf-cwin"), "a curiosity in it opens its own window");
+  await page.keyboard.press("Escape");
+  await page.click('.cd-dock [data-cd="close"]');
+  await page.waitForTimeout(400);
+  ok(!(await page.$(".cd-dock")), "✕ closes it");
 
   ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

@@ -137,7 +137,7 @@ const ok = (cond, msg) => {
   await page.evaluate(() => CurioViewer.undo());
 
   /* 6. windows: + in the corner tab, then fit or swipe */
-  await page.click(".cv-win .cv-wtab .cv-wplus");
+  await page.click(".cv-root [data-act=addwin] >> visible=true");
   await page.waitForTimeout(200);
   ok((await page.locator(".cv-win").count()) === 2, "the + in the corner tab adds a window");
   ok((await page.locator(".cv-win:not([hidden])").count()) === 2, "Fit all windows on screen shows both");

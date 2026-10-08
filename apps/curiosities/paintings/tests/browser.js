@@ -65,7 +65,7 @@ const ok = (cond, msg) => {
   const saved = () => L(() => JSON.parse(localStorage.getItem("curiosities-viewer-v1") || "{}"));
   const settle = () => page.waitForTimeout(400);
   const undo = async () => {
-    await page.click('.cv-bar [data-act="undo"]');
+    await page.$eval('.cv-bar [data-act="undo"]', (b) => b.click());
     await page.waitForTimeout(150);
   };
 

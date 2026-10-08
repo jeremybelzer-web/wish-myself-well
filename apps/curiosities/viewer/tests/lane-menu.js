@@ -49,7 +49,7 @@ const ok = (cond, msg) => {
   await page.goto(base + "?viewer=1");
   await page.evaluate(() => {
     localStorage.removeItem("curiosities-viewer-v1");
-    localStorage.setItem("curio-focus-tab-v1", "lanes");
+    sessionStorage.setItem("curio-focus-tab-v1", "lanes");
     localStorage.setItem("curio-focus-zoom-v1", JSON.stringify({ mode: "film", span: 0 }));
   });
   await page.reload();

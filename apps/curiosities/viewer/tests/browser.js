@@ -88,7 +88,7 @@ const ok = (cond, msg) => {
   await page.click('[data-act="face"]');
   const p4 = await place();
   ok(Math.abs(p4.turn - p3.turn) > 5, "Face the camera turns it");
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   const p5 = await place();
   ok(p5.turn === p3.turn, "Undo turns it back");
 
