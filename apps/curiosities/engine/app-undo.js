@@ -138,6 +138,11 @@
      settling after a window closes, a part re-saving what an undo put back) ride along with that step. */
   let acted = 0;
   let armed = false;
+  /* gesture: one press of the mouse, a key or a drop. A slider dragged or a wheel turned stays one gesture, so
+     its saves join one step; a new press is a new step even on the same part a moment later (a window added
+     and closed straight after are two steps, not one that cancels out). */
+  let gesture = 0;
+  ["pointerdown", "keydown", "drop"].forEach((t) => window.addEventListener(t, () => gesture++, true));
   ["pointerdown", "keydown", "input", "change", "drop", "wheel"].forEach((t) => window.addEventListener(t, () => ((acted = Date.now()), (armed = true)), true));
   function keep() {
     try {
@@ -166,11 +171,11 @@
     const yours = armed && now - acted < ACT_MS;
     const last = data.steps[data.steps.length - 1];
     let st = null;
-    if (last && last.key === k && now - last.at < MERGE_MS && last.h === hash(before)) {
+    if (last && last.key === k && now - last.at < MERGE_MS && last.h === hash(before) && (last.g === gesture || !yours)) {
       const first = back(last, before);
       data.steps.pop();
-      if (first !== after) data.steps.push((st = Object.assign({ key: k, at: now, id: last.id, hub: last.hub }, diff(first, after))));
-    } else data.steps.push((st = Object.assign({ key: k, at: now, id: ++data.seq }, diff(before, after))));
+      if (first !== after) data.steps.push((st = Object.assign({ key: k, at: now, id: last.id, hub: last.hub, g: last.g }, diff(first, after))));
+    } else data.steps.push((st = Object.assign({ key: k, at: now, id: ++data.seq, g: gesture }, diff(before, after))));
     if (yours) data.redo = [];
     /* on the app-wide list (that empties every redo list, this one too) */
     if (st && yours && !st.hub && hub()) {
