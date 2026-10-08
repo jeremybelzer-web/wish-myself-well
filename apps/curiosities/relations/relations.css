@@ -278,3 +278,24 @@
 @media (max-width: 860px) { .rl-screens { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rl-screen:nth-child(odd) { --ry: 8deg; } .rl-screen:nth-child(even) { --ry: -8deg; } }
 @media (prefers-reduced-motion: reduce) { .rl-screen, .rl-inside.rl-jarvis, .rl-zooming canvas { animation-duration: 0.01s; animation-delay: 0s; } }
 .rl-jarvis .rl-deckpic { width: 100%; max-height: 160px; display: block; }
+
+/* Clip tubes, the Catalyst screen, and editing inside (2026-10-08) */
+.rl-elems { display: grid; gap: 6px; }
+.rl-elem { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(60px, 2fr) auto; gap: 8px; align-items: center; font-size: 12px; }
+.rl .rl-elem button { font-family: var(--sans, sans-serif); font-size: 12px; text-align: left; padding: 2px 6px; border-width: 1px; }
+.rl-elem input { width: 100%; accent-color: #0c7fb0; }
+.rl-elem b { font-family: var(--mono, monospace); font-size: 11px; font-weight: 500; }
+.rl-sparks { list-style: none; margin: 2px 0 8px; padding: 0; display: grid; gap: 4px; font-size: 12px; }
+.rl .rl-sparks button { font-family: var(--sans, sans-serif); font-size: 11px; padding: 1px 6px; border-width: 1px; border-left: 4px solid var(--c, #1c1712); }
+.rl-sparks .rl-innote { margin: 2px 0 0; }
+.rl-arrow { font-family: var(--mono, monospace); font-size: 10px; color: #c45c26; text-transform: uppercase; }
+.rl-elixir { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid rgba(12, 42, 62, 0.2); padding: 6px 0; font-size: 12px; }
+.rl-elixir ul { list-style: none; margin: 3px 0; padding: 0; }
+.rl-elixir li.me { color: #0c7fb0; font-weight: 600; }
+.rl-keypic { width: 130px; flex: none; }
+.rl-keypic circle, .rl-keypic rect { fill: #b9c3ca; }
+.rl-keypic rect.up { fill: #d4a017; }
+.rl .rl-key button.me { background: var(--rl-ink, #1c1712); color: #fffaf2; }
+.rl-cube.tubes .rl-labels .slab { white-space: nowrap; }
+.rl-jarvis [data-screen="tracks"].focus svg[data-li] { cursor: ns-resize; touch-action: none; }
+@media (max-width: 860px) { .rl-elem { grid-template-columns: 1fr; } }
