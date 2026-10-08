@@ -1,4 +1,4 @@
-/* Bring the scene into focus, the pop-up after a change: node apps/curiosities/viewer/tests/scene-focus.js [--shots dir]
+/* \u201cWould you like to choose a closely related curiosity?\u201d, the pop-up after a change: node apps/curiosities/viewer/tests/scene-focus.js [--shots dir]
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
 
    Changing a curiosity in the Viewer (here the feeling, the lines and the camera height of a panel, like a
@@ -90,7 +90,17 @@ const ok = (cond, msg) => {
   await page.waitForSelector(".sf-back", { state: "visible", timeout: 5000 }).catch(() => {});
   ok(await page.isVisible(".sf-back"), "after a change it pops up");
   const why = await page.textContent(".sf-why");
-  ok(/You changed .*Emotion/.test(why) && /focus/.test(why), "it says what you changed and asks: " + why.slice(0, 120));
+  ok(/You changed .*Emotion/.test(why), "it says what you changed: " + why.slice(0, 120));
+  ok(/Would you like to choose a closely related curiosity\?/.test(await page.textContent(".sf-head h2")), "its title asks: Would you like to choose a closely related curiosity?");
+  const seen = await page.evaluate(() => {
+    const st = document.querySelector(".cv-stage").getBoundingClientRect();
+    const box = document.querySelector(".sf-box").getBoundingClientRect();
+    const hit = document.elementFromPoint(st.left + st.width * 0.35, st.top + st.height / 2);
+    return { free: !!hit && !hit.closest(".sf-back"), dim: getComputedStyle(document.querySelector(".sf-back")).backgroundColor, side: box.left > st.left + st.width * 0.4 };
+  });
+  ok(seen.free && /rgba\(0, 0, 0, 0\)|transparent/.test(seen.dim) && seen.side, "the Viewer stays in sight and usable while it is open (no dark cover, the box sits to the side)");
+  const tabs = await page.$$eval(".sf-tab", (t) => t.map((x) => x.textContent));
+  ok(tabs.join() === "Related,Curiosities,3D,Lanes,Overlay,Timeline", "tabs at the top: " + tabs.join(", "));
   const top = await page.evaluate(() => {
     const t = document.querySelector(".sf-type").getBoundingClientRect();
     const c = document.querySelector(".sf-curs").getBoundingClientRect();
@@ -125,6 +135,26 @@ const ok = (cond, msg) => {
   ok(!(await page.isVisible(".sf-back")), "its own change does not pop it up again");
   await page.evaluate(() => CurioViewer.undo());
   ok((await page.evaluate(() => JSON.stringify(CurioViewer.live().panel))) === before, "one Undo takes it all back");
+
+  await page.evaluate(() => CurioSceneFocus.open({ source: "viewer" }));
+  await page.click('.sf-tab[data-tab="all"]');
+  const cats = await page.$$eval(".sf-cat", (c) => c.map((x) => x.textContent));
+  ok(cats.length >= 10 && cats.includes("Camera") && cats.includes("Comedy"), "Curiosities lists the main categories: " + cats.slice(0, 6).join(", ") + "...");
+  await page.click('.sf-cat[data-cat="feeling"]');
+  const pickId = await page.$eval(".sf-catcurs [data-sf=pick][aria-pressed=false]", (b) => b.dataset.id);
+  await page.click(`.sf-catcurs [data-id="${pickId}"]`);
+  ok((await page.$eval('.sf-tab[aria-selected="true"]', (t) => t.dataset.tab)) === "related" && (await page.locator(`.sf-cur[data-cur="${pickId}"]`).count()) === 1 && (await page.locator(".sf-opt").count()) > 0, "picking one there adds it to Related, with options (" + pickId + ")");
+  await page.click('.sf-tab[data-tab="lanes"]');
+  await page.waitForTimeout(150);
+  ok((await page.$eval(".cv-under", (u) => u.dataset.tab)) === "lanes" && (await page.locator(".cv-under.sf-flash").count()) === 1 && (await page.isVisible(".sf-box")), "Lanes brings up the Viewer's automation lanes and makes them flash; the box stays");
+  await page.click('.sf-tab[data-tab="overlay"]');
+  await page.waitForTimeout(150);
+  ok((await page.$eval(".cv-under", (u) => u.dataset.tab)) === "focus" && (await page.locator(".cv-under .sf-flash").count()) === 1, "Overlay brings up the graph of every lane's nodes and lines and makes it flash");
+  await page.click('.sf-tab[data-tab="cube"]');
+  await page.waitForTimeout(400);
+  ok(await page.evaluate(() => !!document.querySelector(".en-overlay:not([hidden])")), "3D opens the cube of curiosities");
+  await page.evaluate(() => CurioEngineUI.close());
+  await page.evaluate(() => CurioSceneFocus.close());
 
   await page.evaluate(() => CurioSceneFocus.open({ source: "viewer" }));
   await page.click("[data-sf=later]");

@@ -291,7 +291,7 @@ Jeremy, 22:06Z: "we want 3D characters both selectable and draw-able and tweak-a
 
 Test: `viewer/tests/rig-actors.js [--three three.min.js]`.
 
-## Bring the scene into focus (`viewer/scene-focus.js`)
+## Choose a closely related curiosity (`viewer/scene-focus.js`)
 
 After you change a curiosity, a suite or a proximity (in the Viewer or in My film's lanes), a pop-up asks
 whether to change the curiosities around it so the scene's focus comes through stronger (Jeremy,
@@ -301,7 +301,7 @@ to start (+ More curiosities adds others), and a scrollable list of options to t
 character)") and the values that scenes like yours used, each saying which scene it is like. The ideas come
 from the scenes in the curiosity database (`CuriosityDB.data.scenes`), worked out on the device with no paid
 AI; as the scene library grows, the ideas grow with it. Change applies the ticked options as one undo step;
-Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
+It sits to the side with nothing dimmed, so the scene stays in sight (drag it by its title). Tabs: Related, Curiosities (every curiosity by the main categories), 3D (the cube), Lanes and Overlay (bring up the Viewer's lanes or its graph of nodes and lines, flashing) and Timeline. Not now leaves a ✨ button; "Ask me after changes" turns it off (`curiosities-scene-focus-v1`). API:
 `window.CurioSceneFocus`. Test: `node viewer/tests/scene-focus.js`.
 
 ### The big Viewer (`viewer/big.js`, `window.CurioBigView`)
