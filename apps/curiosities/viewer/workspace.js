@@ -124,9 +124,12 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .ws-follow[aria-checked="true"] .ws-sw::after { left: 16px; }
 .cf-charts > .ws-sheet { grid-area: sheet; }
 .ws-sheet { display: grid; grid-auto-rows: minmax(52px, 1fr); gap: 6px; min-height: 0; }
-.ws-sheet.ws-lanes { grid-auto-rows: auto; gap: 10px; }
+.ws-sheet.ws-lanes, .ws-sheet.ws-rows { grid-auto-rows: auto; gap: 10px; }
+.ws-sheet.ws-rows > .ws-sys > .ws-n { left: auto; right: 3px; top: -10px; }
+.ws-sheet.ws-rows > .ws-sys { padding-top: 10px; }
 .ws-sheet .cf-graph { height: auto; min-height: 52px; }
 .ws-sys { position: relative; }
+.ws-sys.ws-now { background: rgba(34, 211, 238, 0.07); box-shadow: inset 2px 0 0 rgba(34, 211, 238, 0.55); }
 .ws-sys > .ws-n { position: absolute; left: 3px; top: 1px; z-index: 2; font: 600 9.5px/1 system-ui, sans-serif; color: #8b8b94; pointer-events: none; }
 .ws-slice { position: absolute; top: 0; bottom: 0; }
 .cv-root[data-ws-small-strip] .cv-strip:not([data-cvd-sized]) .cv-card > :not(canvas):not(.cv-num) { display: none; }
@@ -276,8 +279,9 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     const box = root.querySelector(".cv-under");
     if (!box) return;
     const beside = root.dataset.wsLanes === "beside";
-    const n = beside ? rowsFor(box.clientWidth) : 1;
-    const srcs = [box.querySelector(".cf-graph:not(.ws-copy)"), box.querySelector(".cf-lanes:not(.ws-copy)")].filter(Boolean);
+    /* Automation lanes read like Ableton tracks: one long row that follows the playhead, never a cascade */
+    const n = beside && box.dataset.tab !== "lanes" && !box.classList.contains("cf-popped") ? rowsFor(box.clientWidth) : 1;
+    const srcs = [box.querySelector(".cf-graph:not(.ws-copy)"), box.querySelector(".cf-rows:not(.ws-copy)"), box.querySelector(".cf-lanes:not(.ws-copy)")].filter(Boolean);
     const sig = n + "|" + srcs.map((s) => s.dataset.wsGen || "").join(",");
     const fresh = srcs.every((s) => s.dataset.wsGen && s.nextElementSibling && s.nextElementSibling.classList.contains("ws-sheet"));
     if (n > 1 && fresh && sig === sheetSig) return;
@@ -289,13 +293,14 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       src.dataset.wsGen = String((+src.dataset.wsGen || 0) + 1);
       const isLanes = src.classList.contains("cf-lanes");
       const wrap = document.createElement("div");
-      wrap.className = "ws-sheet" + (isLanes ? " ws-lanes" : "");
+      wrap.className = "ws-sheet" + (isLanes ? " ws-lanes" : src.classList.contains("cf-rows") ? " ws-rows" : "");
       for (let k = 0; k < n; k++) {
         const c = src.cloneNode(true);
         c.classList.add("ws-copy", "ws-sys");
         delete c.dataset.wsGen;
-        /* each track shows its own stretch of the scene: the k-th of n, read left to right */
-        const tracks = c.classList.contains("cf-ln-track") ? [c] : [...c.querySelectorAll(".cf-ln-track")];
+        c.dataset.wsK = String(k);
+        /* each track (or Moments row) shows its own stretch of the scene: the k-th of n, read left to right */
+        const tracks = c.classList.contains("cf-ln-track") ? [c] : [...c.querySelectorAll(".cf-ln-track, .cf-row")];
         tracks.forEach((t) => {
           const sl = document.createElement("div");
           sl.className = "ws-slice";
@@ -457,6 +462,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     new MutationObserver(soon).observe(root.querySelector(".cv-wins"), { childList: true });
     const box = root.querySelector(".cv-under");
     new MutationObserver((ms) => {
+      /* a hidden original redrawn in place (zooming, an edit): its copies are made again */
+      ms.forEach((m) => {
+        const src = m.target.closest && m.target.closest(".ws-src");
+        if (src) delete src.dataset.wsGen;
+      });
       /* the lane's own redraws (its graph and lanes rebuilt), not our copies of them */
       if (ms.some((m) => ![...m.addedNodes, ...m.removedNodes].every((n) => n.nodeType !== 1 || n.classList.contains("ws-sheet") || n.classList.contains("ws-slice") || n.classList.contains("ws-n") || (n.closest && n.closest(".ws-sheet"))))) soon();
     }).observe(box, { childList: true, subtree: true });

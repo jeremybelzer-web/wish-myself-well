@@ -131,10 +131,22 @@
 /* Automation lanes, big (Jeremy 2026-10-05): stacked like tracks in Ableton Live, the top 4 in view, the rest a
    two-finger scroll away; the storyboards shrink while this tab is open so the lanes sit large and in front */
 .cv-root.cf-big .cf-lanes { max-height: 196px; overscroll-behavior: contain; gap: 2px; }
-.cv-root.cf-big .cf-ln { grid-template-columns: 170px minmax(0, 1fr) 26px; background: #18181b; border-radius: 4px; padding: 2px 4px 2px 0; border-left: 4px solid var(--ln-c, #444); }
+.cv-root.cf-big .cf-ln { grid-template-columns: 88px minmax(0, 1fr) 26px; background: #18181b; border-radius: 4px; padding: 2px 4px 2px 0; border-left: 4px solid var(--ln-c, #444); }
 .cv-root.cf-big .cf-ln-track { height: 42px; }
 .cv-root.cf-big .cf-ln.cf-ln-suite .cf-ln-track { height: 30px; }
-.cv-root.cf-big .cf-ln-name { padding-left: 6px; font-size: 12px; }
+.cv-root.cf-big .cf-ln-name { padding-left: 6px; font-size: 11px; }
+/* names stack their words in a narrow column, about half as wide (Jeremy 2026-10-08) */
+.cv-root.cf-big .cf-ln-name b { white-space: normal; overflow-wrap: anywhere; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.cv-root.cf-big .cf-ln-name small { white-space: normal; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+/* the lanes in a big window of their own, to edit nodes and lines */
+.cf-pop-btn { display: none; }
+.cv-under[data-tab="lanes"] .cf-pop-btn { display: inline-block; }
+.cv-root .cv-under.cf-popped { position: fixed !important; inset: 4vh 3vw 72px !important; z-index: 2147482000; width: auto !important; height: auto !important; max-height: none !important; margin: 0 !important; background: #121214; border: 1px solid #3a3a42; border-radius: 10px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5), 0 20px 60px rgba(0,0,0,0.6); padding: 10px 12px; display: flex !important; flex-direction: column; overflow: hidden; }
+.cv-under.cf-popped .cf-pane-lanes { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.cv-root .cv-under.cf-popped .cf-lanes { flex: 1 1 auto; max-height: none !important; overflow-y: auto; }
+.cv-root .cv-under.cf-popped .cf-ln { grid-template-columns: 120px minmax(0, 1fr) 26px; }
+.cv-root .cv-under.cf-popped .cf-ln-track { height: 64px; }
+.cv-under.cf-popped .cf-grip, .cv-under.cf-popped .ws-grip { display: none !important; }
 .cv-root.cf-big .cv-under:not([data-cvd-sized]) { height: auto !important; }
 .cv-root.cf-big .cv-strip:not([data-cvd-sized]) { height: auto !important; }
 .cv-root.cf-big .cv-strip { padding-top: 2px; padding-bottom: 4px; }
@@ -159,10 +171,16 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
 .cv-root.cvd-on .cv-things { margin-bottom: var(--cf-cover-l, 0px); }
 .cv-root.cvd-on .cv-details { padding-bottom: var(--cf-cover-r, 0px); box-sizing: border-box; }
 @media (max-width: 900px) { .cf-grip { display: none; } .cv-under[data-out] { margin: 0; } .cf-ln { grid-template-columns: 100px minmax(0, 1fr) 24px; } }
-.cf-pane-moments { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); align-items: start; gap: 8px; }
-.cf-mag { background: #1d1d21; border: 1px solid #2e2e33; border-radius: 6px; padding: 6px 8px; max-height: 96px; overflow-y: auto; display: grid; gap: 4px; font-size: 11.5px; line-height: 1.35; }
+.cf-pane-moments { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 6px; }
+/* a fixed box across the top reads the block you pick; double-click it for everything (Jeremy 2026-10-08) */
+.cf-mag { order: -1; background: #1d1d21; border: 1px solid #2e2e33; border-radius: 6px; padding: 5px 8px; height: 46px; box-sizing: border-box; overflow: hidden; display: grid; align-content: start; gap: 2px; font-size: 11.5px; line-height: 1.35; cursor: zoom-in; }
+.cf-mag .cf-pick { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-magpop { position: fixed; inset: 0; z-index: 2147483000; background: rgba(0,0,0,0.55); display: grid; place-items: center; }
+.cf-magpop > div { position: relative; width: min(560px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; background: #18181b; color: #eee; border: 1px solid #3a3a42; border-radius: 10px; padding: 14px 16px; font: 13px/1.5 system-ui, sans-serif; display: grid; gap: 8px; }
+.cf-magpop .cf-pick { font-size: 14px; white-space: normal; }
+.cf-magpop .cf-now { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.cf-magpop button.cf-x { all: unset; position: absolute; top: 6px; right: 8px; cursor: pointer; color: #9b9ba3; font-size: 16px; }
 .cf-mag .cf-now { display: block; overflow: visible; -webkit-line-clamp: unset; }
-@media (max-width: 900px) { .cf-pane-moments { grid-template-columns: minmax(0, 1fr); } }
 .cf-pick { margin: 0; font-size: 12px; font-weight: 600; color: #fff; line-height: 1.35; }
 .cf-pick:empty { display: none; }
 @media (max-width: 900px) { .cf-charts { grid-template-columns: 64px minmax(0, 1fr); } .cf-list { grid-column: 1 / -1; height: auto; max-height: 90px; } }
@@ -1689,7 +1707,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
   const sliderToSpan = (v, total) => (total <= MIN_SPAN ? total : total * Math.pow(MIN_SPAN / total, Math.max(0, Math.min(100, v)) / 100));
   function zoomBar(r) {
     return `<div class="cf-zoom" role="toolbar" aria-label="How much of the film the lanes show">
-        <span class="cf-zseg"><button type="button" data-cf-zoom="scene" title="Show the scene the playhead is in; it follows the playhead into the next scene">This scene</button><button type="button" data-cf-zoom="film" title="Show every scene of the film at once">Whole film</button></span>
+        <button type="button" class="cf-pop-btn" data-cf-pop title="Open the lanes big, in a window of their own, to edit nodes and lines" aria-label="Open the lanes big">⤢</button><span class="cf-zseg"><button type="button" data-cf-zoom="scene" title="Show the scene the playhead is in; it follows the playhead into the next scene">This scene</button><button type="button" data-cf-zoom="film" title="Show every scene of the film at once">Whole film</button></span>
         <label class="cf-zlab" title="Zoom in or out: from the whole film to a couple of seconds"><button type="button" data-cf-zoom="out" title="Zoom out" aria-label="Zoom out">−</button><input type="range" class="cf-zr" min="0" max="100" step="1" value="${spanToSlider(view.span, r.total)}" aria-label="Zoom"><button type="button" data-cf-zoom="in" title="Zoom in" aria-label="Zoom in">+</button></label>
         <span class="cf-zwhat" aria-live="polite"></span>
         <button type="button" class="cf-zunpick" data-cf-zoom="unpick" title="Back to one panel" hidden>✕ Unpick</button>
@@ -1932,10 +1950,11 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     ]);
   }
   /* ---------- the tabs ---------- */
+  /* kept for this visit only: opening the app always starts on Viewer focus (Jeremy 2026-10-08) */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
     try {
-      const t = localStorage.getItem(TAB_KEY);
+      const t = sessionStorage.getItem(TAB_KEY);
       return t === "moments" || t === "lanes" ? t : "focus";
     } catch (e) {
       return "focus";
@@ -1951,6 +1970,18 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     }
     box.querySelectorAll("[data-cf-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.cfTab === box.dataset.tab)));
   }
+
+  /* the Automation lanes in a big window of their own over the app; the button or Escape puts them back */
+  function popLanes(on) {
+    if (!box || box.classList.contains("cf-popped") === on) return;
+    box.classList.toggle("cf-popped", on);
+    const b = box.querySelector("[data-cf-pop]");
+    if (b) (b.textContent = on ? "×" : "⤢"), b.setAttribute("aria-label", on ? "Put the lanes back" : "Open the lanes big");
+    setTimeout(() => V().redraw(), 0);
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && box && box.classList.contains("cf-popped")) (e.stopPropagation(), popLanes(false));
+  }, true);
 
   /* ---------- drawing ---------- */
   let box = null;
@@ -2017,7 +2048,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       </div>
       <div class="cf-pane cf-pane-moments">
         <div class="cf-rows">${momentsHtml(r)}</div>
-        <div class="cf-mag" title="The block you point at or pick, in full; otherwise what is in front now"><p class="cf-pick" aria-live="polite"></p><span class="cf-now" aria-live="polite"></span></div>
+        <div class="cf-mag" title="The block you point at or pick; otherwise what is in front now. Double-click to read it all."><p class="cf-pick" aria-live="polite"></p><span class="cf-now" aria-live="polite"></span></div>
       </div>
       <div class="cf-pane cf-pane-lanes">
         <p class="cf-lanes-hint">The things holding attention come first; scroll for every other curiosity and suite. Drag a dot up or down to change that panel.</p>
@@ -2025,6 +2056,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       </div>
       <i class="cf-grip cf-grip-l" data-cf-grip="l" title="Drag to widen Front and center over the left panel; double-click to put it back"></i><i class="cf-grip cf-grip-r" data-cf-grip="r" title="Drag to widen Front and center over the right panel; double-click to put it back"></i>`;
     applyOut();
+    if (el.classList.contains("cf-popped")) el.querySelector("[data-cf-pop]").textContent = "×";
     setTab(tab);
     el.hidden = false;
     labelCards(r);
@@ -2038,18 +2070,27 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       build();
       box.dataset.key = r.key;
     }
-    const head = box.querySelector(".cf-head");
-    const rows = box.querySelector(".cf-rows");
-    if (head && rows) {
-      const lane = box.querySelector(".cf-lead");
-      const u = fx(Math.max(0, Math.min(total, t)));
+    /* the playhead on Moments: in the cascade each row holds the k-th of n stretches */
+    box.querySelectorAll(".cf-rows").forEach((rows) => {
+      const head = rows.querySelector(":scope > .cf-head");
+      const lane = rows.querySelector(".cf-lead");
+      if (!head || !lane) return;
+      const sh = rows.parentElement;
+      const n = sh && sh.classList.contains("ws-sheet") ? sh.children.length : 1;
+      const u = fx(Math.max(0, Math.min(total, t))) * n - (+rows.dataset.wsK || 0);
       head.style.left = lane.offsetLeft + lane.offsetWidth * u + "px";
       head.style.display = u < -1e-6 || u > 1 + 1e-6 ? "none" : "";
-    }
+    });
     const tu = fx(Math.max(0, Math.min(total, t)));
     box.querySelectorAll(".cf-ln-head").forEach((h) => {
       h.style.left = (tu * 100).toFixed(3) + "%";
       h.style.display = tu < -1e-6 || tu > 1 + 1e-6 ? "none" : "";
+    });
+    /* in the cascade, the row the clip is in now is lit a little */
+    box.querySelectorAll(".ws-sheet").forEach((sh) => {
+      const rows = sh.children;
+      const k = tu < 0 || tu > 1 ? -1 : Math.min(rows.length - 1, Math.floor(tu * rows.length));
+      for (let j = 0; j < rows.length; j++) rows[j].classList.toggle("ws-now", j === k);
     });
     const p = r.panels[i];
     if (!p) return;
@@ -2147,11 +2188,13 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       }
       const sb = e.target.closest && e.target.closest(".cv-under [data-cf-scene]");
       if (sb && !pickedOf(read() || { panels: [] })) setZoom("scene");
+      if (e.target.closest && e.target.closest(".cv-under [data-cf-pop]") && box) popLanes(!box.classList.contains("cf-popped"));
       const c = e.target.closest && e.target.closest(".cv-under [data-cf-tab]");
       if (c && box) {
+        if (c.dataset.cfTab !== "lanes") popLanes(false);
         setTab(c.dataset.cfTab);
         try {
-          localStorage.setItem(TAB_KEY, c.dataset.cfTab);
+          sessionStorage.setItem(TAB_KEY, c.dataset.cfTab);
         } catch (err) {}
         V().redraw();
       }
@@ -2261,6 +2304,18 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     document.addEventListener("focusin", (e) => {
       const b = e.target.closest && e.target.closest(".cv-under [data-cf-at]");
       if (b) showName(b);
+    });
+    document.addEventListener("dblclick", (e) => {
+      const m = e.target.closest && e.target.closest(".cv-under .cf-mag");
+      if (!m) return;
+      const pop = document.createElement("div");
+      pop.className = "cf-magpop";
+      pop.innerHTML = `<div role="dialog" aria-label="This moment in full"><button type="button" class="cf-x" aria-label="Close">×</button>${m.innerHTML}</div>`;
+      const shut = () => (pop.remove(), document.removeEventListener("keydown", onEsc, true));
+      const onEsc = (ev) => ev.key === "Escape" && (ev.stopPropagation(), shut());
+      pop.addEventListener("click", (ev) => (ev.target === pop || ev.target.closest(".cf-x")) && shut());
+      document.addEventListener("keydown", onEsc, true);
+      document.body.appendChild(pop);
     });
     try {
       v.redraw && v.isOpen() && v.redraw();

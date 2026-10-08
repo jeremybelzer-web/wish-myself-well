@@ -182,6 +182,33 @@ server.listen(0, "127.0.0.1", async () => {
   ok((await ds()).wsLanes === "beside" && l1.l >= p1.r - 2 && l1.t < p1.b, `in a 1000px window one picture has the lanes beside it at the top (${(await ds()).wsLanes})`);
   await page.screenshot({ path: path.join(SHOTS, "viewer-workspace-1000.png") });
 
+  /* Jeremy 2026-10-08: Viewer focus first, the row the clip is in lit, Moments in rows too, lanes one long row */
+  ok((await page.getAttribute(".cv-under", "data-tab")) === "focus", "the lanes open on Viewer focus");
+  ok((await page.$$(".cv-under .ws-sheet > .ws-now")).length >= 1, "the row the clip is in is lit");
+  await page.click('.cv-under [data-cf-tab="moments"]');
+  await page.waitForTimeout(600);
+  ok((await page.$$(".cv-under .ws-rows > .cf-rows")).length > 1, "Moments cascade in rows too");
+  const mag = await box(".cv-under .cf-mag");
+  const rws = await box(".cv-under .ws-rows");
+  ok(mag.b <= rws.t + 2 && mag.w > mag.h * 3, "a wide description box sits above them");
+  await page.dblclick(".cv-under .cf-mag");
+  await page.waitForTimeout(200);
+  ok(await page.isVisible(".cf-magpop"), "double-clicking it opens everything in a pop-up");
+  await page.keyboard.press("Escape");
+  ok(!(await page.$(".cf-magpop")), "Escape closes it");
+  await page.click('.cv-under [data-cf-tab="lanes"]');
+  await page.waitForTimeout(800);
+  ok(!(await page.$(".cv-under .ws-lanes")), "Automation lanes stay one long row that follows the playhead");
+  const nm = await box(".cv-under .cf-ln:not(.ws-copy) .cf-ln-name");
+  ok(nm.w <= 100, `lane names take a narrow column (${Math.round(nm.w)}px)`);
+  await page.click(".cv-under [data-cf-pop]");
+  await page.waitForTimeout(600);
+  const pop = await box(".cv-under");
+  ok(pop.w > 900, "the ⤢ by This scene opens the lanes big over the app");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+  ok(!(await page.$(".cv-under.cf-popped")), "Escape puts them back");
+
   ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();
   server.close();
