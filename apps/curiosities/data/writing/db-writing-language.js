@@ -202,6 +202,11 @@
      ["chapterLength", "Chapter length", [0, 100], "0 = a page or two, 100 = long chapters."]],
     "End on the first line of the next scene instead of the last line of this one.", "set");
 
+  c("pieceShape", "What the piece builds", "w-sentence", "What the sentences add up to: a story, a single scene, a feeling, a list, advice, a plea, a vow, or a run of questions (from the country-lyrics study, 2026-10-08).",
+    [["setting", "Shape", ["story", "scene", "feeling", "list", "advice", "plea", "vow", "questions"], "What the piece builds.", U],
+     ["mix", "One shape or mixed", [0, 100], "0 = one shape all the way, 100 = it changes shape often."]],
+    "Build a breakup song as a list of what's left in the house, then end it as a plea.", "set");
+
   /* ---------- Words ---------- */
   n("nouns", "Nouns", "w-words", "The names of things: how many, and what kind.",
     [["often", "How many", [0, 100], "How noun-heavy the sentences are."],
@@ -282,6 +287,12 @@
     "Give the anxious narrator exact numbers for everything.");
   n("filterWords", "Filter words", "w-words", "Words that put a character between the reader and the thing: saw, heard, felt, noticed, thought, realized. 'She heard the door' against 'The door slammed.'", null,
     "Cut 'she saw' and 'she heard' from a scene and let the things happen straight to the reader.");
+
+  c("pieceTopic", "What it is about", "w-words", "The topics the piece is about (several can be on at once): love, heartbreak, home, leaving, family, faith, work, money, drinking, the road, small towns, death, growing up, freedom, the past.",
+    [["setting", "Main topic", ["love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "something else"], "The topic that leads.", U],
+     ["second", "Second topic", ["none", "love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "something else"], "A topic running alongside.", Object.assign({ from: "none", to: "none" }, U)],
+     ["howMany", "How many topics", [0, 100], "0 = one topic, 100 = many woven together."]],
+    "Write about work, and let love show up only in the last line.", "set");
 
   /* ---------- Figures of speech ---------- */
   const fig = (id, label, plain, tryThis, more, lanes) => n(id, label, "w-figures", plain, more || null, tryThis, lanes ? { lanes } : undefined);
@@ -378,6 +389,11 @@
     [["setting", "Kind", ["letters", "texts", "emails", "diary", "logs or reports", "transcripts", "system messages (LitRPG)", "mixed"], "The documents used.", U],
      ["share", "Share of the story", [0, 100], "How much of the story is told this way."]],
     "Tell the breakup only in the texts, with the time stamps doing the work.", "set");
+  c("addressee", "Who it is spoken or sung to", "w-voice", "Who the words are addressed to: no one in particular, the reader, a lover, an ex, a rival, God, a child, someone gone, a crowd, or a thing (from the country-lyrics study, 2026-10-08). Talking to the absent is also its own figure (apostrophe).",
+    [["setting", "Addressed to", ["no one in particular", "the reader", "a lover", "an ex", "a rival", "God", "a child", "someone gone", "a crowd", "a thing"], "Who the words are for.", U],
+     ["present", "Can they hear it", [0, 100], "0 = they will never hear it, 100 = they are right there listening."],
+     ["named", "Named or only 'you'", [0, 100], "0 = only 'you', 100 = named outright."]],
+    "Sing the whole song to the ex, then turn the last line to God.", "set");
   c("narratorFingerprint", "The narrator's language fingerprint", "w-voice", "The narrator's own rates of every language curiosity here (sentence length, figures, word level...), so the voice can be read, kept steady or changed on purpose.",
     [["setting", "How distinct", [0, 100], "0 = a neutral voice, 100 = unmistakable."],
      ["drift", "Drift over the story", [0, 100], "How much the narrator's fingerprint changes from start to end."]],
