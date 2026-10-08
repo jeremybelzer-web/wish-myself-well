@@ -200,9 +200,10 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
         /* only a real change moves it: the pictures' measured shape shifts a pixel or two with the room they get, and
            following every pixel made the layout flip back and forth each frame (the flashing, 2026-10-07) */
         const cur = parseFloat(player.style.getPropertyValue("--ws-stage-w")) || 0;
-        if (lanes === "beside" && fit && fit.picsW) {
+        if (lanes === "beside" && window.CurioBorders && CurioBorders.sideSet && CurioBorders.sideSet()) CurioBorders.apply();
+        else if (lanes === "beside" && fit && fit.picsW) {
           if (Math.abs(fit.picsW - cur) > 16) player.style.setProperty("--ws-stage-w", fit.picsW + "px");
-        } else if (cur) player.style.removeProperty("--ws-stage-w");
+        } else if (lanes !== "beside" || !/calc/.test(player.style.getPropertyValue("--ws-stage-w"))) player.style.removeProperty("--ws-stage-w");
       }
       toggle(root);
       /* under the storyboards it leaves the Player for the end of the page; anywhere else it goes back */
@@ -476,6 +477,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
       ro.observe(root.querySelector(".cv-player"));
     }
     window.addEventListener("resize", soon);
+    /* a handle stays in its corner when its panel scrolls, so the lanes can always be dragged back (Jeremy 2026-10-08) */
+    root.addEventListener("scroll", (e) => {
+      const g = e.target.querySelector && e.target.querySelector(":scope > .ws-grip");
+      if (g) g.style.transform = `translate(${e.target.scrollLeft}px, ${e.target.scrollTop}px)`;
+    }, true);
     apply();
     after();
   }

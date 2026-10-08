@@ -51,7 +51,7 @@ const ok = (cond, msg) => {
     localStorage.removeItem("curiosities-viewer-windows-v1");
   });
   await page.reload();
-  await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen() && document.querySelectorAll(".cvd-border").length === 4, null, { timeout: 20000 });
+  await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen() && document.querySelectorAll(".cvd-border").length === 5, null, { timeout: 20000 });
   await page.waitForTimeout(400);
   const L = (f, a) => page.evaluate(f, a);
   const w = (sel) => L((s) => Math.round(document.querySelector(s).getBoundingClientRect().width), sel);
@@ -143,7 +143,7 @@ const ok = (cond, msg) => {
   /* kept with the film */
   await page.waitForTimeout(400);
   await page.reload();
-  await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen() && document.querySelectorAll(".cvd-border").length === 4, null, { timeout: 20000 });
+  await page.waitForFunction(() => window.CurioViewer && CurioViewer.isOpen() && document.querySelectorAll(".cvd-border").length === 5, null, { timeout: 20000 });
   await page.waitForTimeout(400);
   ok(Math.abs((await w(".cv-things")) - 260) < 6, "the sizes come back after a reload");
 
@@ -174,6 +174,25 @@ const ok = (cond, msg) => {
   ok(await L(() => !document.querySelector(".cv-things").hidden && !document.querySelector(".cv-details").hidden), "and every panel shows");
   ok(await L(() => document.documentElement.scrollWidth <= innerWidth + 1), "and nothing pokes out sideways");
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "borders-phone.png") });
+
+  /* the picture | Front and center beside it: drag all the way either side, and back (Jeremy 2026-10-08) */
+  await page.evaluate(() => (localStorage.setItem("curio-viewer-big-v1", "1"), localStorage.setItem("curio-viewer-workspace-v1", "{}")));
+  await page.setViewportSize({ width: 1000, height: 720 });
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector(".cv-root[data-ws-lanes=beside]") && !document.querySelector('.cvd-border[data-border="side"]').hidden, null, { timeout: 20000 });
+  await page.waitForTimeout(500);
+  const cls = () => L(() => document.querySelector(".cv-root.cv-viewer").className);
+  await drag("side", -900, 0);
+  await page.waitForTimeout(500);
+  ok(/cvd-stage-gone/.test(await cls()) && (await w(".cv-under")) > 800, "dragged all the way left, Front and center takes the whole top and the picture hides");
+  await drag("side", 900, 0);
+  await page.waitForTimeout(500);
+  ok(/cvd-side-folded/.test(await cls()) && (await w(".cv-stage")) > 800, "dragged all the way right, Front and center hides and the picture takes it all");
+  await drag("side", -300, 0);
+  await page.waitForTimeout(500);
+  const back = await w(".cv-under");
+  ok(!/cvd-side-folded|cvd-stage-gone/.test(await cls()) && back > 200 && back < 400, "dragging the edge brings it back: " + back);
+  ok(await L(() => !!document.querySelector('.cv-under > .ws-grip[data-ws-grip="lanes"]')), "the lanes keep their ⠿ handle");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();
