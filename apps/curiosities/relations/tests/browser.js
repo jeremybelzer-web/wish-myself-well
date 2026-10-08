@@ -172,7 +172,8 @@ const ok = (cond, msg) => {
       const rIn = await call((c) => c.stage.orb.r);
       ok(rIn < 1, `then you are inside it (${rIn.toFixed(2)})`);
       const scr = await call((c) => c.inside().screens());
-      ok(scr.length === 7 && scr.includes("one") && scr.includes("web") && scr.includes("all"), `the world fills with screens: connected to this, connected to those, all curiosities and more (${scr.join(", ")})`);
+      ok(scr.length === 8 && scr.includes("one") && scr.includes("web") && scr.includes("catalyst") && scr.includes("all"), `the world fills with screens: connected to this, proximity, catalyst, all curiosities and more (${scr.join(", ")})`);
+      ok((await page.textContent('.rl-screen[data-screen="web"] h4')) === "Proximity", "the proximity web's screen is called Proximity");
       await page.waitForTimeout(1100);
       await page.screenshot({ path: path.join(SHOTS, "relations-jarvis.png") });
       await page.click('.rl-screen[data-screen="all"]');
@@ -259,10 +260,120 @@ const ok = (cond, msg) => {
       const drawn = await page.locator(".rl-websvg line.l2").count();
       ok(web.two > web.one && drawn > 0, `Curiosity proximity shows what the ties are tied to (${web.one} then ${web.two})`);
       await page.screenshot({ path: path.join(SHOTS, "relations-proximity.png") });
+      await page.click(".rl-backall");
+      await page.click('.rl-inside [data-tab="catalyst"]');
+      ok((await page.locator('.rl-screen[data-screen="catalyst"] .rl-sparks').count()) === 2 && /Elixirs/.test(await page.textContent('.rl-screen[data-screen="catalyst"]')), "the Catalyst screen lists the sparks it sets off, the sparks that set it off, and its elixirs");
+      await page.screenshot({ path: path.join(SHOTS, "relations-catalyst-screen.png") });
+      await page.click(".rl-backall");
+      // Lanes inside a cube can be changed: drag a dot up and it stays.
+      await page.click('.rl-inside [data-tab="tracks"]');
+      const lane0 = await page.locator('.rl-screen.focus svg[data-li="0"]').boundingBox();
+      await page.mouse.move(lane0.x + lane0.width / 2, lane0.y + lane0.height * 0.6);
+      await page.mouse.down();
+      await page.mouse.move(lane0.x + lane0.width / 2, lane0.y + 2, { steps: 4 });
+      await page.mouse.up();
+      const edited = await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).rec["em-suspicion"]);
+      ok(Array.isArray(edited) && Math.max(...edited) > 0.85, `dragging a dot on a lane inside a cube changes that moment, and it is kept (${edited && Math.max(...edited).toFixed(2)})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-lane-edit.png") });
+      await page.click(".rl-backall");
       await page.click('.rl-inside [data-tab="leave"]');
       ok(!(await page.locator(".rl-inside").count()), "Leave the cube goes back out");
       await page.click('[data-c="home"]');
       await page.waitForTimeout(1100);
+
+      // Turn 360°: dragging turns the whole block round its middle, even from close in.
+      await page.click('[data-c="corridor"]');
+      await page.waitForTimeout(1200);
+      await page.click('[data-c="turn"]');
+      const d0 = await call((c) => ({ th: c.stage.orb.theta, d: c.stage.camera.position.length() }));
+      const cb2 = await page.locator(".rl-cube.cube canvas").boundingBox();
+      await page.mouse.move(cb2.x + 300, cb2.y + cb2.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(cb2.x + 700, cb2.y + cb2.height / 2, { steps: 20 });
+      await page.mouse.up();
+      const d1 = await call((c) => ({ th: c.stage.orb.theta, d: c.stage.camera.position.length() }));
+      ok(Math.abs(d1.th - d0.th) > 1 && Math.abs(d1.d - d0.d) < 0.5, `Turn 360° turns the whole block round its middle from where you stand (${(((d1.th - d0.th) * 180) / Math.PI).toFixed(0)}°)`);
+      await page.click('[data-c="turn"]');
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+
+      // Clip tubes: your clips on the front face, a tube of category rectangles behind each, one color per tube.
+      await page.click('[data-view="tubes"]');
+      await page.waitForSelector(".rl-cube.tubes canvas");
+      await page.waitForTimeout(500);
+      const tm = await call((c) => { const m = c.model(); return { clips: m.clips.length, fams: m.fams.length, ex: m.example }; });
+      ok(tm.clips === 24 && tm.fams === 6 && tm.ex, `Clip tubes: ${tm.clips} example clips on the front face, each with a tube of ${tm.fams} category rectangles`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-tubes.png") });
+      const tb = await page.locator(".rl-cube.tubes canvas").boundingBox();
+      const tspot = (ci, k) =>
+        page.evaluate(([ci, k]) => {
+          const c = document.getElementById("relations")._curioRelations.view().inner();
+          const p = c.posOf(ci, k);
+          const v = new THREE.Vector3(p[0], p[1], p[2]).project(c.stage.camera);
+          const r = c.stage.host.getBoundingClientRect();
+          return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+        }, [ci, k]);
+      const tr0 = await call((c) => c.stage.orb.r);
+      await page.mouse.dblclick(tb.x + tb.width * 0.12, tb.y + tb.height * 0.6);
+      await page.waitForTimeout(1000);
+      ok((await call((c) => c.stage.orb.r)) < tr0, "double-clicking empty space zooms in, like a map");
+      await call((c) => { c.landAt(0.4, 0.2); return 1; });
+      await page.waitForTimeout(1100);
+      ok(/^(Between|Beside) .+ · Moment \d+ · at the clips/.test(await call((c) => c.corridor())), `you can land in a corridor between two tubes (${await call((c) => c.corridor())})`);
+      const tz0 = await call((c) => c.stage.camera.position.z);
+      await page.evaluate(() => {
+        const i = document.querySelector(".rl-cube.tubes .rl-corridor input");
+        i.value = "700";
+        i.dispatchEvent(new Event("input"));
+      });
+      await page.waitForTimeout(100);
+      const tz1 = await call((c) => c.stage.camera.position.z);
+      ok(tz1 < tz0 - 4 && /passing/.test(await call((c) => c.corridor())), `Slide down the corridor takes you back along the tubes (${tz0.toFixed(1)} to ${tz1.toFixed(1)}: ${await call((c) => c.corridor())})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-tubes-corridor.png") });
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+      await page.click('[data-c="turn"]');
+      const tt0 = await call((c) => ({ th: c.stage.orb.theta, d: c.stage.camera.position.length() }));
+      await page.mouse.move(tb.x + 200, tb.y + tb.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(tb.x + 600, tb.y + tb.height / 2, { steps: 20 });
+      await page.mouse.up();
+      const tt1 = await call((c) => ({ th: c.stage.orb.theta, d: c.stage.camera.position.length() }));
+      ok(Math.abs(tt1.th - tt0.th) > 1 && Math.abs(tt1.d - tt0.d) < 0.5, "Turn 360° turns the tubes round their middle");
+      await page.click('[data-c="turn"]');
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+      // Double-click a clip: you fly in and the screens come up for its first category.
+      const cs = await tspot(0, -1);
+      await page.mouse.dblclick(cs.x, cs.y);
+      await page.waitForSelector(".rl-tubein");
+      const tin = await call((c) => ({ scr: c.inside().screens(), k: c.inside().k }));
+      ok(tin.scr.join() === "elems,catalyst,web,tube", `inside a rectangle: its curiosities, Catalyst, Proximity and the whole tube (${tin.scr.join(", ")})`);
+      await page.waitForTimeout(1100);
+      await page.screenshot({ path: path.join(SHOTS, "relations-tube-inside.png") });
+      await page.click('.rl-tubein [data-tab="elems"]');
+      const cur0 = await page.getAttribute(".rl-tubein .rl-elem input", "data-cur");
+      await page.evaluate(() => {
+        const i = document.querySelector(".rl-tubein .rl-elem input");
+        i.value = "88";
+        i.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      const tsaved = await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).tubes);
+      ok(Object.keys(tsaved).some((k) => k.endsWith("|" + cur0) && Math.abs(tsaved[k] - 0.88) < 0.001), `its sliders change this clip's values, and they are kept (${cur0})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-tube-elems.png") });
+      await page.click(".rl-tubein .rl-backall");
+      await page.click('.rl-tubein [data-tab="web"]');
+      ok((await page.locator(".rl-tubein .rl-via").count()) >= 3, "the Proximity screen lists the close neighbours that shape these curiosities");
+      await page.click(".rl-tubein .rl-backall");
+      await page.click('.rl-tubein [data-tab="tube"]');
+      await page.click('.rl-tubein [data-k="2"]');
+      await page.waitForTimeout(900);
+      ok((await call((c) => c.inside() && c.inside().k)) === 2 && (await page.locator(".rl-tubein").count()) === 1, "the whole tube screen moves you to another rectangle of the same clip");
+      await page.click('.rl-tubein [data-tab="leave"]');
+      ok(!(await page.locator(".rl-tubein").count()), "Leave the tube goes back out");
+      await page.click('[data-view="cube"]');
+      await page.waitForSelector(".rl-cube.cube canvas");
+      await page.waitForTimeout(300);
 
       // Cube slices: the same block; swipe right sends the front slab to the back, swipe left brings the back one forward.
       await page.click('[data-view="slices"]');

@@ -17,11 +17,22 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
   of your own suites of the curiosities at their ends). Saved groups are the first tracks on the Tracks view.
   The 3D graph has the same corridors (between lanes, sliding along time) and Go inside.
 - **Inside a cube**: double-click any cube (or a lane in the 3D graph), or Go inside. You fly in, then the world
-  turns dark and seven screens float round you like Jarvis in Iron Man: Connected to this, Connected to those
-  (what the ties are tied to, so changing any outer one changes something that affects this cube), Lanes stacked
-  like Ableton Live (the open film's own values, else marked example), Graph, Pie, 3D graph, and All curiosities
-  (a plain list with a filter). Click a screen to bring it to the middle; All screens sends it back; any name
-  flies you into that cube. Leave the cube goes back out.
+  turns dark and eight screens float round you like Jarvis in Iron Man: Connected to this, Proximity
+  (what the ties are tied to, so changing any outer one changes something that affects this cube), Catalyst (the
+  sparks it sets off, the sparks that set it off, and the elixirs they are ingredients of, drawn as a key), Lanes
+  stacked like Ableton Live (the open film's own values, else marked example; with the screen in the middle, drag
+  a dot up or down to change that moment: a hand edit in the open film, otherwise kept in `rec`), Graph, Pie, 3D
+  graph, and All curiosities (a plain list with a filter). Click a screen to bring it to the middle; All screens
+  sends it back; any name flies you into that cube. Leave the cube goes back out.
+- **Turn 360°** (Cube matrix and Clip tubes): while it is on, dragging turns the whole thing round its middle from
+  wherever you stand, even close in.
+- **Clip tubes** (Jeremy, 2026-10-08): the front face is the open film's clips (a clip is one track at one moment,
+  tracks across, moments down); directly behind each clip is its tube, one rectangle per category, the whole tube
+  one color. An example film shows when none is open. Double-click empty space to zoom in, and again close up to
+  land in the corridor between two tubes; Slide down the corridor takes you from the clips to the back. Double-click
+  a rectangle (or a clip, for its first category) to fly in: screens with that category's curiosities on this clip
+  as sliders (an `edit` in CurioEngine, or `tubes` in this map's storage), Catalyst, Proximity (the close
+  neighbours that shape them) and The whole tube (move to another rectangle).
 - **Cube slices**: the same block seen face on. Swipe right (or the right arrow) and the front slab goes to the
   back; swipe left and the back slab comes to the front. Click a slab's name to bring that face forward; each
   name counts the selection's ties on it. You can still turn it and double-click to zoom in.
