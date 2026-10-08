@@ -1,0 +1,17 @@
+:root { --paper: #fbf8f1; --ink: #222; --soft: #6b6458; --line: #e2dccf; --v: #3a6ea5; --w: #8a5a2b; --a: #2f7d5b; }
+@media (prefers-color-scheme: dark) { :root { --paper: #1c1b19; --ink: #eee8dc; --soft: #a59d8f; --line: #3a372f; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 Georgia, serif; }
+header { position: sticky; top: 0; background: var(--paper); border-bottom: 1px solid var(--line); padding: 12px 16px; }
+h1 { margin: 0; font-size: 22px; }
+.sub { margin: 4px 0 10px; color: var(--soft); font-size: 14px; }
+nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+nav button { font: inherit; font-size: 14px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 14px; background: none; color: var(--ink); cursor: pointer; }
+nav button.on { background: var(--ink); color: var(--paper); }
+#find { width: 100%; max-width: 420px; font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--ink); }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; padding: 16px; }
+article { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+article h2 { margin: 0 0 4px; font-size: 16px; }
+article p { margin: 0 0 8px; font-size: 14px; color: var(--soft); }
+.tag { font: 12px/1 system-ui, sans-serif; padding: 3px 6px; border-radius: 4px; color: #fff; margin-right: 4px; }
+.tag.visual { background: var(--v); } .tag.writing { background: var(--w); } .tag.audio { background: var(--a); }
