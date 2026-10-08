@@ -58,6 +58,7 @@ server.listen(0, "127.0.0.1", async () => {
   await page.click(".cv-wclose[data-wclose='1']");
   await page.waitForTimeout(500);
   ok((await wins()) === 1, "the second window is closed");
+  console.log("     newest steps: " + (await page.evaluate(() => CurioStore.history().undo.slice(-3).join(" | "))));
   await undoKey();
   ok((await wins()) === 2 && (await panels()) === p0 - 1, "⌘Z brings the closed window back first, and leaves the panel deleted");
   ok(await same(), "in place: the page did not reload");

@@ -133,8 +133,12 @@
     const raw = JSON.parse(sessionStorage.getItem(SESSION));
     if (raw && Array.isArray(raw.steps) && Array.isArray(raw.redo)) data = Object.assign({ seq: 0 }, raw);
   } catch (e) {}
+  /* One click, key or drag is one step: armed by it, spent by the first step it makes anywhere (a saved change
+     here, the Viewer's film, a storyboard edit) or by an undo or redo. Saves that follow on from it (the layout
+     settling after a window closes, a part re-saving what an undo put back) ride along with that step. */
   let acted = 0;
-  ["pointerdown", "keydown", "input", "change", "drop", "wheel"].forEach((t) => window.addEventListener(t, () => (acted = Date.now()), true));
+  let armed = false;
+  ["pointerdown", "keydown", "input", "change", "drop", "wheel"].forEach((t) => window.addEventListener(t, () => ((acted = Date.now()), (armed = true)), true));
   function keep() {
     try {
       while (data.steps.length > MAX) data.steps.shift();
@@ -159,7 +163,7 @@
   const blocked = (store, k) => leaving && store === window.localStorage && typeof k === "string" && (k.startsWith(PREFIX) || EXTRA.includes(k));
   function record(k, before, after) {
     const now = Date.now();
-    const yours = now - acted < ACT_MS;
+    const yours = armed && now - acted < ACT_MS;
     const last = data.steps[data.steps.length - 1];
     let st = null;
     if (last && last.key === k && now - last.at < MERGE_MS && last.h === hash(before)) {
@@ -172,6 +176,7 @@
     if (st && yours && !st.hub && hub()) {
       st.hub = true;
       hub().external("app", ext(st));
+      armed = false;
     }
     keep();
   }
@@ -331,9 +336,20 @@
     location.reload();
     return true;
   }
-  /* A new change anywhere empties this redo list too. */
+  /* A new change anywhere empties this redo list too, and spends the click that made it; so do undo and redo. */
+  if (hub()) {
+    const St = hub();
+    ["undo", "redo"].forEach((dir) => {
+      const was = St[dir];
+      St[dir] = function () {
+        armed = false;
+        return was.apply(this, arguments);
+      };
+    });
+  }
   if (hub() && hub().onNew)
     hub().onNew(() => {
+      armed = false;
       if (!data.redo.length) return;
       data.redo = [];
       keep();
