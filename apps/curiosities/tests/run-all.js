@@ -100,6 +100,7 @@ const suites = [
   { name: "big viewer in a browser", browser: true, secs: 10, ...node("viewer/tests/big.js") },
   { name: "viewer draw & build in a browser", browser: true, secs: 25, ...node("viewer/tests/build.js") },
   { name: "viewer build windows in a browser", browser: true, secs: 15, ...node("viewer/tests/build-windows.js") },
+  { name: "one undo for everything in a browser", browser: true, secs: 20, ...node("viewer/tests/undo-all.js") },
   { name: "viewer looks and stuck drawings in a browser", browser: true, secs: 15, ...node("viewer/tests/wear.js", threeArgs) },
   { name: "app walkthrough in a browser", browser: true, secs: 15, ...node("viewer/tests/walkthrough.js") },
   { name: "paintings menu and paint strip", browser: true, secs: 20, ...node("paintings/tests/browser.js") },

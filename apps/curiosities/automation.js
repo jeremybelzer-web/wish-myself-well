@@ -243,6 +243,20 @@
     } catch (e) {}
   }
 
+  /* An undo put the patches back (a modulation changed or deleted, a patch removed): read them again in place,
+     so running automation keeps running (engine/app-undo.js). */
+  window.addEventListener("curio-undo-restored", (e) => {
+    if (!e.detail || !e.detail.keys.includes(KEY)) return;
+    e.detail.handled.push(KEY);
+    let next = { patches: {}, bindings: {} };
+    try {
+      next = Object.assign(next, JSON.parse(localStorage.getItem(KEY) || "{}"));
+    } catch (err) {}
+    Object.entries(next.patches).forEach(([k, p]) => (p.running = !!(store.patches[k] && store.patches[k].running)));
+    store.patches = next.patches;
+    store.bindings = next.bindings;
+    emit("change", {});
+  });
   const listeners = [];
   function emit(type, data) {
     listeners.forEach((fn) => {

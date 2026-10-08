@@ -628,14 +628,17 @@
   /* ---------- windows: My film plus as many inspiration films as you like ---------- */
   const WKEY = "curiosities-viewer-windows-v1";
   const INSP = [chaseFilm(), takeFilm()]; /* plus videos brought in this session (not saved: they stay on your computer) */
-  let wins = (() => {
+  function readWins() {
     try {
       const w = JSON.parse(localStorage.getItem(WKEY) || "null");
-      if (Array.isArray(w) && w.length) return w.filter((id) => id === "mine" || INSP.some((f) => f.id === id)).slice(0, 8);
+      if (Array.isArray(w) && w.length) {
+        const ok = w.filter((id) => id === "mine" || INSP.some((f) => f.id === id)).slice(0, 8);
+        if (ok.length) return ok;
+      }
     } catch (e) {}
     return ["mine"];
-  })();
-  if (!wins.length) wins = ["mine"];
+  }
+  let wins = readWins();
   const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
   let activeWin = 0;
   /* Two ways to see many windows: "fit" shrinks them all to fit the stage, "swipe" keeps one big window and
@@ -649,6 +652,24 @@
     }
   })();
   let shownWin = 0;
+  /* An undo put the windows (or how they are shown) back: build them again in place (engine/app-undo.js). */
+  window.addEventListener("curio-undo-restored", (e) => {
+    const keys = (e.detail && e.detail.keys) || [];
+    if (!keys.includes(WKEY) && !keys.includes(MKEY)) return;
+    if (keys.includes(WKEY)) e.detail.handled.push(WKEY);
+    if (keys.includes(MKEY)) e.detail.handled.push(MKEY);
+    wins = readWins();
+    try {
+      winMode = localStorage.getItem(MKEY) === "swipe" ? "swipe" : "fit";
+    } catch (err) {}
+    shownWin = Math.min(shownWin, wins.length - 1);
+    if (!root) return;
+    const ms = root.querySelector('[data-k="winmode"]');
+    if (ms) ms.value = winMode;
+    buildWins();
+    if (winMode === "swipe") showWin(shownWin);
+    draw();
+  });
   function setWinMode(m) {
     winMode = m === "swipe" ? "swipe" : "fit";
     try {
@@ -1149,10 +1170,7 @@
       tmp.width = W;
       tmp.height = H;
       tmp.getContext("2d").drawImage(ctx.canvas, 0, 0);
-      ctx.save();
-      ctx.filter = `blur(${(blur * W) / 90}px)`;
-      ctx.drawImage(tmp, 0, 0);
-      ctx.restore();
+      softDraw(ctx, tmp, (blur * W) / 90);
       polys.forEach((P) => P.depth <= subjD && drawPoly(P));
     } else polys.forEach(drawPoly);
     /* rain */
@@ -1372,6 +1390,48 @@
     if (a < 160) return "behind, toward " + side;
     return "behind them";
   }
+  /* some browsers (Safari before 18, some headless Chromes) ignore ctx.filter: there the blur shrinks the
+     picture and stretches it back, which softens it the same way */
+  let filterBlurWorks;
+  function canFilterBlur() {
+    if (filterBlurWorks !== undefined) return filterBlurWorks;
+    try {
+      const a = document.createElement("canvas");
+      a.width = a.height = 9;
+      const ac = a.getContext("2d");
+      ac.fillStyle = "#fff";
+      ac.fillRect(4, 4, 1, 1);
+      const b = document.createElement("canvas");
+      b.width = b.height = 9;
+      const bc = b.getContext("2d");
+      bc.filter = "blur(2px)";
+      bc.drawImage(a, 0, 0);
+      filterBlurWorks = bc.getImageData(1, 4, 1, 1).data[3] > 0;
+    } catch (e) {
+      filterBlurWorks = false;
+    }
+    return filterBlurWorks;
+  }
+  function softDraw(ctx, src, px) {
+    ctx.save();
+    if (canFilterBlur()) {
+      ctx.filter = `blur(${px}px)`;
+      ctx.drawImage(src, 0, 0);
+    } else {
+      const k = Math.max(1, px * 1.5);
+      const small = document.createElement("canvas");
+      small.width = Math.max(1, Math.round(src.width / k));
+      small.height = Math.max(1, Math.round(src.height / k));
+      const sc = small.getContext("2d");
+      sc.imageSmoothingEnabled = true;
+      sc.imageSmoothingQuality = "high";
+      sc.drawImage(src, 0, 0, small.width, small.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(small, 0, 0, src.width, src.height);
+    }
+    ctx.restore();
+  }
   function blurWords(b) {
     return b < 0.02 ? "none" : b < 0.35 ? "a little" : b < 0.7 ? "soft background" : "only the subject is sharp";
   }
@@ -1410,9 +1470,61 @@
     return "back to the camera";
   }
 
-  /* ---------- undo and saving ---------- */
+  /* ---------- undo and saving ----------
+     Each step is { s: the film and panel before it, at: when it was made, tag }. Every step is also one step on
+     the app-wide undo list (engine/store.js), so the Undo button and ⌘Z here undo the newest change anywhere:
+     this film, the storyboard, a closed window, a modulation, a curiosity you added (Jeremy 2026-10-08:
+     "undo any deleted thing ... Anything"). The steps are kept in this tab (session storage), so they survive a
+     reload; engine/app-undo.js puts them back on the app-wide list then. */
+  const UKEY = "curio-viewer-undo-v1";
+  const fp = (t) => {
+    let h = 2166136261;
+    t = String(t);
+    for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
+    return t.length + ":" + (h >>> 0).toString(36);
+  };
   const undo = [];
   const redo = [];
+  try {
+    const kept = JSON.parse(sessionStorage.getItem(UKEY) || "null");
+    /* only when the film is still the one they were made on */
+    if (kept && kept.h === fp(localStorage.getItem(KEY)) && Array.isArray(kept.undo) && Array.isArray(kept.redo)) {
+      kept.undo.forEach((e) => e && e.s && undo.push(e));
+      kept.redo.forEach((e) => e && e.s && redo.push(e));
+    }
+  } catch (e) {}
+  function keepUndo(saved) {
+    try {
+      const all = { h: fp(saved), undo, redo };
+      let text = JSON.stringify(all);
+      while (text.length > 3e6 && (all.undo.length || all.redo.length)) {
+        if (all.undo.length) all.undo.shift();
+        else all.redo.shift();
+        text = JSON.stringify(all);
+      }
+      sessionStorage.setItem(UKEY, text);
+    } catch (e) {}
+  }
+  const TAGS = { nudge: "move", face: "turn to face", add: "add a thing", del: "delete", panel: "panels", order: "panel order", word: "words", look: "look", turn: "turn", preset: "camera preset", sample: "sample film", floor: "floor", spot: "spot", aim: "aim", zoom: "zoom", orbit: "camera", pan: "camera", drag: "drag", wheel: "zoom", set: "change", api: "change", edit: "change", title: "title" };
+  const hubLabel = (tag) => "Viewer: " + (TAGS[tag] || String(tag || "change").replace(/[-_]+/g, " "));
+  const hub = () => (window.CurioStore && typeof window.CurioStore.external === "function" ? window.CurioStore : null);
+  const undoOwn = () => (undo.length ? (restore(undo, redo), true) : false);
+  const redoOwn = () => (redo.length ? (restore(redo, undo), true) : false);
+  const hubStep = (e) => ({ label: hubLabel(e && e.tag), undo: undoOwn, redo: redoOwn });
+  if (hub() && hub().onNew) hub().onNew(() => (redo.length = 0));
+  /* The Undo button and ⌘Z: the newest change anywhere, or this film's own when there is no app-wide list. */
+  function undoAny() {
+    const St = hub();
+    if (St && St.canUndo()) St.undo();
+    else restore(undo, redo);
+    if (root) drawBar();
+  }
+  function redoAny() {
+    const St = hub();
+    if (St && St.canRedo()) St.redo();
+    else restore(redo, undo);
+    if (root) drawBar();
+  }
   let lastTag = "";
   let lastAt = 0;
   function remember(tag) {
@@ -1423,14 +1535,17 @@
     }
     lastTag = tag || "";
     lastAt = now;
-    undo.push(JSON.stringify({ film, cur }));
+    const e = { s: JSON.stringify({ film, cur }), at: now, tag: tag || "" };
+    undo.push(e);
     if (undo.length > 80) undo.shift();
     redo.length = 0;
+    if (hub()) hub().external("viewer", hubStep(e));
   }
   function restore(from, to) {
     if (!from.length) return;
-    to.push(JSON.stringify({ film, cur }));
-    const s = JSON.parse(from.pop());
+    const e = from.pop();
+    to.push({ s: JSON.stringify({ film, cur }), at: e.at, tag: e.tag });
+    const s = JSON.parse(e.s);
     film = fixFilm(s.film);
     cur = clamp(s.cur, 0, film.panels.length - 1);
     lastTag = "";
@@ -1442,9 +1557,11 @@
   function save() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
+      const text = JSON.stringify(film);
       try {
-        localStorage.setItem(KEY, JSON.stringify(film));
+        localStorage.setItem(KEY, text);
       } catch (e) {}
+      keepUndo(text);
     }, 250);
   }
 
@@ -2225,8 +2342,8 @@
     const t = root.querySelector(".cv-title");
     if (document.activeElement !== t) t.textContent = film.title;
     root.querySelector('[data-k="look"]').value = film.look;
-    root.querySelector('[data-act="undo"]').disabled = !undo.length;
-    root.querySelector('[data-act="redo"]').disabled = !redo.length;
+    root.querySelector('[data-act="undo"]').disabled = !undo.length && !(hub() && hub().canUndo());
+    root.querySelector('[data-act="redo"]').disabled = !redo.length && !(hub() && hub().canRedo());
     root.querySelector('[data-act="comic"]').textContent = root.classList.contains("cv-comic") ? "Back to the viewer" : "Read as a comic";
     root.querySelector('[data-act="play"]').textContent = playing ? "❚❚ Pause" : "▶ Play";
   }
@@ -2562,9 +2679,9 @@
         thumbsDirty = true;
         return drawAll();
       case "undo":
-        return restore(undo, redo);
+        return undoAny();
       case "redo":
-        return restore(redo, undo);
+        return redoAny();
       case "sample":
         if (b.dataset.armed !== "1") {
           b.dataset.armed = "1";
@@ -2999,7 +3116,7 @@
       if (typing && t.tagName !== "INPUT") return;
       if (typing && t.type !== "range") return;
       e.preventDefault();
-      return e.shiftKey ? restore(redo, undo) : restore(undo, redo);
+      return e.shiftKey ? redoAny() : undoAny();
     }
     if (!typing && HOOK.keys.some((fn) => fn(e))) return;
     if (typing || mod || e.altKey) return;
@@ -3150,7 +3267,11 @@
     render: (cv, t) => drawFrame(cv.getContext("2d"), cv.width, cv.height, stateAt(clamp(t || 0, 0, total())), {}),
     project: (camera, target, W, H, p) => project(makeCamera(camera, target, W, H), p),
     words: { shot: shotWords, lens: lensWords, height: heightWords },
-    undo: () => restore(undo, redo),
+    undo: () => undoAny(),
+    redo: () => redoAny(),
+    /* the app-wide undo list's view of this film's steps (engine/app-undo.js puts them back after a reload) */
+    undoLog: () => ({ undo: undo.map((e) => ({ at: e.at, tag: e.tag })), redo: redo.map((e) => ({ at: e.at, tag: e.tag })) }),
+    hubStep: (e) => hubStep(e),
     key: KEY,
     /* ---- for add-ons (viewer/build.js) ---- */
     makers: MAKERS,

@@ -15,11 +15,31 @@
    - Steps live in this tab's session storage, so they survive the reload an undo needs; at most 300 steps.
      Each step keeps only the changed stretch of text, so big parts do not crowd out older steps.
 
+   One ⌘Z for everything (Jeremy 2026-10-08: "undo any deleted thing. From storyboards to a viewer, to deleting the
+   Automation window. Anything."): every change you make here (a click, a key, a drag just before it) is also one
+   step on the app-wide undo list (engine/store.js), next to the Viewer's film, the storyboard and the rest, so the
+   Viewer's Undo button and ⌘Z reach it. Undoing it puts the old value back and tells the page
+   ("curio-undo-restored", detail { keys, handled }); a part that can read its key again in place (the Viewer's
+   windows, the workspace, the build windows, automation) adds the key to handled. When every key was handled the
+   page stays as it is; otherwise it reloads, and the steps kept in this tab (these and the Viewer's) go back on the
+   app-wide list in order, so undo and redo carry on after the reload. Saves nobody asked for (a part tidying its
+   data as the page opens) stay off the app-wide list and are undone together with the step before them.
+
    window.CurioAppUndo = { steps() newest first [{ label, when, key }], undoTo(i), canRedo(), redo(), clear() } */
 (function () {
   if (typeof window === "undefined" || !window.Storage || !window.localStorage) return;
   const PREFIX = "curiosities-";
-  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1|screen-v1)$|-(view|tab|prefs|ui)-v\d+$/;
+  /* curiosities-viewer-v1 is the Viewer's film: the Viewer keeps its own steps on the app-wide list. Kept
+     versions and histories (Momentum's versions) are written by the app on its own, and a clipboard (the Screen's
+     copied area) is not a change to the film: never undone. The Screen's tools (zoom, lane heights) are undone
+     by the Screen's own view steps; its favorites and quick find keep what you used last as you go (a log, not
+     an edit). */
+  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1|screen-v1|screen-tools-v1|screen-faves-v1|screen-find-v1|viewer-v1)$|-(view|tab|prefs|ui|versions|history|clip)-v\d+$/;
+  /* Kept outside the project's names, but made by you all the same: the Viewer's arrangement, your own
+     curiosities and ties in the relationship map, your own lane suites. */
+  const EXTRA = ["curio-viewer-workspace-v1", "curio-relations-v1", "curio-lane-suites-v1"];
+  /* A change counts as yours when it comes this soon after a click, a key or a drag. */
+  const ACT_MS = 2500;
   const SESSION = "curio-app-undo-v2";
   const MAX = 300;
   const MAX_TEXT = 1500000;
@@ -40,7 +60,7 @@
     return k.replace(/^curiosities-/, "").replace(/-v\d+$/, "").replace(/-/g, " ");
   }
   /* Parts that live on the shared store (engine/store.js) are undone there, in place; not here. */
-  const tracked = (k) => typeof k === "string" && k.startsWith(PREFIX) && !SKIP.test(k) && !(window.CurioStore && window.CurioStore.owns(k));
+  const tracked = (k) => typeof k === "string" && ((k.startsWith(PREFIX) && !SKIP.test(k)) || EXTRA.includes(k)) && !(window.CurioStore && window.CurioStore.owns(k));
 
   /* A step keeps only what changed: the text between the part both values share at the start and at the end
      (p and s characters), before (b) and after (a), or null for a removed key. A big part (automation can be
@@ -109,11 +129,22 @@
     return before.slice(0, st.p) + st.a + before.slice(before.length - st.s);
   }
 
-  let data = { steps: [], redo: [] };
+  let data = { steps: [], redo: [], seq: 0 };
   try {
     const raw = JSON.parse(sessionStorage.getItem(SESSION));
-    if (raw && Array.isArray(raw.steps) && Array.isArray(raw.redo)) data = raw;
+    if (raw && Array.isArray(raw.steps) && Array.isArray(raw.redo)) data = Object.assign({ seq: 0 }, raw);
   } catch (e) {}
+  /* One click, key or drag is one step: armed by it, spent by the first step it makes anywhere (a saved change
+     here, the Viewer's film, a storyboard edit) or by an undo or redo. Saves that follow on from it (the layout
+     settling after a window closes, a part re-saving what an undo put back) ride along with that step. */
+  let acted = 0;
+  let armed = false;
+  /* gesture: one press of the mouse, a key or a drop. A slider dragged or a wheel turned stays one gesture, so
+     its saves join one step; a new press is a new step even on the same part a moment later (a window added
+     and closed straight after are two steps, not one that cancels out). */
+  let gesture = 0;
+  ["pointerdown", "keydown", "drop"].forEach((t) => window.addEventListener(t, () => gesture++, true));
+  ["pointerdown", "keydown", "input", "change", "drop", "wheel"].forEach((t) => window.addEventListener(t, () => ((acted = Date.now()), (armed = true)), true));
   function keep() {
     try {
       while (data.steps.length > MAX) data.steps.shift();
@@ -135,17 +166,92 @@
   /* After an undo or redo puts values back, the page is about to reload: a late save from a part that still
      holds the old values in memory (on a timer, or as the page unloads) would write over what was put back. */
   let leaving = false;
-  const blocked = (store, k) => leaving && store === window.localStorage && typeof k === "string" && k.startsWith(PREFIX);
+  const blocked = (store, k) => leaving && store === window.localStorage && typeof k === "string" && (k.startsWith(PREFIX) || EXTRA.includes(k));
   function record(k, before, after) {
     const now = Date.now();
+    const yours = armed && now - acted < ACT_MS;
     const last = data.steps[data.steps.length - 1];
-    if (last && last.key === k && now - last.at < MERGE_MS && last.h === hash(before)) {
+    let st = null;
+    if (last && last.key === k && now - last.at < MERGE_MS && last.h === hash(before) && (last.g === gesture || !yours)) {
       const first = back(last, before);
       data.steps.pop();
-      if (first !== after) data.steps.push(Object.assign({ key: k, at: now }, diff(first, after)));
-    } else data.steps.push(Object.assign({ key: k, at: now }, diff(before, after)));
-    data.redo = [];
+      if (first !== after) data.steps.push((st = Object.assign({ key: k, at: now, id: last.id, hub: last.hub, g: last.g }, diff(first, after))));
+    } else data.steps.push((st = Object.assign({ key: k, at: now, id: ++data.seq, g: gesture }, diff(before, after))));
+    if (yours) data.redo = [];
+    /* on the app-wide list (that empties every redo list, this one too) */
+    if (st && yours && !st.hub && hub()) {
+      st.hub = true;
+      hub().external("app", ext(st));
+      armed = false;
+    }
     keep();
+  }
+  const hub = () => (window.CurioStore && typeof window.CurioStore.external === "function" ? window.CurioStore : null);
+  const ext = (st) => ({ label: name(st.key), undo: () => undoId(st.id), redo: () => redoId(st.id) });
+  /* The values are back: parts that can read them again in place say so; otherwise the page reloads. Their own
+     saves while they read again are not new changes. */
+  function restored(keys) {
+    const handled = [];
+    quiet = true;
+    try {
+      window.dispatchEvent(new CustomEvent("curio-undo-restored", { detail: { keys: keys.slice(), handled } }));
+    } catch (e) {
+    } finally {
+      quiet = false;
+    }
+    if (keys.every((k) => handled.includes(k))) return;
+    leaving = true;
+    location.reload();
+  }
+  /* The app-wide list's undo of step id: that step and any saves nobody asked for after it. */
+  function undoId(id) {
+    const at = data.steps.findIndex((s) => s.id === id);
+    if (at < 0) return false;
+    const group = data.steps.slice(at);
+    const newest = {};
+    group.forEach((s) => (newest[s.key] = s.h));
+    const stale = Object.keys(newest).filter((k) => hash(rawGet.call(localStorage, k)) !== newest[k]);
+    if (stale.length) {
+      alert("Not undone: " + stale.map(name).join(", ") + " changed in another way since (a project was opened, or another tab). Nothing was changed.");
+      return false;
+    }
+    const now = {};
+    group
+      .slice()
+      .reverse()
+      .forEach((s) => {
+        const cur = s.key in now ? now[s.key] : rawGet.call(localStorage, s.key);
+        now[s.key] = back(s, cur);
+      });
+    Object.keys(now).forEach((k) => put(k, now[k]));
+    data.steps = data.steps.slice(0, at);
+    data.redo.push(group);
+    keep();
+    restored(Object.keys(now));
+    return true;
+  }
+  function redoId(id) {
+    const group = data.redo[data.redo.length - 1];
+    if (!group || !group.some((s) => s.id === id)) return false;
+    const vals = {};
+    const stale = [];
+    group.forEach((s) => {
+      if (!(s.key in vals)) vals[s.key] = rawGet.call(localStorage, s.key);
+      vals[s.key] = forward(s, vals[s.key]);
+      if (hash(vals[s.key]) !== s.h && !stale.includes(s.key)) stale.push(s.key);
+    });
+    if (stale.length) {
+      data.redo.pop();
+      keep();
+      alert("Not redone: " + stale.map(name).join(", ") + " changed since.");
+      return false;
+    }
+    Object.keys(vals).forEach((k) => put(k, vals[k]));
+    data.redo.pop();
+    data.steps = data.steps.concat(group);
+    keep();
+    restored(Object.keys(vals));
+    return true;
   }
   P.setItem = function (k, v) {
     if (blocked(this, k)) return;
@@ -236,13 +342,53 @@
     location.reload();
     return true;
   }
+  /* A new change anywhere empties this redo list too, and spends the click that made it; so do undo and redo. */
+  if (hub()) {
+    const St = hub();
+    ["undo", "redo"].forEach((dir) => {
+      const was = St[dir];
+      St[dir] = function () {
+        armed = false;
+        return was.apply(this, arguments);
+      };
+    });
+  }
+  if (hub() && hub().onNew)
+    hub().onNew(() => {
+      armed = false;
+      if (!data.redo.length) return;
+      data.redo = [];
+      keep();
+    });
+  /* After a reload, put the steps kept in this tab (these and the Viewer's) back on the app-wide list, oldest
+     first, and the ones that can be redone on its redo list, the next one last. */
+  function hydrate() {
+    const St = hub();
+    if (!St) return;
+    const V = window.CurioViewer;
+    const log = V && typeof V.undoLog === "function" ? V.undoLog() : { undo: [], redo: [] };
+    const viewerExt = (e) => V.hubStep(e);
+    const u = data.steps.filter((s) => s.hub).map((s) => ({ at: s.at, ext: ext(s), name: "app" }));
+    log.undo.forEach((e) => u.push({ at: e.at, ext: viewerExt(e), name: "viewer" }));
+    const r = [];
+    data.redo.forEach((g) => {
+      const s = g.find((x) => x.hub);
+      if (s) r.push({ at: s.at, ext: ext(s), name: "app" });
+    });
+    log.redo.forEach((e) => r.push({ at: e.at, ext: viewerExt(e), name: "viewer" }));
+    u.sort((a, b) => a.at - b.at).forEach((x) => St.external(x.name, x.ext, { keep: true }));
+    r.sort((a, b) => b.at - a.at).forEach((x) => St.external(x.name, x.ext, { redo: true }));
+  }
+  if (document.readyState === "complete") setTimeout(hydrate, 0);
+  else window.addEventListener("load", () => setTimeout(hydrate, 0));
+
   window.CurioAppUndo = {
     steps,
     undoTo,
     redo,
     canRedo: () => data.redo.length > 0,
     clear() {
-      data = { steps: [], redo: [] };
+      data = { steps: [], redo: [], seq: data.seq || 0 };
       keep();
     },
   };
