@@ -115082,6 +115082,2203 @@
     "cue": "plot",
     "tryThis": "End the film with the one who stole the pills sitting quietly beside a scared kid, saying the same words the healer once said to her."
    }
+  },
+  {
+   "id": "kidGoal",
+   "level": "curiosity",
+   "label": "Kid goals: body on the line for a goal they can touch",
+   "plain": "When a goal feels real and close, people of any age put their body and health on the line like it's nothing: three nights with no sleep before a test, a dad wiring a cabin from videos. How old they are colors the goal, and kids often don't see how easily they could get hurt. Not \"What they want, against what they need\": this is how much of themselves they spend on it.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "risk",
+   "sliders": [
+    {
+     "id": "risk",
+     "label": "What they'll risk for it",
+     "plain": "0 risks nothing; 100 puts body and health on the line like it's nothing.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "tangible",
+     "label": "How close the goal feels",
+     "plain": "How real and touchable the goal is to them right now.",
+     "scale": [
+      "a far-off dream",
+      "someday",
+      "within reach",
+      "right in front of me"
+     ],
+     "from": "a far-off dream",
+     "to": "right in front of me",
+     "curve": "linear"
+    },
+    {
+     "id": "aware",
+     "label": "How aware they are of the danger",
+     "plain": "Whether they see how easily they could get hurt.",
+     "scale": [
+      "no idea",
+      "a little",
+      "knows but ignores it",
+      "fully knows"
+     ],
+     "from": "no idea",
+     "to": "fully knows",
+     "curve": "linear"
+    },
+    {
+     "id": "watched",
+     "label": "Who's watching out for them",
+     "plain": "Whether anyone is there to keep them safe.",
+     "scale": [
+      "alone",
+      "another kid",
+      "a grown-up nearby",
+      "a grown-up right beside them"
+     ],
+     "from": "alone",
+     "to": "a grown-up right beside them",
+     "curve": "linear"
+    },
+    {
+     "id": "age",
+     "label": "Their age",
+     "plain": "How old they are, which colors what they go after.",
+     "scale": [
+      "little kid",
+      "pre-teen",
+      "teenager",
+      "young adult",
+      "adult",
+      "older person"
+     ],
+     "from": "little kid",
+     "to": "older person",
+     "curve": "linear"
+    },
+    {
+     "id": "cost",
+     "label": "What it costs them after",
+     "plain": "The price the body pays the next day: the sore stomach, the lost sleep.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A goal worth any cost pushes a character into danger the audience sees before they do.",
+    "theme": "Shows how wanting something makes a person forget their own body.",
+    "pull": "We watch them get closer and fear what it will cost.",
+    "cue": "plot",
+    "tryThis": "Let him climb the rope a third time while we see his hands are already raw."
+   }
+  },
+  {
+   "id": "preteenGoal",
+   "level": "curiosity",
+   "label": "Pre-teen goals",
+   "plain": "The goals of about 9 to 12: climb the rope to the top of the gym, earn the badge, win the candy, get the cute girl or boy to notice.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "dare",
+   "sliders": [
+    {
+     "id": "dare",
+     "label": "How dangerous the dare",
+     "plain": "How much could go wrong.",
+     "scale": [
+      "safe",
+      "a little risky",
+      "risky",
+      "dangerous"
+     ],
+     "from": "safe",
+     "to": "dangerous",
+     "curve": "linear"
+    },
+    {
+     "id": "forWhom",
+     "label": "Who it's for",
+     "plain": "0 just for themselves; 100 all about impressing the group.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "prize",
+     "label": "The prize",
+     "plain": "What they get if they do it.",
+     "scale": [
+      "candy and bragging rights",
+      "a badge or a win",
+      "a friend or a crush",
+      "something that changes my life"
+     ],
+     "from": "candy and bragging rights",
+     "to": "something that changes my life",
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Kind of goal",
+     "plain": "What sort of goal it is.",
+     "scale": [
+      "a physical feat",
+      "winning a game",
+      "a skill to learn",
+      "getting noticed",
+      "a secret mission"
+     ],
+     "from": "a physical feat",
+     "to": "a secret mission",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "secret",
+     "label": "Grown-ups know",
+     "plain": "Whether the grown-ups know what they're up to.",
+     "scale": [
+      "they know",
+      "half know",
+      "no idea"
+     ],
+     "from": "they know",
+     "to": "no idea",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A small goal at this age feels like the whole world, so the stakes read big.",
+    "theme": "Shows how big small things are when you're young.",
+    "pull": "We root for the kid to make it.",
+    "cue": "visual",
+    "tryThis": "Let the whole class chant as he reaches for the top of the rope."
+   }
+  },
+  {
+   "id": "teenGoal",
+   "level": "curiosity",
+   "label": "Teenage goals",
+   "plain": "The goals of about 13 to 18: status, love, freedom, and pulling off something big, like a senior putting on a city-wide scavenger hunt.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "size",
+   "sliders": [
+    {
+     "id": "size",
+     "label": "Size of the goal",
+     "plain": "How big a thing they're trying to pull off.",
+     "scale": [
+      "small",
+      "for my friends",
+      "for my school",
+      "city-wide"
+     ],
+     "from": "small",
+     "to": "city-wide",
+     "curve": "linear"
+    },
+    {
+     "id": "freedom",
+     "label": "Freedom from grown-ups",
+     "plain": "0 kept on a leash; 100 no leash at all.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "identity",
+     "label": "What it says about who I am",
+     "plain": "0 just fun; 5 it is who I am.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Kind of goal",
+     "plain": "What sort of goal it is.",
+     "scale": [
+      "status",
+      "love",
+      "freedom",
+      "a big project",
+      "getting in somewhere",
+      "rebellion"
+     ],
+     "from": "status",
+     "to": "rebellion",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "crew",
+     "label": "Who's with them",
+     "plain": "How many people they pull into it.",
+     "scale": [
+      "alone",
+      "one friend",
+      "a crew",
+      "a whole chapter"
+     ],
+     "from": "alone",
+     "to": "a whole chapter",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A teenager's goal is about becoming someone, so failing feels like losing who they are.",
+    "theme": "Shows the leap from kid to grown-up.",
+    "pull": "We wait to see if they pull it off, and who they become.",
+    "cue": "plot",
+    "tryThis": "Let him run the whole scavenger hunt from one clipboard, then have it stolen."
+   }
+  },
+  {
+   "id": "shyKidGoal",
+   "level": "curiosity",
+   "label": "Shy kid goals",
+   "plain": "The goals of a kid who'd rather not be seen: getting through the day, one friend, one brave moment.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "seen",
+   "sliders": [
+    {
+     "id": "seen",
+     "label": "How much they want to be seen",
+     "plain": "0 wants to be invisible; 100 wants to finally be noticed.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "brave",
+     "label": "Size of the brave moment",
+     "plain": "How big a step out they take.",
+     "scale": [
+      "none",
+      "tiny",
+      "real",
+      "huge"
+     ],
+     "from": "none",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "helper",
+     "label": "Who helps them",
+     "plain": "Who gives them the push.",
+     "scale": [
+      "no one",
+      "a friend",
+      "a sibling",
+      "a teacher"
+     ],
+     "from": "no one",
+     "to": "a teacher",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "retreat",
+     "label": "How fast they hide again",
+     "plain": "How quickly they shrink back after the brave moment.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "One brave moment from someone who never speaks up can turn a whole scene.",
+    "theme": "Shows courage at its smallest and truest.",
+    "pull": "We hold our breath for the kid to speak.",
+    "cue": "thought",
+    "tryThis": "Keep her at the back of every shot, then let her be the one to raise her hand."
+   }
+  },
+  {
+   "id": "sportsKidGoal",
+   "level": "curiosity",
+   "label": "Sports kid goals",
+   "plain": "Goals measured in wins, times, heights and bodies: making the team, the fastest lap, the trophy.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "hurt",
+   "sliders": [
+    {
+     "id": "hurt",
+     "label": "Body cost they accept",
+     "plain": "How much pain they'll take.",
+     "scale": [
+      "none",
+      "sore",
+      "playing hurt",
+      "anything to win"
+     ],
+     "from": "none",
+     "to": "anything to win",
+     "curve": "linear"
+    },
+    {
+     "id": "forWhom",
+     "label": "Who they're doing it for",
+     "plain": "0 for themselves; 100 for a parent or coach.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "level",
+     "label": "How high the level",
+     "plain": "How far up the goal reaches.",
+     "scale": [
+      "the backyard",
+      "school",
+      "city",
+      "state",
+      "the big leagues"
+     ],
+     "from": "the backyard",
+     "to": "the big leagues",
+     "curve": "linear"
+    },
+    {
+     "id": "winLose",
+     "label": "Last result",
+     "plain": "How the last game went.",
+     "scale": [
+      "lost badly",
+      "lost",
+      "won",
+      "won big"
+     ],
+     "from": "lost badly",
+     "to": "won big",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A game gives a clear goal and a clock, so stakes are easy to feel.",
+    "theme": "Shows what we'll give our bodies for.",
+    "pull": "We watch the score and the limp at the same time.",
+    "cue": "visual",
+    "tryThis": "Let the coach's whistle go off just as we see her limp."
+   }
+  },
+  {
+   "id": "lateLifeGoal",
+   "level": "curiosity",
+   "label": "Goals near the end of life",
+   "plain": "What older people want as time runs short: making peace, leaving something behind, being grateful, getting right with God.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "timeLeft",
+   "sliders": [
+    {
+     "id": "timeLeft",
+     "label": "Time they feel they have",
+     "plain": "How short time feels to them.",
+     "scale": [
+      "plenty",
+      "some",
+      "not much",
+      "almost none"
+     ],
+     "from": "plenty",
+     "to": "almost none",
+     "curve": "linear"
+    },
+    {
+     "id": "looking",
+     "label": "Looking back or ahead",
+     "plain": "0 full of regret; 100 full of gratitude.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "forWhom",
+     "label": "Who the goal is for",
+     "plain": "Who the last goal serves.",
+     "scale": [
+      "me",
+      "my family",
+      "the people after me",
+      "God"
+     ],
+     "from": "me",
+     "to": "God",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "kind",
+     "label": "Kind of goal",
+     "plain": "What sort of goal it is.",
+     "scale": [
+      "make peace",
+      "leave something behind",
+      "one last adventure",
+      "be grateful",
+      "be ready"
+     ],
+     "from": "make peace",
+     "to": "be ready",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A goal with a clock that can't be wound back makes every scene count.",
+    "theme": "Shows what matters when there is little time left.",
+    "pull": "We wait for the peace to be made in time.",
+    "cue": "thought",
+    "tryThis": "Let the grandfather finish the birdhouse on the last afternoon of the visit."
+   }
+  },
+  {
+   "id": "friendGroup",
+   "level": "curiosity",
+   "label": "Which friend group you're in",
+   "plain": "Status as which group of kids you belong to: the popular kids and jocks, the rebels and adventurers, the outcasts (sometimes a group of two), or the kids who fit nowhere. Not \"How much they need the group's approval\": this is which group, and where it sits on the ladder.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "status",
+   "sliders": [
+    {
+     "id": "status",
+     "label": "Status of the group",
+     "plain": "Where the group sits in the school's pecking order.",
+     "scale": [
+      "bottom",
+      "low",
+      "middle",
+      "high",
+      "top"
+     ],
+     "from": "bottom",
+     "to": "top",
+     "curve": "linear"
+    },
+    {
+     "id": "group",
+     "label": "The group",
+     "plain": "Which group they belong to.",
+     "scale": [
+      "fit nowhere",
+      "the outcasts",
+      "the quiet ones",
+      "the rebels and adventurers",
+      "the brains",
+      "the popular kids and jocks"
+     ],
+     "from": "fit nowhere",
+     "to": "the popular kids and jocks",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "tight",
+     "label": "How tight the group is",
+     "plain": "0 loose; 5 inseparable.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "wantOut",
+     "label": "How badly they want a different group",
+     "plain": "0 happy here; 5 desperate to leave.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "outsiders",
+     "label": "How the group treats outsiders",
+     "plain": "What the group does to kids who aren't in it.",
+     "scale": [
+      "kind",
+      "ignores them",
+      "teases them",
+      "cruel"
+     ],
+     "from": "kind",
+     "to": "cruel",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Who sits with whom decides who helps, who mocks and who is left alone when it counts.",
+    "theme": "Shows how status shapes kids.",
+    "pull": "We watch for someone to cross between groups.",
+    "cue": "visual",
+    "tryThis": "Open on the lunchroom as a map: every table one group, and one kid holding a tray with nowhere to sit."
+   }
+  },
+  {
+   "id": "siblingHero",
+   "level": "curiosity",
+   "label": "My older sibling is the coolest person on the planet",
+   "plain": "The moment a younger kid sees their big brother or sister as a hero, like a brother flooring it over the parking lot medians to get a stolen clipboard back.",
+   "workspace": "arc",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "lookUp",
+   "sliders": [
+    {
+     "id": "lookUp",
+     "label": "How much the kid looks up to them",
+     "plain": "0 sees them as an equal; 100 sees them as a god.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "letIn",
+     "label": "How much the sibling lets them in",
+     "plain": "Whether the big sibling brings them into the adventure.",
+     "scale": [
+      "shuts them out",
+      "puts up with them",
+      "takes them along",
+      "makes them a partner"
+     ],
+     "from": "shuts them out",
+     "to": "makes them a partner",
+     "curve": "linear"
+    },
+    {
+     "id": "pride",
+     "label": "Pride when others notice",
+     "plain": "How proud the kid is when someone else sees it too.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "moment",
+     "label": "What does it",
+     "plain": "What the sibling did to become the hero.",
+     "scale": [
+      "a rescue",
+      "a dare",
+      "a kindness",
+      "a stunt",
+      "standing up for them"
+     ],
+     "from": "a rescue",
+     "to": "standing up for them",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A hero at home gives the younger kid someone to copy, chase and someday surpass.",
+    "theme": "Shows how we learn who to be from the people closest to us.",
+    "pull": "We wait to see the little one try the same thing.",
+    "cue": "visual",
+    "tryThis": "Shoot the brother from the passenger seat, low and close, as the car bucks over the medians."
+   }
+  },
+  {
+   "id": "rulesBreakable",
+   "level": "curiosity",
+   "label": "You can always break the rules and do the impossible",
+   "plain": "The moment a kid realizes the rules are a choice: you can drive straight over the medians, break into the camp's candy storehouse, do donuts on a frozen lot. Not \"A rule we learn early\": this is finding out a rule can be broken.",
+   "workspace": "arc",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "size",
+   "sliders": [
+    {
+     "id": "size",
+     "label": "How big the rule broken",
+     "plain": "How much of a rule they break.",
+     "scale": [
+      "tiny",
+      "real",
+      "big",
+      "huge"
+     ],
+     "from": "tiny",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "harm",
+     "label": "Who could get hurt",
+     "plain": "Who pays if it goes wrong.",
+     "scale": [
+      "nobody",
+      "themselves",
+      "a few people",
+      "everyone"
+     ],
+     "from": "nobody",
+     "to": "everyone",
+     "curve": "linear"
+    },
+    {
+     "id": "thrill",
+     "label": "Thrill",
+     "plain": "0 nervous; 5 pure joy.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "stays",
+     "label": "Does it stay with them",
+     "plain": "Whether the lesson sticks.",
+     "scale": [
+      "forgotten",
+      "a fun memory",
+      "changes how they see things",
+      "changes who they are"
+     ],
+     "from": "forgotten",
+     "to": "changes who they are",
+     "curve": "linear"
+    },
+    {
+     "id": "caught",
+     "label": "Caught",
+     "plain": "Whether anyone finds out.",
+     "scale": [
+      "never",
+      "almost",
+      "caught"
+     ],
+     "from": "never",
+     "to": "caught",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Once a character knows rules can be broken, every wall in the story becomes a door.",
+    "theme": "Shows freedom, and its danger.",
+    "pull": "We wait to see which rule they break next.",
+    "cue": "plot",
+    "tryThis": "Let the whole cabin stand frozen at the storehouse door, then one kid tries the handle."
+   }
+  },
+  {
+   "id": "coolGrownup",
+   "level": "curiosity",
+   "label": "What cool looks like in a grown-up",
+   "plain": "A kid meeting an adult who shows them what cool is, like a mountain bike teacher who loves Elvis, calls him \"Big E\", and teaches everyone bunny hops.",
+   "workspace": "arc",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "cool",
+   "sliders": [
+    {
+     "id": "cool",
+     "label": "How cool",
+     "plain": "0 square; 100 a legend.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "teaches",
+     "label": "What they teach",
+     "plain": "How much the grown-up passes on.",
+     "scale": [
+      "nothing",
+      "a trick",
+      "a skill",
+      "how to live"
+     ],
+     "from": "nothing",
+     "to": "how to live",
+     "curve": "linear"
+    },
+    {
+     "id": "hero",
+     "label": "Their own hero",
+     "plain": "Who the cool grown-up looks up to.",
+     "scale": [
+      "none",
+      "a musician",
+      "an athlete",
+      "a teacher of their own",
+      "a movie star"
+     ],
+     "from": "none",
+     "to": "a movie star",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "hangs",
+     "label": "Hangs out with the kids",
+     "plain": "How much they treat the kids as their crew.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A cool grown-up gives the kids a picture of who they could become.",
+    "theme": "Shows how kids learn from adults who aren't their parents.",
+    "pull": "We watch the kids start to copy them.",
+    "cue": "visual",
+    "tryThis": "Let every kid in line try the same wheelie the teacher just did."
+   }
+  },
+  {
+   "id": "rizz",
+   "level": "curiosity",
+   "label": "Rizz",
+   "plain": "Being able to win over someone you're attracted to: the talk, the timing and the nerve. Known as rizz.",
+   "workspace": "lines",
+   "also": [
+    "comedy"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "rizz",
+   "sliders": [
+    {
+     "id": "rizz",
+     "label": "Rizz level",
+     "plain": "0 none at all; 100 unstoppable.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "lands",
+     "label": "How it lands",
+     "plain": "How the other person takes it.",
+     "scale": [
+      "cringe",
+      "awkward",
+      "okay",
+      "smooth"
+     ],
+     "from": "cringe",
+     "to": "smooth",
+     "curve": "linear"
+    },
+    {
+     "id": "nerve",
+     "label": "Nerve",
+     "plain": "0 frozen; 5 fearless.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "style",
+     "label": "Style",
+     "plain": "How they go about it.",
+     "scale": [
+      "jokes",
+      "compliments",
+      "confidence",
+      "mystery",
+      "kindness"
+     ],
+     "from": "jokes",
+     "to": "kindness",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Every try at winning someone over is a scene with a clear win or loss.",
+    "theme": "Shows the nerve it takes to want someone out loud.",
+    "pull": "We cringe or cheer with every line.",
+    "cue": "thought",
+    "tryThis": "Let him rehearse the line in the mirror, then say it all wrong."
+   }
+  },
+  {
+   "id": "aura",
+   "level": "curiosity",
+   "label": "Aura",
+   "plain": "How cool someone seems right now, in this moment. It can rise or crash within one scene: \"check out his aura\", or losing aura with one bad move.",
+   "workspace": "focus",
+   "also": [
+    "comedy"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "aura",
+   "sliders": [
+    {
+     "id": "aura",
+     "label": "Aura",
+     "plain": "-100 big aura loss (cringe); 100 off the charts.",
+     "range": {
+      "min": -100,
+      "max": 100,
+      "unit": "",
+      "step": 5
+     },
+     "from": -100,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "Who sees it",
+     "plain": "How many people notice.",
+     "scale": [
+      "nobody",
+      "one person",
+      "a few friends",
+      "the whole room"
+     ],
+     "from": "nobody",
+     "to": "the whole room",
+     "curve": "linear"
+    },
+    {
+     "id": "trend",
+     "label": "Which way it's going",
+     "plain": "Whether they're gaining or losing it.",
+     "scale": [
+      "crashing",
+      "slipping",
+      "steady",
+      "rising",
+      "soaring"
+     ],
+     "from": "crashing",
+     "to": "soaring",
+     "curve": "linear"
+    },
+    {
+     "id": "effort",
+     "label": "Effortless or trying",
+     "plain": "0 effortless; 5 trying too hard.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A character's aura rising or crashing changes how the room treats them.",
+    "theme": "Shows how fast status can turn.",
+    "pull": "We wait for the aura to crash, or to soar.",
+    "cue": "visual",
+    "tryThis": "Freeze on him mid-fall as the whole cafeteria turns."
+   }
+  },
+  {
+   "id": "attractionTime",
+   "level": "curiosity",
+   "label": "Time and energy spent on attraction",
+   "plain": "How much of a character's day and mind goes to the people they're attracted to, whatever their orientation. A teacher's view: childhood is for learning, youth is taken up with desire, and only later do we turn to God and gratitude.",
+   "workspace": "mindset",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "share",
+   "sliders": [
+    {
+     "id": "share",
+     "label": "Share of their mind",
+     "plain": "0 none; 100 everything.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "stage",
+     "label": "Life stage",
+     "plain": "Where they are in life.",
+     "scale": [
+      "child",
+      "teen",
+      "young adult",
+      "adult",
+      "elder"
+     ],
+     "from": "child",
+     "to": "elder",
+     "curve": "linear"
+    },
+    {
+     "id": "pull",
+     "label": "Pull against other goals",
+     "plain": "How often attraction wins over everything else.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "toward",
+     "label": "Toward whom",
+     "plain": "Who they're drawn to.",
+     "scale": [
+      "not yet known",
+      "the opposite sex",
+      "the same sex",
+      "any gender"
+     ],
+     "from": "not yet known",
+     "to": "any gender",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "When attraction takes the mind, other goals slip and the plot swerves.",
+    "theme": "Shows how much of life desire can fill.",
+    "pull": "We watch where their eyes go.",
+    "cue": "thought",
+    "tryThis": "Let the sailing race be lost because he was watching the girls' boat."
+   }
+  },
+  {
+   "id": "godInLife",
+   "level": "curiosity",
+   "label": "How God is in your life",
+   "plain": "What a character thinks God is, what God expects of them, what part God plays for them and what part they play for God, including no God (atheist) and not knowing (agnostic). Kids and adults both make deals with God. Not \"How the belief shows\": this is the belief itself.",
+   "workspace": "mindset",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "belief",
+   "sliders": [
+    {
+     "id": "belief",
+     "label": "Belief",
+     "plain": "How sure they are that God is there.",
+     "scale": [
+      "atheist",
+      "agnostic",
+      "hopes so",
+      "believes",
+      "certain"
+     ],
+     "from": "atheist",
+     "to": "certain",
+     "curve": "linear"
+    },
+    {
+     "id": "godIs",
+     "label": "What God is to them",
+     "plain": "Their picture of God.",
+     "scale": [
+      "a judge",
+      "a parent",
+      "a friend",
+      "the whole world",
+      "the Self within"
+     ],
+     "from": "a judge",
+     "to": "the Self within",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "deal",
+     "label": "Making a deal with God",
+     "plain": "0 never; 5 every day (\"if you get me this, I'll...\").",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "grateful",
+     "label": "Gratitude",
+     "plain": "0 none; 5 thinks of God in all their work.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "drives",
+     "label": "How much it drives them",
+     "plain": "0 background; 5 the main force in their story.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "A deal made with God, kept or broken, can drive a whole season.",
+    "theme": "Shows what a person thinks they owe, and are owed.",
+    "pull": "We wait to see if the deal is kept.",
+    "cue": "thought",
+    "tryThis": "Let the kid whisper a deal under the covers, and the next scene show what it was for."
+   }
+  },
+  {
+   "id": "bornNature",
+   "level": "curiosity",
+   "label": "Born this way: karma and samskaras",
+   "plain": "Two kids from the same home can be completely different, because we come into this life with our karmas, our samskaras. Not \"The old wound\": this is what they brought with them, not what life did to them.",
+   "workspace": "archetype",
+   "also": [
+    "arc"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character",
+   "main": "different",
+   "sliders": [
+    {
+     "id": "different",
+     "label": "How different from their siblings",
+     "plain": "0 just like them; 100 their opposite.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "fixed",
+     "label": "How fixed their nature feels",
+     "plain": "0 changes freely; 5 set from birth.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "leaning",
+     "label": "Their leaning",
+     "plain": "The nature they came in with.",
+     "scale": [
+      "bold",
+      "careful",
+      "dreamy",
+      "practical",
+      "devoted",
+      "restless"
+     ],
+     "from": "bold",
+     "to": "restless",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "fights",
+     "label": "Fighting their nature",
+     "plain": "How hard they push against what they are.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Two siblings who react opposite ways to the same moment make every scene a comparison.",
+    "theme": "Shows we are not blank slates.",
+    "pull": "We watch the two sisters choose differently.",
+    "cue": "visual",
+    "tryThis": "Cut between the two sisters getting the same news."
+   }
   }
  ],
  "suites": [
@@ -182652,6 +184849,757 @@
     {
      "id": "weight:awakening.give",
      "label": "Weight of awakening give",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "goals-by-age",
+   "level": "suite",
+   "label": "Goals by age",
+   "plain": "The goal a character chases, seen through how old they are: pre-teen, teenage, shy kid, sports kid, near the end of life.",
+   "workspace": "plot",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "kidGoal"
+    },
+    {
+     "weight": 100,
+     "curiosity": "preteenGoal"
+    },
+    {
+     "weight": 100,
+     "curiosity": "teenGoal"
+    },
+    {
+     "weight": 100,
+     "curiosity": "shyKidGoal"
+    },
+    {
+     "weight": 100,
+     "curiosity": "sportsKidGoal"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lateLifeGoal"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kidGoal",
+     "label": "Weight of kidGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:preteenGoal",
+     "label": "Weight of preteenGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:teenGoal",
+     "label": "Weight of teenGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:shyKidGoal",
+     "label": "Weight of shyKidGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sportsKidGoal",
+     "label": "Weight of sportsKidGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lateLifeGoal",
+     "label": "Weight of lateLifeGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "body-on-the-line",
+   "level": "suite",
+   "label": "Body on the line",
+   "plain": "A goal right in front of them, everything risked, no idea of the danger, and nobody watching.",
+   "workspace": "plot",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "kidGoal",
+     "value": 90
+    },
+    {
+     "weight": 100,
+     "curiosity": "kidGoal",
+     "slider": "tangible",
+     "value": "right in front of me"
+    },
+    {
+     "weight": 100,
+     "curiosity": "kidGoal",
+     "slider": "aware",
+     "value": "no idea"
+    },
+    {
+     "weight": 100,
+     "curiosity": "kidGoal",
+     "slider": "watched",
+     "value": "alone"
+    },
+    {
+     "weight": 100,
+     "curiosity": "cm-risk"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kidGoal",
+     "label": "Weight of kidGoal",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kidGoal.tangible",
+     "label": "Weight of kidGoal tangible",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kidGoal.aware",
+     "label": "Weight of kidGoal aware",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:kidGoal.watched",
+     "label": "Weight of kidGoal watched",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cm-risk",
+     "label": "Weight of cm-risk",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "growing-up-moments",
+   "level": "suite",
+   "label": "Growing-up moments",
+   "plain": "The moments a kid realizes something big: the sibling hero, the rules that can be broken, the cool grown-up.",
+   "workspace": "arc",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "siblingHero"
+    },
+    {
+     "weight": 100,
+     "curiosity": "rulesBreakable"
+    },
+    {
+     "weight": 100,
+     "curiosity": "coolGrownup"
+    },
+    {
+     "weight": 100,
+     "curiosity": "mentorLesson"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:siblingHero",
+     "label": "Weight of siblingHero",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:rulesBreakable",
+     "label": "Weight of rulesBreakable",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:coolGrownup",
+     "label": "Weight of coolGrownup",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:mentorLesson",
+     "label": "Weight of mentorLesson",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-lunch-table",
+   "level": "suite",
+   "label": "The lunch table",
+   "plain": "Which friend group they're in, how much they need its approval, and the price of getting in.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "friendGroup"
+    },
+    {
+     "weight": 100,
+     "curiosity": "needApproval"
+    },
+    {
+     "weight": 100,
+     "curiosity": "initiation"
+    },
+    {
+     "weight": 100,
+     "curiosity": "statusGap"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:friendGroup",
+     "label": "Weight of friendGroup",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:needApproval",
+     "label": "Weight of needApproval",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:initiation",
+     "label": "Weight of initiation",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:statusGap",
+     "label": "Weight of statusGap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rizz-and-aura",
+   "level": "suite",
+   "label": "Rizz and aura",
+   "plain": "Winning someone over and how cool you seem doing it, with the time spent wanting them.",
+   "workspace": "lines",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "rizz"
+    },
+    {
+     "weight": 100,
+     "curiosity": "aura"
+    },
+    {
+     "weight": 100,
+     "curiosity": "attractionTime"
+    },
+    {
+     "weight": 100,
+     "curiosity": "tryingTooHard"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:rizz",
+     "label": "Weight of rizz",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:aura",
+     "label": "Weight of aura",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:attractionTime",
+     "label": "Weight of attractionTime",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:tryingTooHard",
+     "label": "Weight of tryingTooHard",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "god-and-nature",
+   "level": "suite",
+   "label": "God and what we're born with",
+   "plain": "Their picture of God, the deals they make, and the nature they came into life with.",
+   "workspace": "mindset",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "godInLife"
+    },
+    {
+     "weight": 100,
+     "curiosity": "bornNature"
+    },
+    {
+     "weight": 100,
+     "curiosity": "beliefShown"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lateLifeGoal"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:godInLife",
+     "label": "Weight of godInLife",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bornNature",
+     "label": "Weight of bornNature",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:beliefShown",
+     "label": "Weight of beliefShown",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lateLifeGoal",
+     "label": "Weight of lateLifeGoal",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -290506,6 +293454,1643 @@
    ]
   },
   {
+   "id": "goal-close-risk",
+   "level": "proximity",
+   "label": "When the goal feels close, they risk more",
+   "plain": "When the goal feels closer, what they'll risk rises within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "kidGoal",
+    "slider": "tangible",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "kidGoal",
+    "change": "rises"
+   },
+   "whenText": "the goal feels close",
+   "thenText": "they risk more",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "risk-body-cost",
+   "level": "proximity",
+   "label": "When they risk everything, the body pays",
+   "plain": "When what they risk rises, taking care of their own body drops within 2 beats.",
+   "workspace": "plot",
+   "also": [
+    "mindset"
+   ],
+   "when": {
+    "curiosity": "kidGoal",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "selfCare",
+    "change": "drops"
+   },
+   "whenText": "they risk everything",
+   "thenText": "the body pays",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "teen-goal-drive",
+   "level": "proximity",
+   "label": "When a big teenage goal grows, they get more driven",
+   "plain": "When the teenage goal grows, how driven they are rises within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "teenGoal",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "rises"
+   },
+   "whenText": "a big teenage goal grows",
+   "thenText": "they get more driven",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "sibling-hero-rules",
+   "level": "proximity",
+   "label": "When the sibling becomes a hero, the kid learns rules can break",
+   "plain": "When the kid looks up to their sibling more, knowing rules can be broken rises within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "siblingHero",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "rulesBreakable",
+    "change": "rises"
+   },
+   "whenText": "the sibling becomes a hero",
+   "thenText": "the kid learns rules can break",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rules-reckless",
+   "level": "proximity",
+   "label": "When rules feel breakable, they get reckless",
+   "plain": "When the rules feel breakable, Cautious to Reckless moves toward reckless within 2 beats.",
+   "workspace": "arc",
+   "also": [
+    "archetype"
+   ],
+   "when": {
+    "curiosity": "rulesBreakable",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cm-risk",
+    "change": "rises"
+   },
+   "whenText": "rules feel breakable",
+   "thenText": "they get reckless",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cool-grownup-lesson",
+   "level": "proximity",
+   "label": "When a cool grown-up teaches, a lesson is passed on",
+   "plain": "When the cool grown-up teaches more, a mentor's lesson rises within 2 beats.",
+   "workspace": "arc",
+   "also": [],
+   "when": {
+    "curiosity": "coolGrownup",
+    "slider": "teaches",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "mentorLesson",
+    "change": "rises"
+   },
+   "whenText": "a cool grown-up teaches",
+   "thenText": "a lesson is passed on",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "low-group-approval",
+   "level": "proximity",
+   "label": "When their group's status drops, they hunger for approval",
+   "plain": "When their friend group's status drops, how much they need approval rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "friendGroup",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "needApproval",
+    "change": "rises"
+   },
+   "whenText": "their group's status drops",
+   "thenText": "they hunger for approval",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "want-out-initiation",
+   "level": "proximity",
+   "label": "When they want into another group, they face a test",
+   "plain": "When they want a different group more, earning a place in the group rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "friendGroup",
+    "slider": "wantOut",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "initiation",
+    "change": "rises"
+   },
+   "whenText": "they want into another group",
+   "thenText": "they face a test",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rizz-aura",
+   "level": "proximity",
+   "label": "When their rizz lands, their aura rises",
+   "plain": "When their rizz rises, their aura rises within a beat.",
+   "workspace": "lines",
+   "also": [
+    "focus"
+   ],
+   "when": {
+    "curiosity": "rizz",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "aura",
+    "change": "rises"
+   },
+   "whenText": "their rizz lands",
+   "thenText": "their aura rises",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cringe-aura-loss",
+   "level": "proximity",
+   "label": "When a line lands as cringe, their aura crashes",
+   "plain": "When their line lands as cringe, their aura drops within a beat.",
+   "workspace": "lines",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "rizz",
+    "slider": "lands",
+    "is": "cringe"
+   },
+   "then": {
+    "curiosity": "aura",
+    "change": "drops"
+   },
+   "whenText": "a line lands as cringe",
+   "thenText": "their aura crashes",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "attraction-crowds-goals",
+   "level": "proximity",
+   "label": "When attraction fills their mind, other goals slip",
+   "plain": "When attraction takes more of their mind, being closer to the goal drops within 2 beats.",
+   "workspace": "mindset",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "attractionTime",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "plotProgress",
+    "change": "drops"
+   },
+   "whenText": "attraction fills their mind",
+   "thenText": "other goals slip",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "deal-with-god-drive",
+   "level": "proximity",
+   "label": "When they make a deal with God, they get driven",
+   "plain": "When they make a deal with God, how driven they are rises within 2 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "godInLife",
+    "slider": "deal",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "rises"
+   },
+   "whenText": "they make a deal with God",
+   "thenText": "they get driven",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "late-life-gratitude",
+   "level": "proximity",
+   "label": "When time feels short, gratitude grows",
+   "plain": "When time feels short, gratitude to God rises within 2 beats.",
+   "workspace": "mindset",
+   "also": [],
+   "when": {
+    "curiosity": "lateLifeGoal",
+    "slider": "timeLeft",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "godInLife",
+    "slider": "grateful",
+    "change": "rises"
+   },
+   "whenText": "time feels short",
+   "thenText": "gratitude grows",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "shy-brave-aura",
+   "level": "proximity",
+   "label": "When a shy kid is brave, their aura rises",
+   "plain": "When the shy kid's brave moment grows, their aura rises within a beat.",
+   "workspace": "plot",
+   "also": [
+    "focus"
+   ],
+   "when": {
+    "curiosity": "shyKidGoal",
+    "slider": "brave",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "aura",
+    "change": "rises"
+   },
+   "whenText": "a shy kid is brave",
+   "thenText": "their aura rises",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "preteen-dare-risk",
+   "level": "proximity",
+   "label": "When the dare gets dangerous, they risk more",
+   "plain": "When the pre-teen dare gets more dangerous, what they'll risk rises within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "preteenGoal",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "kidGoal",
+    "change": "rises"
+   },
+   "whenText": "the dare gets dangerous",
+   "thenText": "they risk more",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "sports-hurt-risk",
+   "level": "proximity",
+   "label": "When they play hurt, they risk more",
+   "plain": "When the sports kid accepts more pain, what they'll risk rises within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "sportsKidGoal",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "kidGoal",
+    "change": "rises"
+   },
+   "whenText": "they play hurt",
+   "thenText": "they risk more",
+   "within": 1,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "nature-differs-sibling",
+   "level": "proximity",
+   "label": "When their nature differs from their siblings, they look up to them less",
+   "plain": "When a kid's nature differs more from their siblings, looking up to the older one drops within 2 beats.",
+   "workspace": "archetype",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "bornNature",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "siblingHero",
+    "change": "drops"
+   },
+   "whenText": "their nature differs from their siblings",
+   "thenText": "they look up to them less",
+   "within": 2,
+   "often": null,
+   "fact": false,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -331126,6 +335711,709 @@
     {
      "id": "chance:healed-becomes-healer",
      "label": "How often healed-becomes-healer",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-clipboard-chase",
+   "level": "proximitySuite",
+   "label": "The clipboard chase",
+   "plain": "A teenage goal drives the big sibling, the little one watches the hero break every rule, and gets reckless too.",
+   "workspace": "arc",
+   "also": [],
+   "members": [
+    "teen-goal-drive",
+    "sibling-hero-rules",
+    "rules-reckless"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:teen-goal-drive",
+     "label": "Delay of teen-goal-drive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:teen-goal-drive",
+     "label": "How often teen-goal-drive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:sibling-hero-rules",
+     "label": "Delay of sibling-hero-rules",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:sibling-hero-rules",
+     "label": "How often sibling-hero-rules",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:rules-reckless",
+     "label": "Delay of rules-reckless",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:rules-reckless",
+     "label": "How often rules-reckless",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-rope-climb",
+   "level": "proximitySuite",
+   "label": "The rope climb",
+   "plain": "A dare at the top of the gym, the goal so close they risk everything, and the body pays the next day.",
+   "workspace": "plot",
+   "also": [],
+   "members": [
+    "preteen-dare-risk",
+    "goal-close-risk",
+    "risk-body-cost",
+    "sports-hurt-risk"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:preteen-dare-risk",
+     "label": "Delay of preteen-dare-risk",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:preteen-dare-risk",
+     "label": "How often preteen-dare-risk",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:goal-close-risk",
+     "label": "Delay of goal-close-risk",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:goal-close-risk",
+     "label": "How often goal-close-risk",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:risk-body-cost",
+     "label": "Delay of risk-body-cost",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:risk-body-cost",
+     "label": "How often risk-body-cost",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:sports-hurt-risk",
+     "label": "Delay of sports-hurt-risk",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:sports-hurt-risk",
+     "label": "How often sports-hurt-risk",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "where-you-sit",
+   "level": "proximitySuite",
+   "label": "Where you sit",
+   "plain": "A low-status group makes them hungry for approval, they want out, and face a test to get in.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "low-group-approval",
+    "want-out-initiation",
+    "shy-brave-aura"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:low-group-approval",
+     "label": "Delay of low-group-approval",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:low-group-approval",
+     "label": "How often low-group-approval",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:want-out-initiation",
+     "label": "Delay of want-out-initiation",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:want-out-initiation",
+     "label": "How often want-out-initiation",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:shy-brave-aura",
+     "label": "Delay of shy-brave-aura",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:shy-brave-aura",
+     "label": "How often shy-brave-aura",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rizz-rise-and-fall",
+   "level": "proximitySuite",
+   "label": "Rizz, rise and fall",
+   "plain": "Rizz that lands lifts the aura, a cringe line crashes it, and the wanting crowds out every other goal.",
+   "workspace": "lines",
+   "also": [],
+   "members": [
+    "rizz-aura",
+    "cringe-aura-loss",
+    "attraction-crowds-goals"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:rizz-aura",
+     "label": "Delay of rizz-aura",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:rizz-aura",
+     "label": "How often rizz-aura",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cringe-aura-loss",
+     "label": "Delay of cringe-aura-loss",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cringe-aura-loss",
+     "label": "How often cringe-aura-loss",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:attraction-crowds-goals",
+     "label": "Delay of attraction-crowds-goals",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:attraction-crowds-goals",
+     "label": "How often attraction-crowds-goals",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "deals-with-god",
+   "level": "proximitySuite",
+   "label": "Deals with God",
+   "plain": "A deal with God drives them, near the end gratitude grows, and the nature they came with sets them apart.",
+   "workspace": "mindset",
+   "also": [],
+   "members": [
+    "deal-with-god-drive",
+    "late-life-gratitude",
+    "nature-differs-sibling",
+    "cool-grownup-lesson"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:deal-with-god-drive",
+     "label": "Delay of deal-with-god-drive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:deal-with-god-drive",
+     "label": "How often deal-with-god-drive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:late-life-gratitude",
+     "label": "Delay of late-life-gratitude",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:late-life-gratitude",
+     "label": "How often late-life-gratitude",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:nature-differs-sibling",
+     "label": "Delay of nature-differs-sibling",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:nature-differs-sibling",
+     "label": "How often nature-differs-sibling",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cool-grownup-lesson",
+     "label": "Delay of cool-grownup-lesson",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cool-grownup-lesson",
+     "label": "How often cool-grownup-lesson",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

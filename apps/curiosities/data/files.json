@@ -38,6 +38,7 @@
   "db-depth-belonging.js",
   "db-depth-relations.js",
   "db-depth-alone.js",
+  "db-depth-kid-goals.js",
   "db-styles.js",
   "db-styles-comedy.js",
   "db-plain.js",

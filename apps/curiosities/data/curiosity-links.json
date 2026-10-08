@@ -23493,6 +23493,330 @@
    "then": "life has meaning"
   },
   {
+   "id": "p:goal-close-risk",
+   "proximity": "goal-close-risk",
+   "label": "When the goal feels close, they risk more",
+   "from": {
+    "curiosity": "kidGoal.tangible",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "kidGoal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the goal feels close",
+   "then": "they risk more"
+  },
+  {
+   "id": "p:risk-body-cost",
+   "proximity": "risk-body-cost",
+   "label": "When they risk everything, the body pays",
+   "from": {
+    "curiosity": "kidGoal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfCare",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they risk everything",
+   "then": "the body pays"
+  },
+  {
+   "id": "p:teen-goal-drive",
+   "proximity": "teen-goal-drive",
+   "label": "When a big teenage goal grows, they get more driven",
+   "from": {
+    "curiosity": "teenGoal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a big teenage goal grows",
+   "then": "they get more driven"
+  },
+  {
+   "id": "p:sibling-hero-rules",
+   "proximity": "sibling-hero-rules",
+   "label": "When the sibling becomes a hero, the kid learns rules can break",
+   "from": {
+    "curiosity": "siblingHero",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "rulesBreakable",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sibling becomes a hero",
+   "then": "the kid learns rules can break"
+  },
+  {
+   "id": "p:rules-reckless",
+   "proximity": "rules-reckless",
+   "label": "When rules feel breakable, they get reckless",
+   "from": {
+    "curiosity": "rulesBreakable",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "rules feel breakable",
+   "then": "they get reckless"
+  },
+  {
+   "id": "p:cool-grownup-lesson",
+   "proximity": "cool-grownup-lesson",
+   "label": "When a cool grown-up teaches, a lesson is passed on",
+   "from": {
+    "curiosity": "coolGrownup.teaches",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mentorLesson",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a cool grown-up teaches",
+   "then": "a lesson is passed on"
+  },
+  {
+   "id": "p:low-group-approval",
+   "proximity": "low-group-approval",
+   "label": "When their group's status drops, they hunger for approval",
+   "from": {
+    "curiosity": "friendGroup",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "needApproval",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their group's status drops",
+   "then": "they hunger for approval"
+  },
+  {
+   "id": "p:want-out-initiation",
+   "proximity": "want-out-initiation",
+   "label": "When they want into another group, they face a test",
+   "from": {
+    "curiosity": "friendGroup.wantOut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "initiation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they want into another group",
+   "then": "they face a test"
+  },
+  {
+   "id": "p:rizz-aura",
+   "proximity": "rizz-aura",
+   "label": "When their rizz lands, their aura rises",
+   "from": {
+    "curiosity": "rizz",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "aura",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their rizz lands",
+   "then": "their aura rises"
+  },
+  {
+   "id": "p:cringe-aura-loss",
+   "proximity": "cringe-aura-loss",
+   "label": "When a line lands as cringe, their aura crashes",
+   "from": {
+    "curiosity": "rizz.lands",
+    "track": "character",
+    "is": "cringe",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "aura",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a line lands as cringe",
+   "then": "their aura crashes"
+  },
+  {
+   "id": "p:attraction-crowds-goals",
+   "proximity": "attraction-crowds-goals",
+   "label": "When attraction fills their mind, other goals slip",
+   "from": {
+    "curiosity": "attractionTime",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotProgress",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "attraction fills their mind",
+   "then": "other goals slip"
+  },
+  {
+   "id": "p:deal-with-god-drive",
+   "proximity": "deal-with-god-drive",
+   "label": "When they make a deal with God, they get driven",
+   "from": {
+    "curiosity": "godInLife.deal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they make a deal with God",
+   "then": "they get driven"
+  },
+  {
+   "id": "p:late-life-gratitude",
+   "proximity": "late-life-gratitude",
+   "label": "When time feels short, gratitude grows",
+   "from": {
+    "curiosity": "lateLifeGoal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "godInLife.grateful",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "time feels short",
+   "then": "gratitude grows"
+  },
+  {
+   "id": "p:shy-brave-aura",
+   "proximity": "shy-brave-aura",
+   "label": "When a shy kid is brave, their aura rises",
+   "from": {
+    "curiosity": "shyKidGoal.brave",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "aura",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a shy kid is brave",
+   "then": "their aura rises"
+  },
+  {
+   "id": "p:preteen-dare-risk",
+   "proximity": "preteen-dare-risk",
+   "label": "When the dare gets dangerous, they risk more",
+   "from": {
+    "curiosity": "preteenGoal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "kidGoal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the dare gets dangerous",
+   "then": "they risk more"
+  },
+  {
+   "id": "p:sports-hurt-risk",
+   "proximity": "sports-hurt-risk",
+   "label": "When they play hurt, they risk more",
+   "from": {
+    "curiosity": "sportsKidGoal",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "kidGoal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they play hurt",
+   "then": "they risk more"
+  },
+  {
+   "id": "p:nature-differs-sibling",
+   "proximity": "nature-differs-sibling",
+   "label": "When their nature differs from their siblings, they look up to them less",
+   "from": {
+    "curiosity": "bornNature",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "siblingHero",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "their nature differs from their siblings",
+   "then": "they look up to them less"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -29189,6 +29513,85 @@
     "p:awake-give",
     "p:healing-kind-voice",
     "p:healed-becomes-healer"
+   ]
+  },
+  {
+   "id": "ps:the-clipboard-chase",
+   "label": "The clipboard chase",
+   "plain": "A teenage goal drives the big sibling, the little one watches the hero break every rule, and gets reckless too.",
+   "proximities": [
+    "teen-goal-drive",
+    "sibling-hero-rules",
+    "rules-reckless"
+   ],
+   "links": [
+    "p:teen-goal-drive",
+    "p:sibling-hero-rules",
+    "p:rules-reckless"
+   ]
+  },
+  {
+   "id": "ps:the-rope-climb",
+   "label": "The rope climb",
+   "plain": "A dare at the top of the gym, the goal so close they risk everything, and the body pays the next day.",
+   "proximities": [
+    "preteen-dare-risk",
+    "goal-close-risk",
+    "risk-body-cost",
+    "sports-hurt-risk"
+   ],
+   "links": [
+    "p:preteen-dare-risk",
+    "p:goal-close-risk",
+    "p:risk-body-cost",
+    "p:sports-hurt-risk"
+   ]
+  },
+  {
+   "id": "ps:where-you-sit",
+   "label": "Where you sit",
+   "plain": "A low-status group makes them hungry for approval, they want out, and face a test to get in.",
+   "proximities": [
+    "low-group-approval",
+    "want-out-initiation",
+    "shy-brave-aura"
+   ],
+   "links": [
+    "p:low-group-approval",
+    "p:want-out-initiation",
+    "p:shy-brave-aura"
+   ]
+  },
+  {
+   "id": "ps:rizz-rise-and-fall",
+   "label": "Rizz, rise and fall",
+   "plain": "Rizz that lands lifts the aura, a cringe line crashes it, and the wanting crowds out every other goal.",
+   "proximities": [
+    "rizz-aura",
+    "cringe-aura-loss",
+    "attraction-crowds-goals"
+   ],
+   "links": [
+    "p:rizz-aura",
+    "p:cringe-aura-loss",
+    "p:attraction-crowds-goals"
+   ]
+  },
+  {
+   "id": "ps:deals-with-god",
+   "label": "Deals with God",
+   "plain": "A deal with God drives them, near the end gratitude grows, and the nature they came with sets them apart.",
+   "proximities": [
+    "deal-with-god-drive",
+    "late-life-gratitude",
+    "nature-differs-sibling",
+    "cool-grownup-lesson"
+   ],
+   "links": [
+    "p:deal-with-god-drive",
+    "p:late-life-gratitude",
+    "p:nature-differs-sibling",
+    "p:cool-grownup-lesson"
    ]
   },
   {
