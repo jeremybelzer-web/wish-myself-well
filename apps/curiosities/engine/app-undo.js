@@ -32,8 +32,9 @@
   /* curiosities-viewer-v1 is the Viewer's film: the Viewer keeps its own steps on the app-wide list. Kept
      versions and histories (Momentum's versions) are written by the app on its own, and a clipboard (the Screen's
      copied area) is not a change to the film: never undone. The Screen's tools (zoom, lane heights) are undone
-     by the Screen's own view steps. */
-  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1|screen-v1|screen-tools-v1|viewer-v1)$|-(view|tab|prefs|ui|versions|history|clip)-v\d+$/;
+     by the Screen's own view steps; its favorites and quick find keep what you used last as you go (a log, not
+     an edit). */
+  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1|screen-v1|screen-tools-v1|screen-faves-v1|screen-find-v1|viewer-v1)$|-(view|tab|prefs|ui|versions|history|clip)-v\d+$/;
   /* Kept outside the project's names, but made by you all the same: the Viewer's arrangement, your own
      curiosities and ties in the relationship map, your own lane suites. */
   const EXTRA = ["curio-viewer-workspace-v1", "curio-relations-v1", "curio-lane-suites-v1"];
