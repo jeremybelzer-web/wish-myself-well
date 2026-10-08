@@ -109,6 +109,25 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-stage { grid-column: 1; grid-row: 1; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-under { grid-column: 2; grid-row: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
 .cv-root[data-ws-lanes="beside"] .cv-player > .cv-transport { grid-column: 1 / -1; grid-row: 2; }
+.cv-root[data-ws-lanes="beside"] .cv-player > .ws-scrubrow { grid-column: 1; grid-row: 2; }
+/* the transport shares the top line, and the progress bar sits under the picture at its width (Jeremy 2026-10-08) */
+.ws-scrubrow { display: flex; align-items: center; min-width: 0; padding: 0 2px; }
+.ws-scrubrow > .cv-scrub { flex: 1 1 auto; width: 100%; margin: 0; height: 14px; }
+.cv-root[data-ws] > .cv-bar { flex-wrap: nowrap; overflow: hidden; padding: 3px 10px; gap: 6px 8px; }
+.cv-root[data-ws] > .cv-bar button, .cv-root[data-ws] > .cv-bar select { padding-top: 3px; padding-bottom: 3px; }
+.cv-root[data-ws] > .cv-bar .cv-brand { font-size: 14px; }
+.cv-root[data-ws] > .cv-bar > * { flex-shrink: 0; }
+.cv-root[data-ws] > .cv-bar .cv-title { flex: 0 1 auto; min-width: 90px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-root[data-ws] > .cv-bar > .cv-transport { flex-wrap: nowrap; gap: 4px; background: none; padding: 0; }
+.cv-root[data-ws] > .cv-bar > .cv-transport .cv-time { min-width: 0; font-size: 12px; }
+.cv-root[data-ws] > .cv-bar > .cv-transport button { padding: 4px 9px; }
+.cv-root[data-ws] .cvb-side { display: none !important; }
+.ws-topts-wrap { position: relative; }
+.ws-topts { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; display: grid; gap: 6px; padding: 8px; background: var(--c-panel, #1c1c1f); border: 1px solid var(--c-line, #2e2e33); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-width: 220px; }
+.ws-topts[hidden] { display: none; }
+.cv-root[data-ws] > .cv-bar > .cv-bar-r { flex-wrap: nowrap; }
+.ws-more .ws-topts { left: auto; right: 0; justify-items: stretch; }
+.ws-more .ws-topts > * { width: 100%; text-align: left; }
 .cv-root[data-ws-lanes="beside"] .cv-under > .cf-pane { flex: 1 1 auto; min-height: 0; }
 .cv-root[data-ws-lanes="beside"] .cv-under[data-tab="focus"] .cf-pane-focus { grid-template-rows: auto minmax(0, 1fr); }
 .cv-root[data-ws-lanes="beside"] .cf-charts { grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "pie list" "sheet sheet"; min-height: 0; }
@@ -149,7 +168,7 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   const LANE_MIN = 400;
   function fitSpot(root) {
     const player = root.querySelector(".cv-player");
-    const tr = player && player.querySelector(":scope > .cv-transport");
+    const tr = player && player.querySelector(":scope > .cv-transport, :scope > .ws-scrubrow");
     const win = root.querySelector(".cv-wins .cv-win");
     if (!player || !win || !win.offsetHeight) return { at: pictures(root) > 1 ? "below" : "beside" };
     const ratio = win.offsetWidth / win.offsetHeight;
@@ -160,8 +179,11 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     /* one picture: the lanes always sit beside it, at the top, and the picture gives up room for them when the
        window is narrow (Jeremy 2026-10-07 19:27Z: "the curiosity lanes ... in the window next to the viewer window
        at the top ... only when we add a window ... underneath both of them") */
-    if (n === 1) return { at: "beside", picsW: Math.min(picsW, Math.round((player.clientWidth - 12) * 0.62)) };
-    const room = player.clientWidth - 12 - picsW;
+    /* the room inside the Player (a curiosity window docked on its left takes some, viewer/curiosity-dock.js) */
+    const cs = getComputedStyle(player);
+    const inner = player.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (n === 1) return { at: "beside", picsW: Math.min(picsW, Math.round(inner * 0.62)) };
+    const room = inner - picsW;
     const was = root.dataset.wsLanes === "beside";
     return { at: room >= (was ? LANE_MIN - 40 : LANE_MIN) ? "beside" : "below", picsW };
   }
@@ -211,6 +233,8 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
         if (lanes === "bottom" && under.parentNode !== root) root.insertBefore(under, root.querySelector(":scope > .cv-strip").nextSibling);
         else if (lanes !== "bottom" && under.parentNode !== player) player.insertBefore(under, player.querySelector(":scope > .cv-transport"));
       }
+      dock(root, on);
+      oneLine(root, on);
       grips(root);
       stripCols(root);
       sheet(root);
@@ -321,6 +345,85 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
     });
     sheetSig = n + "|" + srcs.map((s) => s.dataset.wsGen).join(",");
   }
+
+  /* ---------- the transport on the top line, the progress bar under the picture ---------- */
+  function dock(root, on) {
+    const bar = root.querySelector(":scope > .cv-bar");
+    const tr = root.querySelector(".cv-transport");
+    const player = root.querySelector(".cv-player");
+    const stage = player && player.querySelector(":scope > .cv-stage");
+    const scrub = root.querySelector(".cv-scrub");
+    if (!bar || !tr || !player || !stage || !scrub) return;
+    const docked = tr.parentNode === bar;
+    if (on && !docked) {
+      bar.insertBefore(tr, bar.querySelector(":scope > .cv-bar-r"));
+      const row = document.createElement("div");
+      row.className = "ws-scrubrow";
+      row.appendChild(scrub);
+      stage.after(row);
+      /* the settings used now and then fold into one small button, so the line stays one line */
+      const wrap = document.createElement("span");
+      wrap.className = "ws-topts-wrap";
+      wrap.innerHTML = `<button type="button" class="ws-topts-btn" aria-haspopup="true" aria-expanded="false" title="Speed, Loop, what Pause does, and how many windows show">Play options ▾</button><span class="ws-topts" hidden></span>`;
+      const box = wrap.querySelector(".ws-topts");
+      tr.querySelectorAll(':scope > [data-k="winmode"], :scope > [data-k="speed"], :scope > label, :scope > [data-k="afterstop"]').forEach((el) => box.appendChild(el));
+      tr.appendChild(wrap);
+    } else if (!on && docked) {
+      const wrap = tr.querySelector(".ws-topts-wrap");
+      if (wrap) {
+        [...wrap.querySelector(".ws-topts").children].forEach((el) => tr.appendChild(el));
+        wrap.remove();
+      }
+      const time = tr.querySelector(".cv-time");
+      if (time) time.after(scrub);
+      const row = player.querySelector(":scope > .ws-scrubrow");
+      if (row) row.remove();
+      player.appendChild(tr);
+    }
+  }
+  /* one line at the top: the buttons that don't fit go under More ▾ at its end, last ones first */
+  const moved = [];
+  function oneLine(root, on) {
+    const bar = root.querySelector(":scope > .cv-bar");
+    const r = bar && bar.querySelector(":scope > .cv-bar-r");
+    if (!r) return;
+    let more = r.querySelector(":scope > .ws-more");
+    /* put everything back first, then take out only what doesn't fit */
+    while (moved.length) {
+      const el = moved.pop();
+      if (more) r.insertBefore(el, more);
+      else r.appendChild(el);
+    }
+    if (!on) return more && more.remove();
+    if (!more) {
+      more = document.createElement("span");
+      more.className = "ws-topts-wrap ws-more";
+      more.innerHTML = `<button type="button" class="ws-topts-btn" aria-haspopup="true" aria-expanded="false" title="The buttons that don't fit on the top line">More ▾</button><span class="ws-topts" hidden></span>`;
+      r.appendChild(more);
+    }
+    const box = more.querySelector(".ws-topts");
+    const wrapped = () => bar.scrollWidth > bar.clientWidth + 1;
+    more.hidden = true;
+    for (let guard = 0; wrapped() && guard < 30; guard++) {
+      more.hidden = false;
+      const items = [...r.children].filter((el) => el !== more && !el.hidden && getComputedStyle(el).display !== "none");
+      const last = items[items.length - 1];
+      if (!last) break;
+      box.prepend(last);
+      moved.push(last);
+    }
+    more.hidden = !moved.length;
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest && e.target.closest(".ws-more .ws-topts > button")) setTimeout(() => document.querySelectorAll(".ws-more .ws-topts").forEach((b) => (b.hidden = true)), 0);
+    const b = e.target.closest && e.target.closest(".ws-topts-btn");
+    document.querySelectorAll(".ws-topts").forEach((box) => {
+      if (box.contains(e.target)) return;
+      const open = !!b && box.previousElementSibling === b && box.hidden;
+      box.hidden = !open;
+      box.previousElementSibling.setAttribute("aria-expanded", String(open));
+    });
+  });
 
   /* ---------- the handles, the list and the drop spots ---------- */
   function grips(root) {

@@ -638,6 +638,8 @@
   if (!wins.length) wins = ["mine"];
   const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
   let activeWin = 0;
+  /* the order the windows show in, by window number; dragging one's ⠿ corner swaps it with another (Jeremy 2026-10-08) */
+  let winOrder = [];
   let pickedWin = 0;
   /* Two ways to see many windows: "fit" shrinks them all to fit the stage, "swipe" keeps one big window and
      you drag along its top edge (or click the dots) to see the others. */
@@ -1542,6 +1544,12 @@
 .cv-win:not(.is-mine) .cv-canvas { cursor: default; }
 .cv-wtab { position: absolute; left: 6px; top: 6px; display: flex; align-items: center; gap: 2px; background: rgba(12,12,14,0.78); border-radius: 6px; padding: 2px; touch-action: pan-y; user-select: none; max-width: calc(100% - 50px); z-index: 2; }
 .cv-root .cv-wtab button { background: transparent; padding: 3px 7px; font-size: 12px; }
+.cv-wgrip { position: absolute; left: 0; top: 0; z-index: 3; width: 18px; height: 18px; display: grid; place-items: center; font: 12px/1 system-ui, sans-serif; color: #d6d6db; background: rgba(12,12,14,0.78); border-bottom-right-radius: 6px; cursor: grab; touch-action: none; user-select: none; }
+.cv-wgrip:hover { background: #22d3ee; color: #062a31; }
+.cv-wins .cv-win:only-child .cv-wgrip { display: none; }
+.cv-wins .cv-win:not(:only-child) .cv-wtab { left: 22px; }
+.cv-win.cv-win-moving { opacity: 0.55; }
+.cv-win.cv-win-target { box-shadow: inset 0 0 0 3px #22d3ee; }
 .cv-root .cv-wtab .cv-wplus { background: #22d3ee; color: #062a31; font-weight: 700; font-size: 15px; line-height: 1; padding: 2px 8px; margin-left: 4px; border-radius: 5px; }
 .cv-wtop { display: none; position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 1; cursor: ew-resize; touch-action: pan-y; background: linear-gradient(rgba(34,211,238,0.35), transparent); }
 .cv-wins[data-mode="swipe"] .cv-wtop { display: flex; justify-content: center; align-items: center; }
@@ -1666,8 +1674,9 @@
         <span class="cv-title" contenteditable="true" spellcheck="false" title="The film's name. Click to change it."></span>
         <div class="cv-bar-r">
           <select data-k="look" title="The light of the whole film"><option value="dusk">Dusk light</option><option value="day">Daylight</option><option value="night">Night</option></select>
-          <button type="button" data-act="undo" title="Undo (⌘Z)">Undo</button>
-          <button type="button" data-act="redo" title="Redo (⇧⌘Z)">Redo</button>
+          <!-- people use ⌘Z and ⇧⌘Z (Jeremy 2026-10-08); the buttons stay hidden so the keys keep one place to go -->
+          <button type="button" data-act="undo" title="Undo (⌘Z)" hidden>Undo</button>
+          <button type="button" data-act="redo" title="Redo (⇧⌘Z)" hidden>Redo</button>
           <button type="button" data-act="perform" title="Performance and recording: the Transport (play, advance, record), Live inputs (MIDI, camera, voice) and Catalysts">Performance ▾</button>
           <button type="button" data-act="comic" title="See every panel big, like a comic book page">Read as a comic</button>
           <button type="button" data-act="sample" title="Throw away your changes and load the Episode 1 sample again">Start over</button>
@@ -1754,6 +1763,43 @@
   }
 
   /* ---------- drawing the page ---------- */
+  /* drag a window by its ⠿ corner onto another: they swap places */
+  function gripWin(el, i) {
+    const g = el.querySelector(".cv-wgrip");
+    let drag = null;
+    g.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      drag = { id: e.pointerId };
+      try {
+        g.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      el.classList.add("cv-win-moving");
+    });
+    const over = (e) => W_EL.findIndex((w, j) => {
+      if (j === i) return false;
+      const r = w.el.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    });
+    g.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      W_EL.forEach((w, j) => w.el.classList.toggle("cv-win-target", j === over(e)));
+    });
+    const end = (e) => {
+      if (!drag) return;
+      drag = null;
+      el.classList.remove("cv-win-moving");
+      W_EL.forEach((w) => w.el.classList.remove("cv-win-target"));
+      const j = e && e.type === "pointerup" ? over(e) : -1;
+      if (j < 0) return;
+      [winOrder[i], winOrder[j]] = [winOrder[j], winOrder[i]];
+      W_EL.forEach((w, k) => (w.el.style.order = String(winOrder[k])));
+      window.dispatchEvent(new Event("resize"));
+    };
+    g.addEventListener("pointerup", end);
+    g.addEventListener("pointercancel", end);
+  }
   function buildWins() {
     const box = root.querySelector(".cv-wins");
     W_EL.forEach((w) => w.video && w.video.pause());
@@ -1766,11 +1812,14 @@
       el.dataset.w = i;
       el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Control-drag to slide around the world. Double-click to zoom in there. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
         <div class="cv-wtop" title="Drag left or right along the top edge to see your other open windows"><span class="cv-wdots">${wins.map((_, j) => `<i data-wshow="${j}" class="${j === shownWin ? "on" : ""}" title="Window ${j + 1}"></i>`).join("")}</span></div>
-        <div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
+        <span class="cv-wgrip" data-wgrip="${i}" title="Drag to move this window to another place" aria-label="Move this window">⠿</span><div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
         ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
         <div class="cv-wmenu" hidden></div>
         <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
+      if (winOrder.length !== wins.length) winOrder = wins.map((_, j) => j);
+      el.style.order = String(winOrder[i]);
       box.appendChild(el);
+      gripWin(el, i);
       /* click an extra window to pick it; Delete (or Backspace) then closes it (Jeremy 2026-10-07) */
       /* anywhere on it counts, its name too (a click there was missed before, Jeremy 2026-10-08); capture, so the
          picture's own drag handling can't swallow it */

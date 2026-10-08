@@ -140,14 +140,31 @@ server.listen(0, "127.0.0.1", async () => {
   await page.waitForTimeout(200);
   ok(await page.isVisible(".cv-wins .cv-win:nth-child(2) .cv-wmenu [data-wclose]"), "right-clicking a window opens its own menu with Close");
   ok(!(await page.$(".cv-wplus")), "no big + button on the windows");
+  /* drag a window's ⠿ corner onto another: they swap places (Jeremy 2026-10-08) */
+  const g2 = await box(".cv-wins .cv-win:nth-child(2) .cv-wgrip");
+  const w1 = await box(".cv-wins .cv-win:nth-child(1)");
+  await page.keyboard.press("Escape");
+  await page.mouse.move(g2.l + 8, g2.t + 8);
+  await page.mouse.down();
+  await page.mouse.move(w1.l + w1.w / 2, w1.t + w1.h / 2, { steps: 6 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  const [a1, a2] = [await box(".cv-wins .cv-win:nth-child(1)"), await box(".cv-wins .cv-win:nth-child(2)")];
+  ok(a2.l < a1.l || a2.t < a1.t, "dragging a window's ⠿ corner onto another swaps them");
+  await page.mouse.move(a1.l + 8, a1.t + 8);
   await page.keyboard.press("Escape");
   await page.mouse.click(5, 5);
   /* Lanes follow the window: a shorter top part leaves room beside two pictures, and the lanes move there */
-  const views = async () => (await page.isVisible(".cv-views-menu")) || page.click('[data-act="views"]');
+  const views = async () => {
+    if (await page.isVisible(".cv-views-menu")) return;
+    /* on a narrow top line Views ▾ may sit under More ▾ */
+    if (!(await page.isVisible('[data-act="views"]'))) await page.click(".ws-more > .ws-topts-btn");
+    await page.click('[data-act="views"]');
+  };
   await views();
   await page.waitForTimeout(200);
   ok((await page.getAttribute(".cv-views-menu > .ws-follow", "aria-checked")) === "true", "Views ▾ starts with a Lanes follow the window switch, on");
-  await page.evaluate(() => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view = f.view || {}; f.view.borders = { strip: 540 }; CurioBorders.apply(); });
   await page.waitForTimeout(800);
   d = await ds();
   const pics = await page.$$eval(".cv-wins .cv-win", (els) => els.map((e) => e.getBoundingClientRect().right));
@@ -157,7 +174,7 @@ server.listen(0, "127.0.0.1", async () => {
   await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 0 }; CurioBorders.apply(); });
   await page.waitForTimeout(800);
   ok((await ds()).wsLanes === "below", "taller again, the pictures fill the width and the lanes drop under them");
-  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 480 }; CurioBorders.apply(); });
+  await page.evaluate(() => { const f = CurioViewer.live().film; f.view.borders = { strip: 540 }; CurioBorders.apply(); });
   await views();
   await page.click(".cv-views-menu > .ws-follow");
   await page.waitForTimeout(600);
@@ -208,6 +225,36 @@ server.listen(0, "127.0.0.1", async () => {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
   ok(!(await page.$(".cv-under.cf-popped")), "Escape puts them back");
+
+  /* the top line (Jeremy 2026-10-08): transport up there, one line, no Undo/Redo buttons, the progress bar under the picture */
+  await page.setViewportSize({ width: 1280, height: 760 });
+  await page.waitForTimeout(800);
+  const barH = await page.evaluate(() => document.querySelector(".cv-root > .cv-bar").offsetHeight);
+  ok(await page.evaluate(() => !!document.querySelector(".cv-root > .cv-bar > .cv-transport [data-act=play]")), "the transport shares the top line");
+  ok(barH < 56, `the top is one line (${barH}px)`);
+  ok(!(await page.isVisible('.cv-bar [data-act="undo"]')) && !(await page.isVisible('.cv-bar [data-act="redo"]')), "no Undo or Redo buttons");
+  const sr = await box(".ws-scrubrow");
+  const st = await box(".cv-stage");
+  ok(sr && Math.abs(sr.t - st.b) < 12 && Math.abs(sr.w - st.w) < 12, "the progress bar sits under the picture at its width");
+  /* the Curiosities tab: pick the window left of the picture */
+  await page.click(".cv-bar .cd-btn");
+  await page.waitForTimeout(200);
+  ok(await page.isVisible('.cd-pop [data-cd-pick="enneagram"]') && (await page.$$(".cd-pop [data-cd-pick]")).length > 30, "Curiosities opens a pop-up of windows: the ones Jeremy named and every other");
+  await page.click('.cd-pop [data-cd-pick="lighting"]');
+  await page.waitForTimeout(600);
+  const dk = await box(".cd-dock");
+  const st2 = await box(".cv-stage");
+  ok(dk && dk.r <= st2.l + 2, "Lighting docks left of the picture");
+  ok(!(await page.isVisible('.cv-bar [data-k="look"]')), "the Dusk light menu moved into it");
+  await page.click('.cd-dock [data-cd-look="night"]');
+  ok((await page.$eval('.cv-bar [data-k="look"]', (s) => s.value)) === "night", "its Night button lights the film for night");
+  await page.click(".cd-dock [data-cd-c]");
+  await page.waitForTimeout(300);
+  ok(await page.isVisible(".cf-cwin"), "a curiosity in it opens its own window");
+  await page.keyboard.press("Escape");
+  await page.click('.cd-dock [data-cd="close"]');
+  await page.waitForTimeout(400);
+  ok(!(await page.$(".cd-dock")), "✕ closes it");
 
   ok(!errors.length, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

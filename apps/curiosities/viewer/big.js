@@ -197,7 +197,7 @@
     if (!l) {
       l = document.createElement("div");
       l.className = "cvb-side cvb-side-l";
-      l.innerHTML = `<button type="button" data-cvb-do=".cv-transport [data-act=first]" title="First panel">⏮ First</button><button type="button" data-cvb-do=".cv-transport [data-act=prev]" title="Previous panel">◀ Back</button><button type="button" data-cvb-do=".cv-bar [data-act=undo]" title="Undo (⌘Z)">↶ Undo</button>`;
+      l.innerHTML = `<button type="button" data-cvb-do=".cv-transport [data-act=first]" title="First panel">⏮ First</button><button type="button" data-cvb-do=".cv-transport [data-act=prev]" title="Previous panel">◀ Back</button>`;
       r = document.createElement("div");
       r.className = "cvb-side cvb-side-r";
       r.innerHTML = `<button type="button" class="cvb-play" data-cvb-do=".cv-transport [data-act=play]" title="Play (space)">▶ Play</button><button type="button" data-cvb-do=".cv-transport [data-act=next]" title="Next panel">Next ▶</button><button type="button" data-cvb-do=".cv-transport [data-act=addwin]" title="Open another window next to your film">+ Window</button>`;

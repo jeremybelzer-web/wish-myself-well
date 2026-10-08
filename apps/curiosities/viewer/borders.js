@@ -47,6 +47,11 @@
   }
   /* wider than a phone: the app link opens in a frame often under 1100px (as viewer/workspace.js) */
   const wide = () => window.innerWidth > 760;
+  /* the room inside an element, less its padding (a curiosity window docked left of the picture pads the Player) */
+  const inner = (el) => {
+    const cs = getComputedStyle(el);
+    return el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  };
 
   /* ---------- the layout from the sizes ---------- */
   function apply() {
@@ -91,7 +96,7 @@
     }
     /* the picture | Front and center beside it: either side can go all the way (Jeremy 2026-10-08) */
     const beside = root.dataset.wsLanes === "beside";
-    const pw = root.querySelector(".cv-player").clientWidth;
+    const pw = inner(root.querySelector(".cv-player"));
     root.classList.toggle("cvd-side-folded", beside && s.fold.side);
     root.classList.toggle("cvd-stage-gone", beside && !s.fold.side && !!s.side && s.side >= pw - 40);
     sideWidth(root, beside && !s.fold.side && s.side ? s.side : null);
@@ -171,10 +176,10 @@
       foldable: true,
       size: sz("side", () => (rootEl().querySelector(".cv-under") || {}).offsetWidth || 360),
       min: () => 160,
-      max: () => rootEl().querySelector(".cv-player").clientWidth - 6,
+      max: () => inner(rootEl().querySelector(".cv-player")),
       folded: () => state().fold.side,
       /* folded away from all the way open, it comes back at its usual width, not hiding the picture again */
-      set: (px, f, phase) => put("side", f && px >= rootEl().querySelector(".cv-player").clientWidth - 40 ? 0 : px, f, phase),
+      set: (px, f, phase) => put("side", f && px >= inner(rootEl().querySelector(".cv-player")) - 40 ? 0 : px, f, phase),
       reset: () => put("side", 0, false, "end"),
     });
     make("strip", {

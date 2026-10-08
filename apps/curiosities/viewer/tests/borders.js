@@ -95,22 +95,22 @@ const ok = (cond, msg) => {
   await drag("lane", 0, -40);
   const lane1 = await h(".cv-under");
   ok(lane1 > lane0 + 25, `dragging the border above Front and center up makes it taller: ${lane0} -> ${lane1}`);
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(Math.abs((await h(".cv-under")) - lane0) < 4, "Undo takes it back");
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "borders-1.png") });
 
   /* undo takes the moves back one at a time, redo puts them back */
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(Math.abs((await h(".cv-strip")) - strip0) < 4, "Undo takes the storyboard's height back");
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(Math.abs((await w(".cv-details")) - 330) < 4, "Undo again takes Details back");
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(Math.abs((await w(".cv-things")) - 190) < 4, "and again, In the scene");
-  await page.click('[data-act="redo"]');
+  await page.$eval('[data-act="redo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(Math.abs((await w(".cv-things")) - 270) < 6, "Redo puts it back");
 
@@ -130,7 +130,7 @@ const ok = (cond, msg) => {
   /* dragging far past the smallest size folds it too */
   await drag("right", 400, 0);
   ok(await L(() => document.querySelector(".cv-details").hidden), "dragging Details' border all the way right folds it away");
-  await page.click('[data-act="undo"]');
+  await page.$eval('[data-act="undo"]', (b) => b.click());
   await page.waitForTimeout(150);
   ok(!(await L(() => document.querySelector(".cv-details").hidden)), "Undo brings it back");
 

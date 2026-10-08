@@ -64,11 +64,12 @@ server.listen(0, "127.0.0.1", async () => {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(200);
   ok(!(await page.isVisible(".cvb-win")), "Esc closes the window");
-  ok(await page.isVisible(".cvb-side-l") && (await page.isVisible(".cvb-side-r .cvb-play")), "Back, Undo, Play and Next sit left and right of a single picture");
-  await page.click(".cvb-side-r [data-cvb-do*=next]");
+  /* the transport sits on the top line now (Jeremy 2026-10-08), so nothing crowds the picture's sides */
+  ok(await page.isVisible(".cv-bar .cv-transport [data-act=play]") && !(await page.isVisible(".cvb-side-l")), "Play and Next sit on the top line, not beside the picture");
+  await page.click(".cv-bar .cv-transport [data-act=next]");
   await page.waitForTimeout(300);
-  ok(await page.evaluate(() => /Panel 2 of/.test(document.querySelector(".cv-hud, .cv-root").textContent)), "Next ▶ beside the picture steps to panel 2");
-  await page.click(".cvb-side-l [data-cvb-do*=prev]");
+  ok(await page.evaluate(() => /Panel 2 of/.test(document.querySelector(".cv-hud, .cv-root").textContent)), "Next ▶ on the top line steps to panel 2");
+  await page.click(".cv-bar .cv-transport [data-act=prev]");
   await page.waitForTimeout(200);
   await page.click('[data-act="addwin"]');
   await page.waitForTimeout(500);
