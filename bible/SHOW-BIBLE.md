@@ -180,6 +180,20 @@ Useful engines already in the pile:
 - Happiness is a decision; samadhi is a state; screen metaphor; take care of the tools
 - Serving Strange Gods (episode / band name)
 
+### Kid goals (Jeremy, 2026-10-08)
+
+Kids, like adults, put their body and health on the line like it's nothing when a goal feels real and close. Age colors the goals, and kids don't see how easily they could get hurt. Curiosities with sliders, and Jeremy's own words, are in the project file `show-ideas/kid-goals-curiosities.md`.
+
+- Goals by age: pre-teen, teenage, shy kid, sports kid, near the end of life
+- Which friend group you're in: popular kids and jocks, rebels, outcasts, kids who fit nowhere
+- The moment your older sibling becomes the coolest person on the planet
+- The moment you learn you can always break the rules and do the impossible
+- What cool looks like in a grown-up ("Big E", the mountain bike teacher)
+- Rizz; Aura (and losing it); time and energy spent on attraction (Amma: childhood is learning, youth is lust, later comes God and gratitude)
+- How God is in your life: deals with God at every age, or atheist, or agnostic. Karma and samskaras: two sisters, completely different.
+
+Episode seeds: Gaga selfies in the snow (a friend's 13-year-old, the limo driver, Jazz); the rope climb three times; Boy Scouts flint and steel, poker for candy; raiding the Camp Lincoln storehouse; the lap circle on the last day of camp; Mike's clipboard chase over the medians at HST; donuts on the frozen lot with Mike on the roof; "Your brother is so hot"; the outcast pair and Reggie on the track.
+
 ## What this is not
 
 Not a sermon. Not a villain piece about AI, Islam, ashrams, compounds, or governments. Not porn on camera — only the trigger (sadness) and the rag after. Not copyright dumps of other people’s novels, hymns, or YouTube.
