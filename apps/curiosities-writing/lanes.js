@@ -17,6 +17,9 @@
     arc: [W], plot: [W], mindset: [W], focus: [W], archetype: [W], herd: [W],
     emotion: [W, V], "emo-road": [W, V], comedy: [W, V], "comedy-mix": [W, V],
     music: [A], "audio-mix": [A],
+    /* The writing app's own workspaces (data/db-writing-language.js). */
+    "w-verbs": [W], "w-sentence": [W], "w-words": [W], "w-figures": [W], "w-voice": [W],
+    "w-sound": [W, A], "w-dialogue": [W, A],
   };
 
   /* A name about sound adds Audio. NOT_SOUND lists names that match the words but are not about sound. */

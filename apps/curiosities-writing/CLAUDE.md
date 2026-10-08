@@ -26,6 +26,8 @@ dialogue driven by each character's Enneagram type. Jeremy's full handoff is the
 | `index.html` | The first screen: every curiosity, with All / Visual / Writing / Audio tabs and Find |
 | `lanes.js` | `window.WritingLanes`: `tag(row)`, `tagAll(DB)`, the workspace table and overrides |
 | `app.js` | Draws the first screen |
+| `data/db-writing-language.js` | The writing-only language curiosities (verbs, sentences, words, figures, sound, voice, dialogue), each with frequency, placement, spacing, and spread by character and narrative voice. Seven `w-` workspaces |
+| `LANGUAGE-REVIEW.md` | Jeremy's keep / drop list for those, made by `node tools/review-list.js`. Honor a drop |
 | `tools/sync-scripts.js` | Keeps the database script tags in step with Curiomatic's `data/files.json` |
 | `tests/check.js` | `node apps/curiosities-writing/tests/check.js`: every curiosity tagged, shared ids present, scripts in step |
 
@@ -33,6 +35,6 @@ dialogue driven by each character's Enneagram type. Jeremy's full handoff is the
 
 1. Done: import Curiomatic's database and tag every curiosity Visual / Writing / Audio.
 2. The listener's perspective curiosity with its fine-tune window and presets.
-3. The writing depth file (handoff section 8) and Enneagram dialogue curiosities.
+3. Started: the language curiosities (`data/db-writing-language.js`). Still to come from handoff section 8: forms, persuasion, genre machinery, nonfiction, and more Enneagram dialogue curiosities.
 4. The Outline view as the main view, with the beat board and the Viewer one click away.
 5. Later, when the apps join: the Visual / Writing / Audio lane tabs in Curiomatic.

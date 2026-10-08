@@ -2,6 +2,8 @@
    Loads Curiomatic's database, tags every curiosity, and checks the writing app is in step with it. */
 const assert = require("assert");
 const DB = require("../../curiosities/data/load-db.js");
+const filmCount = DB.data.curiosities.length;
+require("../data/db-writing-language.js");
 const Lanes = require("../lanes.js");
 const { sync } = require("../tools/sync-scripts.js");
 
@@ -18,6 +20,10 @@ Object.keys(Lanes.OVERRIDES).forEach((id) => assert.ok(DB.get("curiosity", id), 
 ["listenerPlace", "projection", "glimpseOfALife", "typeTalk", "storyOrder", "plantedThing", "selfTalk", "healingArc"]
   .forEach((id) => assert.ok(DB.get("curiosity", id), "missing shared curiosity: " + id));
 
+const problems = DB.check();
+assert.deepStrictEqual(problems, [], "database check: " + problems.slice(0, 10).join("; "));
+const own = DB.data.curiosities.length - filmCount;
+
 assert.ok(sync(false), "index.html script tags are out of step with data/files.json: run tools/sync-scripts.js");
 
-console.log(`OK. ${counts.total} curiosities tagged: Visual ${counts.Visual}, Writing ${counts.Writing}, Audio ${counts.Audio}`);
+console.log(`OK. ${counts.total} curiosities tagged (${own} writing-only): Visual ${counts.Visual}, Writing ${counts.Writing}, Audio ${counts.Audio}`);

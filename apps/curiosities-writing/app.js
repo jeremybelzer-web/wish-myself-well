@@ -5,6 +5,7 @@
   const Lanes = window.WritingLanes;
   const counts = Lanes.tagAll(DB);
   const rows = DB.data.curiosities.slice().sort((a, b) => a.label.localeCompare(b.label));
+  const only = (r) => (r.tags || []).includes("writing-only");
   const state = { tab: "Writing", find: "" };
 
   const tabs = document.getElementById("tabs");
@@ -13,7 +14,7 @@
 
   function drawTabs() {
     tabs.innerHTML = "";
-    [["All", counts.total]].concat(Lanes.TABS.map((t) => [t, counts[t]])).forEach(([t, n]) => {
+    [["All", counts.total]].concat(Lanes.TABS.map((t) => [t, counts[t]]), [["Writing only", rows.filter(only).length]]).forEach(([t, n]) => {
       const b = document.createElement("button");
       b.textContent = `${t} (${n})`;
       b.className = t === state.tab ? "on" : "";
@@ -25,7 +26,7 @@
   function draw() {
     drawTabs();
     const q = state.find.toLowerCase();
-    const shown = rows.filter((r) => (state.tab === "All" || r.lanes.includes(state.tab)) &&
+    const shown = rows.filter((r) => (state.tab === "All" || (state.tab === "Writing only" ? only(r) : r.lanes.includes(state.tab))) &&
       (!q || (r.label + " " + r.plain + " " + r.id).toLowerCase().includes(q)));
     list.innerHTML = "";
     shown.forEach((r) => {
