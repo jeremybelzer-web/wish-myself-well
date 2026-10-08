@@ -140,3 +140,107 @@ Every countable one (marked ★) also has: how often, where in the sentence, spa
 | 100 | Questions in dialogue ★ | How often characters ask instead of tell, and whether questions get answered. | How often; Answered | keep |
 | 101 | Talks about themselves ★ | How often a speaker's lines are about themselves (I, me, my) against others. | How often | keep |
 | 102 | Says one thing, means another ★ | How far the words are from what is meant. Curiomatic's 'said against meant' holds the film version. | How often; Size of the gap | keep |
+
+# The ladder
+
+Suites go together; proximities are tangentially related and set nothing off; catalysts (sparks) set something off within a few sentences; elixirs fire only when every spark lines up, like tumblers in a lock. Numbers carry on from the curiosities, so you can name any row by number.
+
+## Suites (curiosities that go together)
+
+| # | Suite | What it is | Members | Keep? |
+| --- | --- | --- | --- | --- |
+| 103 | Punchy and plain | Short sentences, few commas, strong verbs, almost no adverbs, everyday words. | Sentence length 20; Commas 20; Verb strength 80; Adverbs 10; Plain or fancy words 15 | keep |
+| 104 | Lush and ornate | Long sentences heavy with adjectives, similes and rich images in fancy words. | Sentence length 80; Adjectives 80; Imagery 85; Simile 60; Plain or fancy words 75 | keep |
+| 105 | Hard-boiled voice | First person, short sentences, street and brand names, similes about the city that sting, a dry turn of irony. | Grammatical person first (I); Sentence length 25; Simile 60; Simile the city; Names, brands and places 60; Saying the opposite 50 | keep |
+| 106 | Deep inside a head | Zoomed all the way in: the narrator slips into the character's own words, no filter words, thoughts streaming. | Psychic distance 90; Free indirect speech 60; Filter words 10; Stream of consciousness 50 | keep |
+| 107 | The storyteller from far off | Third person, past tense, a distant view, and a narrator who comments on it all. | Psychic distance 15; Grammatical person third (he, she, they); Tense past; The narrator comments 60 | keep |
+| 108 | Breathless chase | Present tense, short sentences crammed with strong verbs, few commas, one-line paragraphs. | Tense present; Sentence length 15; Verbs per sentence 70; Verb strength 90; Commas 15; Paragraph length 10 | keep |
+| 109 | The song's hook | A refrain that keeps coming back, rhymed, few syllables to the bar, repeated openings and a little alliteration. | Refrain 80; Rhyme at line ends 70; Syllables per bar 30; Repeated openings 50; Alliteration 40 | keep |
+| 110 | The pulpit | Spoken-word and speeches: repeated openings, matching shapes, questions not meant to be answered, lists of three. | Repeated openings 80; Parallel structure 80; Questions not meant to be answered 60; Lists and threes 70 | keep |
+| 111 | Talking to you (ads) | Second person, commands, a question you answer yes to, short sentences, casual words. | Grammatical person second (you); Statement, question, command or wish command; Questions not meant to be answered 50; Sentence length 15; Formality 20 | keep |
+| 112 | Plain-spoken memoir | First person, past tense, the older self looking back, casual words, feelings shown more than named. | Grammatical person first (I); Tense past; Narrating I against experiencing I 60; Formality 30; Feelings named or shown 20 | keep |
+| 113 | Tight dialogue | Only 'said', action beats instead of tags, short speeches, interruptions, and meaning under the words. | Dialogue tags 0; Action beats 50; Length of each speech 20; Interruptions 40; Says one thing, means another 60 | keep |
+| 114 | Picture book | Simple words, short sentences, words and lines that come back, and sounds that play. | Plain or fancy words 5; Sentence length 20; Repeating a word 60; Refrain 60; Alliteration 50 | keep |
+| 115 | Lyric poem | Lines broken mid-thought, dense images, metaphor, air on the page and a light beat. | Line breaks 70; Imagery 80; Metaphor 60; White space 70; Meter and stressed syllables 40 | keep |
+| 116 | The haunted room | Things are the subjects, the house comes alive and turns hostile, and every sound is named. | Where the nouns sit 10; Personification 70; Personification 90; Sense words sound | keep |
+| 117 | The legal voice | Formal words, long sentences with clauses hanging off clauses, the passive, and every claim hedged. | Formality 90; Clauses per sentence 80; Active or passive 60; Certainty 70 | keep |
+| 118 | The chapter that won't let go | Ends on a cliffhanger, the last lines set alone, the strongest word last. | How chapters end cliffhanger; Paragraph length 70; How sentences end 90 | keep |
+
+## Proximities (tangentially related)
+
+| # | One | The other | How close (0 to 100) | Why | Keep? |
+| --- | --- | --- | --- | --- | --- |
+| 119 | Sentence length | Sentence rhythm | 90 | Rhythm is how the lengths follow each other. | keep |
+| 120 | Sentence length | Commas | 70 | Long sentences need commas to breathe. | keep |
+| 121 | Sentence type | Clauses per sentence | 85 | The type is counted in clauses. | keep |
+| 122 | How sentences begin | Word order | 70 | What comes first is word order seen from the front. | keep |
+| 123 | How sentences end | Main point first or last | 80 | Both decide what the reader is left holding. | keep |
+| 124 | Aspect | Tense | 85 | Tense says when; aspect says how long. | keep |
+| 125 | Verb strength | Adverbs | 75 | Strong verbs do the adverb's job. | keep |
+| 126 | Verb strength | Being verbs | 80 | Opposite ends of how much a verb does. | keep |
+| 127 | Kind of verb | Sense words | 55 | Seeing verbs and sight words travel together. | keep |
+| 128 | Active or passive | Certainty | 45 | The passive and the hedge both soften blame. | keep |
+| 129 | Nouns | Names, brands and places | 70 | A proper name is the most specific noun. | keep |
+| 130 | Nouns | Adjectives | 75 | Adjectives lean on nouns; strong nouns need fewer. | keep |
+| 131 | Where the adjectives sit | Adjectives | 90 | Where they go and how many. | keep |
+| 132 | Plain or fancy words | Formality | 85 | Fancy words and formal register rise together. | keep |
+| 133 | Formality | Dialect and accent on the page | 60 | Both say where a voice comes from. | keep |
+| 134 | Fresh or worn phrases | Simile | 60 | A worn simile is a cliché. | keep |
+| 135 | Simile | Metaphor | 90 | Two ways to compare. | keep |
+| 136 | Metaphor | Personification | 75 | Personification is a metaphor that makes a thing a person. | keep |
+| 137 | Exaggeration | Understatement | 70 | Opposite ways to bend the size of the truth. | keep |
+| 138 | Saying the opposite | Says one thing, means another | 80 | Both say one thing and mean another. | keep |
+| 139 | Alliteration | Consonance | 85 | Repeated consonants at the start and inside words. | keep |
+| 140 | Assonance | Rhyme inside lines | 70 | Matching vowels are half a rhyme. | keep |
+| 141 | Rhyme at line ends | Refrain | 60 | A refrain often rides on the rhyme. | keep |
+| 142 | Repeated openings | Parallel structure | 85 | Repeated openings make matching shapes. | keep |
+| 143 | Meter and stressed syllables | Syllables per bar | 80 | Both count the beat of the words. | keep |
+| 144 | Line breaks | White space | 70 | Where a line ends makes the air on the page. | keep |
+| 145 | Grammatical person | Where the audience stands in the telling | 85 | Person is where the listener stands, in grammar. | keep |
+| 146 | Psychic distance | Free indirect speech | 85 | Free indirect speech lives at the close end. | keep |
+| 147 | Psychic distance | Filter words | 80 | Filter words hold the reader at arm's length. | keep |
+| 148 | Narrating I against experiencing I | Tense | 60 | Looking back is usually past tense. | keep |
+| 149 | A character's language fingerprint | Talks like their personality type | 90 | How a character talks comes from their type. | keep |
+| 150 | The narrator's language fingerprint | A view we cannot trust | 50 | A narrator's habits can give away that they can't be trusted. | keep |
+| 151 | Dialogue tags | Action beats | 85 | An action beat replaces a tag. | keep |
+| 152 | Length of each speech | Interruptions | 75 | Interruptions cut speeches short. | keep |
+| 153 | Puns and wordplay | Wordplay | 90 | A pun is the smallest piece of wordplay. | keep |
+| 154 | Feelings named or shown | Says one thing, means another | 55 | Named feelings leave no room under the words. | keep |
+
+## Catalysts (sparks: when this, then that)
+
+| # | Catalyst | Within (sentences) | How often | Keep? |
+| --- | --- | --- | --- | --- |
+| 155 | When the sentences grow long, a very short one lands | 3 | 70% | keep |
+| 156 | When the telling zooms in, the filter words fall away | 1 | 80% | keep |
+| 157 | When the action piles up, the sentences shorten | 2 | 70% | keep |
+| 158 | When the tense snaps to present, the telling moves closer | 1 | 60% | keep |
+| 159 | When speakers interrupt, the speeches get shorter | 1 | 80% | keep |
+| 160 | When feelings stop being named, the hands start moving | 1 | 70% | keep |
+| 161 | When a simile lands, the next one waits | 2 | 60% | keep |
+| 162 | When the refrain returns, the rhyme tightens | 1 | 70% | keep |
+| 163 | When a line stands alone, the page opens up | 0 | 90% | keep |
+| 164 | When questions pile up in a conversation, the meaning goes under the words | 2 | 60% | keep |
+| 165 | When the swearing starts, the sentences shorten | 1 | 60% | keep |
+| 166 | When the narrator comments, the telling pulls back | 0 | 80% | keep |
+| 167 | When the house turns hostile, the senses sharpen | 2 | 60% | keep |
+| 168 | When the meter breaks, the line's last word hits hard | 0 | 60% | keep |
+| 169 | When openings repeat, lists of three follow | 2 | 60% | keep |
+| 170 | When a chapter ends on a cliffhanger, the next opens in dialogue | 1 | 50% | keep |
+| 171 | When the verbs go weak, the adverbs move in | 1 | 70% | keep |
+| 172 | When the telling turns to 'you', commands follow | 2 | 50% | keep |
+| 173 | When a character is under stress, their way of talking changes | 1 | 80% | keep |
+| 174 | When the narrator slips into the character's words, the italics fade | 1 | 70% | keep |
+| 175 | When the syllables per bar thin out, the refrain comes in | 1 | 60% | keep |
+| 176 | When the storm inside rises, thoughts start to stream | 1 | 70% | keep |
+
+## Elixirs (every spark must line up)
+
+| # | Elixir | What it is | The sparks (tumblers) | Keep? |
+| --- | --- | --- | --- | --- |
+| 177 | The punch lands | Long sentences build, the action piles up, the meter breaks: only when all three line up does the short line hit. | When the sentences grow long, a very short one lands; When the action piles up, the sentences shorten; When the meter breaks, the line's last word hits hard | keep |
+| 178 | Slipping inside a head | Present tense, filter words gone, italics gone: all three, and the reader is inside the character. | When the tense snaps to present, the telling moves closer; When the telling zooms in, the filter words fall away; When the narrator slips into the character's words, the italics fade | keep |
+| 179 | The hook arrives | Syllables thin out, the refrain returns, the rhymes tighten, the openings repeat: the chorus lands. | When the syllables per bar thin out, the refrain comes in; When the refrain returns, the rhyme tightens; When openings repeat, lists of three follow | keep |
+| 180 | The breaking point in a conversation | Stress changes how they talk, they start interrupting, the questions go unanswered: the fight breaks out. | When a character is under stress, their way of talking changes; When speakers interrupt, the speeches get shorter; When questions pile up in a conversation, the meaning goes under the words | keep |
+| 181 | The page-turner | A cliffhanger, the last line alone in white space, a punch at the end, the next chapter mid-voice. | When a chapter ends on a cliffhanger, the next opens in dialogue; When a line stands alone, the page opens up; When the sentences grow long, a very short one lands | keep |
+| 182 | Panic on the page | The storm inside rises, thoughts stream, the action piles up, the swearing starts. | When the storm inside rises, thoughts start to stream; When the action piles up, the sentences shorten; When the swearing starts, the sentences shorten | keep |

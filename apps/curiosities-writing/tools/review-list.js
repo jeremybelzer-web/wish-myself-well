@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const DB = require("../../curiosities/data/load-db.js");
 require("../data/db-writing-language.js");
+require("../data/db-writing-ladder.js");
 
 const SHARED = ["narration", "byCharacter", "byVoice", "change", "often", "place", "spacing", "gap", "subject", "amount", "push", "pointsAhead", "themeLink"];
 const ws = Object.fromEntries(DB.data.workspaces.map((w) => [w.id, w.label]));
@@ -21,5 +22,18 @@ Object.keys(ws).forEach((w) => {
     out += `| ${++n} | ${r.label}${star} | ${r.plain.replace(/\|/g, "/")} | ${own} | keep |\n`;
   });
 });
+const mine = (k) => DB.data[k].filter((r) => (r.tags || []).includes("writing-only"));
+const label = (id) => (DB.get("curiosity", id) || { label: id }).label;
+let k = 0;
+out += `\n# The ladder\n\nSuites go together; proximities are tangentially related and set nothing off; catalysts (sparks) set something off within a few sentences; elixirs fire only when every spark lines up, like tumblers in a lock. Numbers carry on from the curiosities, so you can name any row by number.\n`;
+out += `\n## Suites (curiosities that go together)\n\n| # | Suite | What it is | Members | Keep? |\n| --- | --- | --- | --- | --- |\n`;
+mine("suites").forEach((r) => (out += `| ${n + ++k} | ${r.label} | ${r.plain} | ${r.members.map((x) => label(x.curiosity) + " " + x.value).join("; ")} | keep |\n`));
+out += `\n## Proximities (tangentially related)\n\n| # | One | The other | How close (0 to 100) | Why | Keep? |\n| --- | --- | --- | --- | --- | --- |\n`;
+DB.writingProximities.forEach((p) => (out += `| ${n + ++k} | ${label(p.a)} | ${label(p.b)} | ${p.how} | ${p.why} | keep |\n`));
+out += `\n## Catalysts (sparks: when this, then that)\n\n| # | Catalyst | Within (sentences) | How often | Keep? |\n| --- | --- | --- | --- | --- |\n`;
+mine("proximities").forEach((r) => (out += `| ${n + ++k} | ${r.label} | ${r.within} | ${r.often}% | keep |\n`));
+out += `\n## Elixirs (every spark must line up)\n\n| # | Elixir | What it is | The sparks (tumblers) | Keep? |\n| --- | --- | --- | --- | --- |\n`;
+mine("proximitySuites").forEach((r) => (out += `| ${n + ++k} | ${r.label} | ${r.plain} | ${r.members.map((id) => DB.get("proximity", id).label).join("; ")} | keep |\n`));
+n += k;
 fs.writeFileSync(path.join(__dirname, "..", "LANGUAGE-REVIEW.md"), out);
 console.log("Wrote LANGUAGE-REVIEW.md: " + n + " rows");

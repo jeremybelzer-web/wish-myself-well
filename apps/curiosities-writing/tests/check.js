@@ -4,6 +4,7 @@ const assert = require("assert");
 const DB = require("../../curiosities/data/load-db.js");
 const filmCount = DB.data.curiosities.length;
 require("../data/db-writing-language.js");
+require("../data/db-writing-ladder.js");
 const Lanes = require("../lanes.js");
 const { sync } = require("../tools/sync-scripts.js");
 

@@ -27,6 +27,7 @@ dialogue driven by each character's Enneagram type. Jeremy's full handoff is the
 | `lanes.js` | `window.WritingLanes`: `tag(row)`, `tagAll(DB)`, the workspace table and overrides |
 | `app.js` | Draws the first screen |
 | `data/db-writing-language.js` | The writing-only language curiosities (verbs, sentences, words, figures, sound, voice, dialogue), each with frequency, placement, spacing, and spread by character and narrative voice. Seven `w-` workspaces |
+| `data/db-writing-ladder.js` | The language curiosities set into the ladder: suites, proximities (`window.WritingProximities`, related pairs 0 to 100 that set nothing off), catalysts (sparks, `DB.proximity`) and elixirs (`DB.proximitySuite`, every spark must line up). Beats are sentences |
 | `LANGUAGE-REVIEW.md` | Jeremy's keep / drop list for those, made by `node tools/review-list.js`. Honor a drop |
 | `tools/sync-scripts.js` | Keeps the database script tags in step with Curiomatic's `data/files.json` |
 | `tests/check.js` | `node apps/curiosities-writing/tests/check.js`: every curiosity tagged, shared ids present, scripts in step |
