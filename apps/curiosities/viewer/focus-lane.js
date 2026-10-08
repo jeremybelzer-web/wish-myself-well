@@ -1023,6 +1023,23 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     if (cwin) cwin.remove();
     cwin = swin = null;
   }
+  /* Closed by you (✕ or Esc): one step on the app-wide undo list, so Undo opens it again (Jeremy 2026-10-08). */
+  function closeWinByHand() {
+    const id = cwin && cwin.dataset.cwin;
+    const at = cwin && { left: cwin.style.left, top: cwin.style.top };
+    closeWin();
+    const St = window.CurioStore;
+    if (!id || !St || typeof St.external !== "function") return;
+    St.external("viewer", {
+      label: "Close the " + laneName(id, M().note(base(id))) + " window",
+      undo: () => {
+        if (!(cwin && cwin.dataset.cwin === id)) openWin(id);
+        if (cwin && at) Object.assign(cwin.style, at);
+        return true;
+      },
+      redo: () => (cwin && cwin.dataset.cwin === id && closeWin(), true),
+    });
+  }
   function closeSearch() {
     if (swin) swin.remove();
     swin = null;
@@ -1274,7 +1291,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     cwin.style.top = Math.max(8, Math.min(innerHeight - h - 8, b.top - h / 2)) + "px";
     cwin.addEventListener("click", (e) => {
       const t = e.target;
-      if (t.closest('[data-cw="close"]')) return closeWin();
+      if (t.closest('[data-cw="close"]')) return closeWinByHand();
       if (t.closest('[data-cw="search"]')) return openSearch();
       const k = t.closest("[data-cw-key]");
       if (k && !k.classList.contains("off")) {
@@ -2211,7 +2228,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (e.key !== "Escape") return;
       if (cpop) return closeCurve();
       if (swin) return closeSearch();
-      if (cwin) closeWin();
+      if (cwin) closeWinByHand();
     });
     /* a color in the pie or a row in the list picks that curiosity's lane in the graph */
     document.addEventListener("click", (e) => {

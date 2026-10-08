@@ -20,8 +20,12 @@
        reload()        read the saved key again (after a project file was opened)
    - undo(), redo(), canUndo(), canRedo(), history() -> { undo: [labels], redo: [labels] }: one list for
      every part, newest last
-   - external(name, { label, undo(), redo() }): a step another undo list keeps (the engine's film) joins this
-     list; its undo() and redo() return false when the step is gone there, and it is skipped
+   - external(name, { label, undo(), redo() }, opt): a step another undo list keeps (the engine's film, the
+     Viewer's film, a saved key, a closed window) joins this list; its undo() and redo() return false when the
+     step is gone there, and it is skipped. opt.redo puts it on the redo list instead (after a page reload, the
+     steps kept in this tab are put back on the lists in order: engine/app-undo.js); opt.keep adds it to the
+     undo list without emptying the redo list
+   - onNew(fn): told when a new change empties the redo list, so other lists can empty theirs too
    - owns(key) -> true when a part saves under that key (engine/app-undo.js leaves those to this list)
    - parts() -> the registered names
    Storage is window.localStorage; useStorage(s) swaps it (tests). */
@@ -124,7 +128,7 @@
           undoList.push({ part: name, label, merge: msg.merge || null, at: now(), before: clone(before), after: clone(next), size });
           trim();
         }
-        redoList = [];
+        fresh();
       }
       set(next, label);
       return { ok: true };
@@ -160,11 +164,25 @@
     undoList.forEach((st) => (total += st.size || 0));
     while (undoList.length > LIMIT || (total > MAX_CHARS && undoList.length > 1)) total -= undoList.shift().size || 0;
   }
-  function external(name, ext) {
-    if (!isObj(ext) || typeof ext.undo !== "function" || typeof ext.redo !== "function") return false;
-    undoList.push({ part: String(name || "other"), label: String(ext.label || "Change").slice(0, 80), at: now(), ext });
-    trim();
+  const newers = [];
+  function fresh() {
     redoList = [];
+    newers.forEach((fn) => {
+      try {
+        fn();
+      } catch (e) {}
+    });
+  }
+  function external(name, ext, opt) {
+    if (!isObj(ext) || typeof ext.undo !== "function" || typeof ext.redo !== "function") return false;
+    const step = { part: String(name || "other"), label: String(ext.label || "Change").slice(0, 80), at: now(), ext };
+    if (opt && opt.redo) {
+      redoList.push(step);
+      return true;
+    }
+    undoList.push(step);
+    trim();
+    if (!(opt && opt.keep)) fresh();
     return true;
   }
   function undo() {
@@ -198,6 +216,7 @@
     canUndo: () => undoList.length > 0,
     canRedo: () => redoList.length > 0,
     history: () => ({ undo: undoList.map((s) => s.label), redo: redoList.slice().reverse().map((s) => s.label) }),
+    onNew: (fn) => typeof fn === "function" && newers.push(fn),
     owns: (key) => Object.keys(parts).some((n) => parts[n].key === key),
     parts: () => Object.keys(parts),
     useStorage(s) {

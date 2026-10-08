@@ -1210,6 +1210,8 @@
     document.addEventListener("keydown", (e) => {
       if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || e.target.isContentEditable) return;
       if (document.querySelector(".en-overlay:not([hidden])")) return;
+      /* the Viewer is open: its own ⌘Z undoes the newest step on this same list, so one press is one step */
+      if (document.documentElement.classList.contains("cv-open")) return;
       /* the 3D window and the Maya tool window sit over the film: Ctrl+Z there must not undo the film behind */
       if (document.querySelector(".rig-dlg[open], .sc-maya-dlg[open]")) return;
       try {

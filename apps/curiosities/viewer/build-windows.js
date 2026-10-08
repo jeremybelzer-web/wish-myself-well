@@ -251,6 +251,23 @@
   function refresh() {
     state.wins.forEach(draw);
   }
+  /* An undo put the open windows back (a closed one comes back): build them again in place (engine/app-undo.js). */
+  window.addEventListener("curio-undo-restored", (e) => {
+    if (!e.detail || !e.detail.keys.includes(KEY)) return;
+    e.detail.handled.push(KEY);
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || "null");
+      state = s && Array.isArray(s.wins) ? s : { wins: [] };
+    } catch (err) {
+      state = { wins: [] };
+    }
+    Object.keys(els).forEach((id) => {
+      els[id].remove();
+      delete els[id];
+    });
+    state.wins.forEach((w) => (nextId = Math.max(nextId, (w.id || 0) + 1)));
+    state.wins.forEach(draw);
+  });
 
   /* the curiosities a window's settings belong to, for its menu */
   function suggested(app) {

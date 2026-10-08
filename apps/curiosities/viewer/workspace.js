@@ -460,6 +460,17 @@ body.ws-dragging, body.ws-dragging * { cursor: grabbing !important; user-select:
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
+  /* An undo put the arrangement back: read it again in place (engine/app-undo.js). */
+  window.addEventListener("curio-undo-restored", (e) => {
+    if (!e.detail || !e.detail.keys.includes(KEY)) return;
+    e.detail.handled.push(KEY);
+    ws = { lanes: "auto", strip: "bottom", rail: "left", follow: true };
+    try {
+      ws = Object.assign(ws, JSON.parse(localStorage.getItem(KEY) || "{}"));
+    } catch (err) {}
+    apply();
+    after();
+  });
 
   window.CurioWorkspace = { get: () => Object.assign({}, ws), set, follow, spots: SPOTS, apply };
 })();
