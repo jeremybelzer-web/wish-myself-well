@@ -1,10 +1,17 @@
-/* viewer/scene-focus.js: "Bring the scene into focus?", the pop-up that appears after you change a curiosity, a
+/* viewer/scene-focus.js: "Would you like to choose a closely related curiosity?" (first called "Bring the scene into
+   focus?"; Jeremy renamed it and asked for the tabs and an open view on 2026-10-08), the pop-up that appears after you change a curiosity, a
    suite or a proximity (Jeremy, 2026-10-05 14:18Z). It asks whether you want to change the curiosities around
    the one you changed, so the scene's focus comes through stronger, and offers:
    - a box at the top to type what you want (it filters the list, and Enter keeps your own words as a note);
    - a menu of curiosities, with the 4 that would help this scene most picked to start;
    - a scrollable multiple-choice list of options under them, like "Bright blue sky (Setting)", "From below
      (Angle height)" or "\"Great to see you again\" (Extra character)".
+
+   It sits to the side (drag it by its title; a sheet at the bottom on a phone) with nothing dimmed, so the scene
+   stays in sight and usable while you choose. Tabs at the top: Related (the above), Curiosities (every curiosity
+   by the main categories; a tap adds it to Related), 3D (the engine's cube of curiosities), Lanes and Overlay
+   (bring up the Viewer's own Automation lanes, or the Viewer focus graph where the lanes' nodes and lines are
+   drawn over each other, and make it flash), Timeline (the full timeline).
 
    Where the ideas come from (no paid AI, nothing leaves the device): the scenes in the curiosity database
    (CuriosityDB.data.scenes, 80 made-up model scenes to start; the scene library thread adds real ones there).
@@ -121,6 +128,47 @@
   }
   const sceneName = (sc) => String(sc.title || sc.id).replace(/^Model scene:\s*/i, "");
 
+  /* The options for one curiosity: its picture phrases, then the values scenes used (found, from suggest),
+     then the rest of its scale (a number range offers its low end, middle and high end). Any curiosity has some,
+     so one picked from the Curiosities tab gets a list too. */
+  function optionsFor(db, id, now, found) {
+    now = now || {};
+    const list = [];
+    PHRASES.filter((p) => p.under === id).forEach((p) => {
+      const set = {};
+      let ok = true;
+      Object.keys(p.set).forEach((k) => (fits(db, k, p.set[k]) ? (set[k] = p.set[k]) : (ok = false)));
+      if (!ok) return;
+      list.push({ id: id + ":phrase:" + p.label, cur: id, label: p.label + " (" + p.topic + ")", set, line: p.line || "", why: "", w: 0 });
+    });
+    (found || [])
+      .slice()
+      .sort((a, b) => b.w - a.w)
+      .slice(0, 8)
+      .forEach((o) =>
+        list.push({
+          id: id + ":" + o.key + "=" + o.value,
+          cur: id,
+          label: valueWords(db, o.key, o.value) + " (" + name(db, o.key) + ")",
+          set: { [o.key]: o.value },
+          why: o.scenes.length ? "Like \u201c" + o.scenes.join("\u201d, \u201c") + "\u201d" : "",
+          w: o.w,
+        })
+      );
+    const main = sliderOf(db, id);
+    let rest = [];
+    if (main && main.s.scale) rest = main.s.scale;
+    else if (main && main.s.range) {
+      const r = main.s.range;
+      rest = Array.from(new Set([r.min, Math.round((r.min + r.max) / 2), r.max]));
+    }
+    rest.forEach((v) => {
+      if (same(now[id], v) || list.some((o) => Object.keys(o.set).length === 1 && same(o.set[id], v))) return;
+      list.push({ id: id + ":" + id + "=" + v, cur: id, label: valueWords(db, id, v) + " (" + name(db, id) + ")", set: { [id]: v }, why: "", w: 0, more: true });
+    });
+    return list;
+  }
+
   /* ---------- the suggester ---------- */
   function suggest(changed, now, opts) {
     opts = opts || {};
@@ -192,34 +240,7 @@
     const curList = ranked.slice();
     PHRASES.forEach((p) => p.under && !curList.includes(p.under) && !changedIds.has(p.under) && db.get("curiosity", p.under) && curList.push(p.under));
     curList.forEach((id) => {
-      const list = [];
-      /* the plain picture phrases first, then the values the scenes used */
-      PHRASES.filter((p) => p.under === id).forEach((p) => {
-        const set = {};
-        let ok = true;
-        Object.keys(p.set).forEach((k) => (fits(db, k, p.set[k]) ? (set[k] = p.set[k]) : (ok = false)));
-        if (!ok) return;
-        list.push({ id: id + ":phrase:" + p.label, cur: id, label: p.label + " (" + p.topic + ")", set, line: p.line || "", why: "", w: 0 });
-      });
-      (options[id] || [])
-        .sort((a, b) => b.w - a.w)
-        .slice(0, 8)
-        .forEach((o) =>
-          list.push({
-            id: id + ":" + o.key + "=" + o.value,
-            cur: id,
-            label: valueWords(db, o.key, o.value) + " (" + name(db, o.key) + ")",
-            set: { [o.key]: o.value },
-            why: o.scenes.length ? "Like “" + o.scenes.join("”, “") + "”" : "",
-            w: o.w,
-          })
-        );
-      const main = sliderOf(db, id);
-      if (main && main.s.scale)
-        main.s.scale.forEach((v) => {
-          if (same(now[id], v) || list.some((o) => Object.keys(o.set).length === 1 && same(o.set[id], v))) return;
-          list.push({ id: id + ":" + id + "=" + v, cur: id, label: valueWords(db, id, v) + " (" + name(db, id) + ")", set: { [id]: v }, why: "", w: 0, more: true });
-        });
+      const list = optionsFor(db, id, now, options[id]);
       if (list.length) out[id] = list;
     });
     const scenes = [];
@@ -234,7 +255,7 @@
   }
 
   if (typeof window === "undefined") {
-    if (typeof module !== "undefined") module.exports = { suggest, PHRASES, beats };
+    if (typeof module !== "undefined") module.exports = { suggest, optionsFor, PHRASES, beats };
     return;
   }
 
@@ -263,10 +284,21 @@
   }
 
   const CSS = `
-.sf-back { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
-.sf-box { width: min(560px, 100%); max-height: min(720px, calc(100vh - 32px)); display: flex; flex-direction: column; gap: 10px; background: #1b1b1f; color: #e8e8ec; border: 1px solid #34343b; border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.5); padding: 14px 14px 12px; font: 14px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; }
-.sf-head { display: flex; align-items: flex-start; gap: 10px; }
-.sf-head h2 { margin: 0; font-size: 17px; flex: 1; }
+.sf-back { position: fixed; inset: 0; z-index: 100000; pointer-events: none; }
+.sf-box { pointer-events: auto; position: absolute; right: 16px; top: 56px; width: min(410px, calc(100vw - 32px)); max-height: calc(100vh - 130px); display: flex; flex-direction: column; gap: 10px; background: rgba(27,27,31,.97); color: #e8e8ec; border: 1px solid #34343b; border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.5); padding: 12px 14px 12px; font: 14px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; box-sizing: border-box; }
+.sf-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.sf-tab { border: 1px solid #3c3c44; background: #24242a; color: #c8c8cf; border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
+.sf-tab[aria-selected="true"] { background: #22d3ee; border-color: #22d3ee; color: #062a31; font-weight: 600; }
+.sf-cats { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px; min-height: 160px; flex: 1 1 auto; overflow: hidden; }
+.sf-catlist { overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.sf-cat { text-align: left; border: 0; background: none; color: #c8c8cf; padding: 5px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.sf-cat[aria-selected="true"] { background: #0e7490; color: #fff; }
+.sf-catcurs { overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; border: 1px solid #2e2e33; border-radius: 8px; padding: 8px; background: #151518; }
+.sf-viewnote { color: #b4b4bc; font-size: 13px; margin: 0; }
+@keyframes sf-flash { 0%, 100% { box-shadow: 0 0 0 0 rgba(34,211,238,0); } 30%, 70% { box-shadow: 0 0 0 4px rgba(34,211,238,.9); } }
+.sf-flash { animation: sf-flash 1.6s ease 2; border-radius: 6px; }
+.sf-head { display: flex; align-items: flex-start; gap: 10px; cursor: move; user-select: none; touch-action: none; }
+.sf-head h2 { margin: 0; font-size: 16px; flex: 1; }
 .sf-x { background: none; border: 0; color: #9b9ba3; font-size: 20px; cursor: pointer; line-height: 1; }
 .sf-why { margin: 0; color: #b4b4bc; font-size: 13px; }
 .sf-type { width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 8px; border: 1px solid #3c3c44; background: #111114; color: #fff; font-size: 14px; }
@@ -287,9 +319,9 @@
 .sf-btn { border: 1px solid #3c3c44; background: #24242a; color: #e8e8ec; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
 .sf-go { background: #0891b2; border-color: #22d3ee; color: #fff; font-weight: 600; }
 .sf-go:disabled { opacity: .5; cursor: default; }
-.sf-pill { position: fixed; right: 16px; bottom: 16px; z-index: 8999; border: 1px solid #22d3ee; background: #1b1b1f; color: #e8e8ec; border-radius: 999px; padding: 8px 14px; font: 13px system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+.sf-pill { position: fixed; right: 16px; bottom: 76px; z-index: 99999; border: 1px solid #22d3ee; background: #1b1b1f; color: #e8e8ec; border-radius: 999px; padding: 8px 14px; font: 13px system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
 .sf-pill[hidden], .sf-back[hidden] { display: none; }
-@media (max-width: 600px) { .sf-back { align-items: flex-end; padding: 0; } .sf-box { border-radius: 12px 12px 0 0; max-height: 88vh; } }
+@media (max-width: 600px) { .sf-box { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0; width: 100%; border-radius: 12px 12px 0 0; max-height: 55vh; } }
 `;
   let el = null;
   let pill = null;
@@ -309,10 +341,11 @@
     el.className = "sf-back";
     el.hidden = true;
     el.setAttribute("role", "dialog");
-    el.setAttribute("aria-modal", "true");
-    el.setAttribute("aria-label", "Bring the scene into focus");
+    el.setAttribute("aria-modal", "false");
+    el.setAttribute("aria-label", "Choose a closely related curiosity");
     document.body.appendChild(el);
     el.addEventListener("click", onClick);
+    el.addEventListener("pointerdown", onDown);
     el.addEventListener("input", onInput);
     el.addEventListener("change", onChangeEl);
     el.addEventListener("keydown", (e) => {
@@ -456,7 +489,7 @@
     if (!Object.keys(changed).length) changed = {};
     const list = Object.keys(changed).map((cur) => ({ cur, value: changed[cur] }));
     const result = suggest(list, now, {});
-    view = { result, source, chosen: new Set(result.picks), ticked: new Set(), text: "", extra: [] };
+    view = { result, source, chosen: new Set(result.picks), ticked: new Set(), text: "", extra: [], tab: "related", cat: "", say: "" };
     pending = { source, changed: {}, now: {} };
     pill.hidden = true;
     el.hidden = false;
@@ -488,20 +521,48 @@
     if (view.extra.length) groups.unshift({ id: "_mine", label: "Your words", opts: view.extra });
     return groups;
   }
+  /* The tabs at the top (Jeremy, 2026-10-08): Related (the closely related curiosities and their options),
+     Curiosities (every curiosity, by the main categories), then the views: 3D (the cube of curiosities), Lanes
+     and Overlay (they bring up the Viewer's own Automation lanes, or the Viewer focus graph of nodes and lines
+     drawn over each other, and make it flash) and Timeline (the full timeline, a lane per curiosity). */
+  const TABS = [
+    ["related", "Related", "Closely related curiosities and their options"],
+    ["all", "Curiosities", "Every curiosity, by the main categories"],
+    ["cube", "3D", "The 3D cube of curiosities"],
+    ["lanes", "Lanes", "The automation lanes under the picture, one per curiosity"],
+    ["overlay", "Overlay", "The automation lanes drawn over each other: nodes and lines on one graph"],
+    ["timeline", "Timeline", "The full timeline, a lane for each curiosity"],
+  ];
+  let boxAt = null; /* where the box was dragged to, kept while the page is open */
   function draw() {
     const r = view.result;
     const names = r.changed.map((c) => c.label);
     const what = names.length ? "You changed " + listWords(names) + "." : "Here are ideas for this moment.";
-    const like = r.scenes.length ? " Scenes like this (" + r.scenes.slice(0, 2).map((s) => "“" + esc(s) + "”").join(", ") + ") also lean on these." : "";
+    const like = r.scenes.length ? " Scenes like this (" + r.scenes.slice(0, 2).map((s) => "\u201c" + esc(s) + "\u201d").join(", ") + ") lean on these too." : "";
+    const tabs = `<nav class="sf-tabs" role="tablist">${TABS.map(
+      ([id, label, tip]) => `<button type="button" class="sf-tab" role="tab" data-sf="tab" data-tab="${id}" title="${esc(tip)}" aria-selected="${view.tab === id}">${label}</button>`
+    ).join("")}</nav>`;
+    const body = view.tab === "all" ? allHtml() : relatedHtml(what, like);
+    el.innerHTML = `<div class="sf-box">
+  <div class="sf-head" title="Drag to move it"><h2>\u2728 Would you like to choose a closely related curiosity?</h2><button type="button" class="sf-x" data-sf="close" aria-label="Close">\u00d7</button></div>
+  ${tabs}${view.say ? `<p class="sf-viewnote" aria-live="polite">${esc(view.say)}</p>` : ""}
+  ${body}
+  <div class="sf-foot"><label><input type="checkbox" class="sf-ask"${prefs.ask ? " checked" : ""}> Ask me after changes</label>
+  <button type="button" class="sf-btn" data-sf="later">Not now</button>
+  <button type="button" class="sf-btn sf-go" data-sf="apply"${view.ticked.size ? "" : " disabled"}>${view.ticked.size ? "Change " + view.ticked.size : "Change"}</button></div>
+</div>`;
+    const box = el.querySelector(".sf-box");
+    if (boxAt) Object.assign(box.style, { left: boxAt.left + "px", top: boxAt.top + "px", right: "auto" });
+  }
+  function relatedHtml(what, like) {
+    const r = view.result;
     const chosen = Array.from(view.chosen);
     const others = r.curiosities.filter((c) => !view.chosen.has(c.id));
     const groups = visibleOptions();
-    el.innerHTML = `<div class="sf-box">
-  <div class="sf-head"><h2>✨ Bring the scene into focus?</h2><button type="button" class="sf-x" data-sf="close" aria-label="Close">×</button></div>
-  <p class="sf-why">${esc(what)} Want to change what's around it so the scene's focus comes through stronger?${like}</p>
-  <input class="sf-type" type="text" placeholder="Type what you want, like “a sunny beach” or “from below”" value="${esc(view.text)}" aria-label="Type what you want">
+    return `<p class="sf-why">${esc(what)}${like}</p>
+  <input class="sf-type" type="text" placeholder="Type what you want, like \u201ca sunny beach\u201d or \u201cfrom below\u201d" value="${esc(view.text)}" aria-label="Type what you want">
   <div class="sf-curs" aria-label="Curiosities">${chosen
-    .map((id) => `<button type="button" class="sf-cur" aria-pressed="true" data-cur="${esc(id)}">${esc(labelOf(id))}</button>`)
+    .map((id) => `<button type="button" class="sf-cur" aria-pressed="true" data-cur="${esc(id)}" title="Tap to take it off">${esc(labelOf(id))}</button>`)
     .join("")}${others.length ? `<select class="sf-more" aria-label="Add a curiosity"><option value="">+ More curiosities</option>${others.map((c) => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("")}</select>` : ""}</div>
   <div class="sf-list" role="group" aria-label="Options">${
     groups.length
@@ -518,26 +579,127 @@
           )
           .join("")
       : `<div class="sf-empty">${view.text ? "Nothing in the list matches. Press Enter to keep your words as a note on this moment." : "Pick a curiosity above to see options."}</div>`
-  }</div>
-  <div class="sf-foot"><label><input type="checkbox" class="sf-ask"${prefs.ask ? " checked" : ""}> Ask me after changes</label>
-  <button type="button" class="sf-btn" data-sf="later">Not now</button>
-  <button type="button" class="sf-btn sf-go" data-sf="apply"${view.ticked.size ? "" : " disabled"}>${view.ticked.size ? "Change " + view.ticked.size : "Change"}</button></div>
-</div>`;
+  }</div>`;
+  }
+  /* the Curiosities tab: the main categories on the left, their curiosities on the right; a tap adds one to Related */
+  function allHtml() {
+    const L = window.CurioLevels;
+    const cats = L && L.CATEGORIES ? L.CATEGORIES : [];
+    if (!cats.length) return `<div class="sf-empty">The curiosity list is not loaded.</div>`;
+    if (!cats.some((c) => c.id === view.cat)) view.cat = cats[0].id;
+    let curs = [];
+    try {
+      curs = L.curiosities(view.cat) || [];
+    } catch (e) {}
+    return `<div class="sf-cats"><div class="sf-catlist" role="tablist" aria-label="Main categories">${cats
+      .map((c) => `<button type="button" class="sf-cat" data-sf="cat" data-cat="${esc(c.id)}" aria-selected="${c.id === view.cat}">${esc(c.label)}</button>`)
+      .join("")}</div><div class="sf-catcurs" aria-label="Curiosities in this category">${curs
+      .map((c) => `<button type="button" class="sf-cur" data-sf="pick" data-id="${esc(c.id)}" aria-pressed="${view.chosen.has(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>`)
+      .join("")}</div></div>`;
+  }
+  /* a curiosity picked from anywhere joins Related, with its own options when the scenes had none for it */
+  function addCur(id) {
+    const r = view.result;
+    const db = window.CuriosityDB;
+    if (!r.options[id] && db) {
+      const fresh = view.source === "viewer" ? viewerNow() : engineNow();
+      const list = optionsFor(db, id, (fresh && fresh.now) || {}, []);
+      if (!list.length) return false;
+      r.options[id] = list;
+    }
+    if (!r.curiosities.some((c) => c.id === id)) r.curiosities.push({ id, label: name(db, id), rank: 0 });
+    view.chosen.add(id);
+    return true;
+  }
+  /* the view tabs bring up a part that is already on the page and make it flash */
+  function flash(node) {
+    if (!node) return false;
+    node.classList.remove("sf-flash");
+    void node.offsetWidth;
+    node.classList.add("sf-flash");
+    setTimeout(() => node.classList.remove("sf-flash"), 3400);
+    if (node.scrollIntoView) node.scrollIntoView({ block: "nearest" });
+    return true;
+  }
+  function showView(id) {
+    const under = document.querySelector(".cv-root .cv-under");
+    if (id === "lanes" || id === "overlay") {
+      const b = under && under.querySelector(`[data-cf-tab="${id === "lanes" ? "lanes" : "focus"}"]`);
+      if (!b || under.hidden) return "The lanes show under the Viewer's picture; open the Viewer to see them.";
+      b.click();
+      setTimeout(() => flash(id === "lanes" ? under : under.querySelector(".cf-graph") || under), 60);
+      return id === "lanes" ? "The automation lanes are under the picture, flashing." : "The overlay graph (every lane's nodes and lines on one graph) is under the picture, flashing.";
+    }
+    if (id === "cube") {
+      const U = window.CurioEngineUI;
+      if (!U || !U.open) return "The 3D cube is not loaded.";
+      U.open("cube");
+      return "The 3D cube of curiosities is open. Close it to come back to your scene.";
+    }
+    if (id === "timeline") {
+      const S = window.CurioScreen;
+      if (!S || !S.solo) return "The timeline is not loaded.";
+      close();
+      if (V() && V().close) V().close();
+      S.solo("tl");
+      return "";
+    }
+    return "";
   }
   const labelOf = (id) => (view.result.curiosities.find((c) => c.id === id) || { label: id }).label;
   function listWords(a) {
     return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
   }
   function onClick(e) {
-    if (e.target === el) return notNow();
     const b = e.target.closest("[data-sf],[data-cur]");
     if (!b) return;
+    const act = b.dataset.sf;
+    if (act === "tab") {
+      const t = b.dataset.tab;
+      if (t === "related" || t === "all") {
+        view.tab = t;
+        view.say = "";
+      } else view.say = showView(t);
+      return draw();
+    }
+    if (act === "cat") {
+      view.cat = b.dataset.cat;
+      return draw();
+    }
+    if (act === "pick") {
+      if (view.chosen.has(b.dataset.id)) view.chosen.delete(b.dataset.id);
+      else if (addCur(b.dataset.id)) {
+        view.tab = "related";
+        view.say = labelOf(b.dataset.id) + " is added to Related.";
+      }
+      return draw();
+    }
     if (b.dataset.cur) {
       view.chosen.delete(b.dataset.cur);
       return draw();
     }
-    if (b.dataset.sf === "close" || b.dataset.sf === "later") return notNow();
-    if (b.dataset.sf === "apply") applyTicked();
+    if (act === "close" || act === "later") return notNow();
+    if (act === "apply") applyTicked();
+  }
+  /* drag the box by its title so it never sits on the part of the picture you are looking at */
+  function onDown(e) {
+    const head = e.target.closest(".sf-head");
+    if (!head || e.target.closest("button") || innerWidth <= 600) return;
+    const box = el.querySelector(".sf-box");
+    const r = box.getBoundingClientRect();
+    const dx = e.clientX - r.left;
+    const dy = e.clientY - r.top;
+    const move = (ev) => {
+      boxAt = { left: Math.max(0, Math.min(innerWidth - 80, ev.clientX - dx)), top: Math.max(0, Math.min(innerHeight - 40, ev.clientY - dy)) };
+      Object.assign(box.style, { left: boxAt.left + "px", top: boxAt.top + "px", right: "auto" });
+    };
+    const up = () => {
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", up);
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", up);
+    e.preventDefault();
   }
   function onInput(e) {
     if (!e.target.classList.contains("sf-type")) return;
@@ -551,7 +713,7 @@
   function onChangeEl(e) {
     const t = e.target;
     if (t.classList.contains("sf-more") && t.value) {
-      view.chosen.add(t.value);
+      addCur(t.value);
       return draw();
     }
     if (t.classList.contains("sf-ask")) return settings({ ask: t.checked });
