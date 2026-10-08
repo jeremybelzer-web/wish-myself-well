@@ -119,7 +119,7 @@ Keep the static files and the look of this folder. Do not add a second git repo 
 
 ## Paintings (paintings/)
 
-**Paint ▾** in the Viewer's bar: the Paintings window (62 famous paintings as five-colour swatches, from Jeremy's music app) and the paint strip (Control-click empty space in the picture), which gives things in the picture a painting's colours, one undo step each. The project's painting is `film.painting`; the default is per device in `curio-paintings-default-v1`. The window's second tab, Recolor the app, gives the Viewer, the Screen and the menus a painting's five colours, made readable first (`paintings/theme.js`; per device in `curio-paintings-app-v2`). Read `paintings/README.md`.
+**Paint ▾** in the Viewer's bar: the Paintings window (62 famous paintings as five-colour swatches, from Jeremy's music app) and the paint strip (Control-click empty space in the picture), which gives things in the picture a painting's colours, one undo step each. The project's painting is `film.painting`; the default is per device in `curio-paintings-default-v1`. Choosing a painting in the first tab, Recolor project elements, gives every thing in My film its five colours (one undo step). The second tab, Recolor the app, turns every colour of the app into the painting's five, made readable first, light words on a dark painting and dark words on a light one (`paintings/theme.js`, `paintings/recolor.js`; per device in `curio-paintings-app-v2`). A part that shows the film's own colours marks itself `data-own-colors` so it is left alone. The paintings are grouped by kind (Neon, Neutral...). Read `paintings/README.md`.
 
 ## Saving
 
