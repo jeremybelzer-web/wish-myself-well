@@ -134,6 +134,14 @@ server.listen(0, "127.0.0.1", async () => {
   ok((await page.$$(".cv-wins .cv-win")).length === 1, "Delete never closes your own film");
   await page.click('[data-act="addwin"]');
   await page.waitForTimeout(800);
+  /* right-click a window: its own menu, with Close (Jeremy 2026-10-08) */
+  const sec2 = await box(".cv-wins .cv-win:nth-child(2)");
+  await page.mouse.click(sec2.l + sec2.w / 2, sec2.t + sec2.h / 2, { button: "right" });
+  await page.waitForTimeout(200);
+  ok(await page.isVisible(".cv-wins .cv-win:nth-child(2) .cv-wmenu [data-wclose]"), "right-clicking a window opens its own menu with Close");
+  ok(!(await page.$(".cv-wplus")), "no big + button on the windows");
+  await page.keyboard.press("Escape");
+  await page.mouse.click(5, 5);
   /* Lanes follow the window: a shorter top part leaves room beside two pictures, and the lanes move there */
   const views = async () => (await page.isVisible(".cv-views-menu")) || page.click('[data-act="views"]');
   await views();

@@ -1554,7 +1554,8 @@
 .cv-win.is-mine .cv-wname { color: var(--c-accent); }
 .cv-wmenu { position: absolute; left: 6px; top: 38px; z-index: 3; display: grid; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: calc(100% - 12px); }
 .cv-root .cv-wmenu button { background: transparent; text-align: left; }
-.cv-root .cv-wclose { position: absolute; right: 6px; top: 6px; z-index: 2; background: rgba(12,12,14,0.78); width: 28px; height: 28px; padding: 0; font-size: 16px; }
+.cv-root .cv-wclose { position: absolute; right: 4px; top: 4px; z-index: 2; background: rgba(12,12,14,0.6); width: 18px; height: 18px; padding: 0; font-size: 12px; line-height: 1; border-radius: 4px; opacity: 0.75; }
+.cv-root .cv-wclose:hover { opacity: 1; }
 .cv-root .cv-wadd { font-weight: 600; }
 .cv-root .cv-wuse { position: absolute; right: 6px; bottom: 6px; z-index: 2; font-size: 11px; background: rgba(12,12,14,0.8); }
 .cv-slide-l { animation: cv-sl 0.22s ease-out; }
@@ -1765,13 +1766,23 @@
       el.dataset.w = i;
       el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Control-drag to slide around the world. Double-click to zoom in there. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
         <div class="cv-wtop" title="Drag left or right along the top edge to see your other open windows"><span class="cv-wdots">${wins.map((_, j) => `<i data-wshow="${j}" class="${j === shownWin ? "on" : ""}" title="Window ${j + 1}"></i>`).join("")}</span></div>
-        <div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button><button type="button" class="cv-wplus" data-act="addwin" title="Add a window, to watch another film beside this one" aria-label="Add a window">+</button></div>
+        <div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
         ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
         <div class="cv-wmenu" hidden></div>
         <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
       box.appendChild(el);
       /* click an extra window to pick it; Delete (or Backspace) then closes it (Jeremy 2026-10-07) */
-      if (i) el.addEventListener("pointerdown", (e) => !(e.target.closest && e.target.closest("button, select, input, .cv-wmenu")) && pickWin(i));
+      /* anywhere on it counts, its name too (a click there was missed before, Jeremy 2026-10-08); capture, so the
+         picture's own drag handling can't swallow it */
+      if (i) el.addEventListener("pointerdown", (e) => !(e.target.closest && e.target.closest(".cv-wmenu, .cv-wclose, [data-wstep], .cv-wuse")) && pickWin(i), true);
+      /* right-click or Control-click: this window's own menu (on your film, only on its name, since a right-click in
+         its picture is for the things in it) */
+      el.addEventListener("contextmenu", (e) => {
+        if (!i && !(e.target.closest && e.target.closest(".cv-wtab"))) return;
+        e.preventDefault();
+        if (i) pickWin(i);
+        winActions(i);
+      });
       const w = { el, canvas: el.querySelector("canvas"), hud: el.querySelector(".cv-hud"), video: el.querySelector("video"), picks: [] };
       w.ctx = w.canvas.getContext("2d");
       const on = (fn) => (e) => {
@@ -1901,6 +1912,18 @@
     saveWins();
     buildWins();
     draw();
+  }
+  /* a window's own menu: close it, show another film in it, copy its camera, add a window */
+  function winActions(i) {
+    const m = W_EL[i] && W_EL[i].el.querySelector(".cv-wmenu");
+    if (!m) return;
+    const theirs = i && wins[i] !== "mine" && filmFor(wins[i]).kind !== "video";
+    m.innerHTML =
+      `<button type="button" data-wlist="${i}">Show another film in this window…</button>` +
+      (theirs ? `<button type="button" data-wuse="${i}">Use this camera in my panel</button>` : "") +
+      `<button type="button" data-act="addwin">Add a window</button>` +
+      (i ? `<button type="button" data-wclose="${i}">Close this window (Delete)</button>` : "");
+    m.hidden = false;
   }
   function winMenu(i) {
     const m = W_EL[i] && W_EL[i].el.querySelector(".cv-wmenu");
@@ -2512,7 +2535,7 @@
   }
 
   function onClick(e) {
-    if (!e.target.closest(".cv-wmenu, .cv-wname")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
+    if (!e.target.closest(".cv-wmenu, .cv-wname") || e.target.closest("[data-wclose], [data-wuse], [data-act]")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
     if (!e.target.closest(".cv-views")) viewsMenu(false);
     const b = e.target.closest("button, [data-thing]");
     if (!b || !root.contains(b)) return;
@@ -2540,6 +2563,10 @@
       return winMenu(+d.wmenu);
     }
     if (d.wpick) return setWin(+d.wpick, d.film, 0);
+    if (d.wlist) {
+      W_EL[+d.wlist].el.querySelector(".cv-wmenu").hidden = true;
+      return winMenu(+d.wlist);
+    }
     if (d.wvideo) {
       videoFor = +d.wvideo;
       W_EL[videoFor].el.querySelector(".cv-wmenu").hidden = true;
