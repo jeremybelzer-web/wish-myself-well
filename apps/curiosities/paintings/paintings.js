@@ -30,6 +30,27 @@
   const valid = (i) => Number.isInteger(i) && i >= 0 && i < N;
   const label = (i) => LIST[i].name + " — " + LIST[i].artist;
 
+  /* grouped by kind (Jeremy 2026-10-08: "all the neon color ones should be together and neutral colors together").
+     Each painting sits under its most telling kind (its rarest tag); a kind's chip shows every painting with it. */
+  const KINDS = ["Neon", "Bright", "Warm", "Yellows", "Pastel", "Beach", "Greens", "Blues", "Cool", "Neutral", "Browns", "Classy", "Dark", "Cityscape"].filter((k) => DATA.categories.includes(k));
+  DATA.categories.forEach((k) => KINDS.includes(k) || KINDS.push(k));
+  const COUNT = {};
+  LIST.forEach((p) => p.tags.forEach((t) => (COUNT[t] = (COUNT[t] || 0) + 1)));
+  const primary = (i) => LIST[i].tags.slice().sort((a, b) => COUNT[a] - COUNT[b] || KINDS.indexOf(a) - KINDS.indexOf(b))[0];
+  const KIND_PREF = "curio-paintings-kind-v1";
+  let kind = "all";
+  try {
+    const k = localStorage.getItem(KIND_PREF);
+    if (k && KINDS.includes(k)) kind = k;
+  } catch (e) {}
+  function setKind(k) {
+    kind = k === "all" || KINDS.includes(k) ? k : "all";
+    try {
+      localStorage.setItem(KIND_PREF, kind);
+    } catch (e) {}
+    renderWindow();
+  }
+
   /* one random painting per opening of the app */
   const openingRandom = Math.floor(Math.random() * N);
 
@@ -71,7 +92,7 @@
     render();
     return true;
   }
-  /* section 4: the Viewer, the Screen and these menus take the five, made readable first (paintings/theme.js) */
+  /* section 4: the whole app takes the five, made readable first (paintings/theme.js, paintings/recolor.js) */
   let themed = "";
   function applyTheme() {
     const T = window.CurioPaintTheme;
@@ -83,6 +104,7 @@
     if (!key) {
       if (st) st.remove();
       document.documentElement.removeAttribute("data-painting");
+      if (window.CurioRecolor) CurioRecolor.set(null);
       return;
     }
     if (!st) {
@@ -90,8 +112,12 @@
       st.id = "cvp-theme";
       (document.head || document.documentElement).appendChild(st);
     }
-    st.textContent = T.css(T.palette(LIST[+key].colors));
+    const p = T.palette(LIST[+key].colors);
+    st.textContent = T.css(p);
     document.documentElement.dataset.painting = key;
+    document.documentElement.dataset.paintingMode = p.mode;
+    /* and every other colour of the app (paintings/recolor.js) */
+    if (window.CurioRecolor) CurioRecolor.set(p);
   }
 
   /* the painting in force and where it comes from: "project", "now" (another random), "default", "opening" */
@@ -117,13 +143,30 @@
     v.changed(true);
     return true;
   }
+  /* Recolor project elements (Jeremy 2026-10-08: picking a painting has to change something you can see): every
+     thing in My film takes one of the painting's five, in turn, keeping its own colour in o.paintWas once so
+     Forget the colours can put it back. Part of the same undo step as the choice. */
+  function recolorAll(f, i) {
+    const cols = LIST[i].colors;
+    let n = 0;
+    f.objects.forEach((o, k) => {
+      if (o.paintWas === undefined) o.paintWas = { color: o.color === undefined ? null : o.color, strokes: Array.isArray(o.strokes) ? o.strokes.map((s) => s.c) : null };
+      const hex = cols[k % cols.length];
+      o.color = hex;
+      if (Array.isArray(o.strokes)) o.strokes.forEach((s) => (s.c = hex));
+      n++;
+    });
+    return n;
+  }
   function choose(i) {
     if (!valid(i)) return false;
+    let n = 0;
     const ok = edit((f) => {
       f.painting = i;
       delete f.paintingNow;
+      n = recolorAll(f, i);
     });
-    if (ok) say("colours: " + label(i));
+    if (ok) say(n ? `My film: ${n} thing${n === 1 ? "" : "s"} take the colours of ${label(i)}` : "colours: " + label(i));
     return ok;
   }
   function anotherRandom() {
@@ -133,6 +176,7 @@
     const ok = edit((f) => {
       delete f.painting;
       f.paintingNow = i;
+      recolorAll(f, i);
     });
     if (ok) say("colours: " + label(i) + " (picked at random)");
     return ok;
@@ -215,6 +259,8 @@
       win.setAttribute("role", "dialog");
       win.setAttribute("aria-label", "Paintings");
       win.addEventListener("click", (e) => {
+        const kb = e.target.closest("[data-kind]");
+        if (kb) return setKind(kb.dataset.kind);
         const r = e.target.closest("[data-pick]");
         if (r) return tab === "app" ? setAppPainting(+r.dataset.pick) : choose(+r.dataset.pick);
         const b = e.target.closest("[data-cvp]");
@@ -247,16 +293,26 @@
     const tabs = `<nav class="cvp-tabs" role="tablist"><button type="button" role="tab" data-cvp="tab-project" aria-selected="${tab === "project"}" class="${tab === "project" ? "on" : ""}">Recolor project elements</button><button type="button" role="tab" data-cvp="tab-app" aria-selected="${tab === "app"}" class="${tab === "app" ? "on" : ""}">Recolor the app</button></nav>`;
     const top3 =
       tab === "app"
-        ? `<p class="cvp-dim">The app takes the painting's five colours: the Viewer, the Screen and these menus. Each colour is made lighter or darker where needed so the words stay easy to read. Kept on this device.</p>
+        ? `<p class="cvp-dim">Every colour of the app takes the painting's five: backgrounds, words, the storyboards, the lanes' lines and nodes. A light painting gives a light app with dark words, a dark one a dark app with light words. Kept on this device.</p>
       <div class="cvp-defaults"><span class="cvp-dim">The app wears: ${a == null ? "its own colours" : esc(LIST[a].name)}</span>${a == null ? "" : `<button type="button" data-cvp="app-own" title="Back to the app's usual dark colours">The app's own colours</button>`}</div>
       <p class="cvp-hint">${a == null ? "Click a painting to give the app its colours." : `The app's colours: <b>${esc(label(a))}</b>.`}</p>`
-        : `<p class="cvp-dim">The painting's five colours are what the paint strip offers: pick one, then click things in the picture to give them that colour.</p>
+        : `<p class="cvp-dim">Click a painting and every thing in your film takes its five colours (one undo). The paint strip gives one thing at a time a colour: pick one, then click the thing.</p>
       <div class="cvp-defaults">${defaultRow()}</div>
       <p class="cvp-hint">The painting in force: <b>${esc(label(s.i))}</b> (${FROM[s.from]}). Control-click empty space in the picture for the paint strip, pick a colour, then click anything.</p>`;
-    win.innerHTML = `<header><b>Paintings</b><button type="button" data-cvp="close" aria-label="Close">×</button></header>${tabs}${top3}
-      <div class="cvp-list" data-tab="${tab}">${LIST.map((p, i) => `<button type="button" class="cvp-row${i === lit ? " on" : ""}" data-pick="${i}" title="${esc(label(i))}"><span class="cvp-sw">${swatch(i)}</span><span class="cvp-name">${esc(p.name)}</span><span class="cvp-artist">${esc(p.artist)}</span></button>`).join("")}</div>`;
+    const row = (i) => `<button type="button" class="cvp-row${i === lit ? " on" : ""}" data-pick="${i}" title="${esc(label(i))} · ${esc(LIST[i].tags.join(", "))}"><span class="cvp-sw">${swatch(i)}</span><span class="cvp-name">${esc(LIST[i].name)}</span><span class="cvp-artist">${esc(LIST[i].artist)}</span></button>`;
+    const all = LIST.map((p, i) => i);
+    const rows =
+      kind === "all"
+        ? KINDS.map((k) => {
+            const its = all.filter((i) => primary(i) === k);
+            return its.length ? `<h4 class="cvp-group">${esc(k)}</h4>${its.map(row).join("")}` : "";
+          }).join("")
+        : `<h4 class="cvp-group">${esc(kind)} · ${COUNT[kind]}</h4>` + all.filter((i) => LIST[i].tags.includes(kind)).map(row).join("");
+    const chips = `<nav class="cvp-kinds" aria-label="Kinds of painting"><button type="button" data-kind="all" class="${kind === "all" ? "on" : ""}">All</button>${KINDS.map((k) => `<button type="button" data-kind="${esc(k)}" class="${kind === k ? "on" : ""}" title="Every ${esc(k.toLowerCase())} painting">${esc(k)} <small>${COUNT[k] || 0}</small></button>`).join("")}</nav>`;
+    win.innerHTML = `<header><b>Paintings</b><button type="button" data-cvp="close" aria-label="Close">×</button></header>${tabs}${top3}${chips}
+      <div class="cvp-list" data-tab="${tab}" data-showing="${esc(kind)}">${rows}</div>`;
     const nl = win.querySelector(".cvp-list");
-    if (list && list.dataset.tab === tab) nl.scrollTop = top;
+    if (list && list.dataset.tab === tab && list.dataset.showing === kind) nl.scrollTop = top;
   }
 
   /* ---------- the paint strip ---------- */
@@ -458,6 +514,7 @@
 
   function render() {
     applyTheme();
+    if (window.CurioRecolor && CurioRecolor.on()) CurioRecolor.refreshOwn();
     renderWindow();
     renderStrip();
   }
@@ -466,7 +523,7 @@
 .cvp-win, .cvp-strip, .cvp-menu { --p-bg:#0f0f10; --p-panel:#1c1c1e; --p-line:#2e2e33; --p-text:#ececee; --p-dim:#9b9ba3; --p-acc:#22d3ee; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--p-text); }
 .cvp-win[hidden], .cvp-strip[hidden], .cvp-menu[hidden], .cvp-status[hidden] { display: none !important; }
 .cvp-win button, .cvp-strip button, .cvp-menu button { font: inherit; color: inherit; cursor: pointer; }
-.cvp-win { position: fixed; z-index: 95; width: 460px; height: 520px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); box-sizing: border-box; display: grid; grid-template-rows: auto auto auto auto auto minmax(0, 1fr); gap: 6px; padding: 8px 10px 10px; background: var(--p-bg); border: 1px solid var(--p-line); border-radius: 10px; box-shadow: 0 14px 44px rgba(0,0,0,0.6); font-size: 13px; }
+.cvp-win { position: fixed; z-index: 95; width: 460px; height: 560px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 10px; background: var(--p-bg); border: 1px solid var(--p-line); border-radius: 10px; box-shadow: 0 14px 44px rgba(0,0,0,0.6); font-size: 13px; }
 .cvp-win header { display: flex; justify-content: space-between; align-items: center; }
 .cvp-win header button { all: unset; cursor: pointer; font-size: 18px; padding: 0 4px; color: var(--p-dim); }
 .cvp-win p { margin: 0; }
@@ -480,7 +537,13 @@
 .cvp-defaults button, .cvp-head button { border: 1px solid var(--p-line); background: var(--p-panel); border-radius: 4px; padding: 1px 6px; font-size: 11px; line-height: 1.4; }
 .cvp-defaults button:hover, .cvp-head button:hover { border-color: var(--p-acc); }
 .cvp-kept { font-size: 12px; color: var(--p-acc); }
-.cvp-list { overflow: auto; display: grid; gap: 3px; align-content: start; padding-right: 2px; }
+.cvp-kinds { display: flex; flex-wrap: wrap; gap: 3px; }
+.cvp-kinds button { border: 1px solid var(--p-line); background: var(--p-panel); border-radius: 10px; padding: 0 7px; font-size: 11px; line-height: 1.6; color: var(--p-dim); }
+.cvp-kinds button small { font-size: 10px; opacity: 0.8; }
+.cvp-kinds button.on { color: var(--p-text); border-color: var(--p-acc); }
+.cvp-group { margin: 6px 0 1px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-dim); }
+.cvp-group:first-child { margin-top: 0; }
+.cvp-list { flex: 1; min-height: 0; overflow: auto; display: grid; gap: 3px; align-content: start; padding-right: 2px; }
 .cvp-row { line-height: 1.25; display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; text-align: left; padding: 3px 6px; border-radius: 4px; background: var(--p-panel); border: 1px solid var(--p-line); }
 .cvp-row:hover { border-color: var(--p-dim); }
 .cvp-row.on { border-color: var(--p-acc); box-shadow: inset 0 0 0 1px var(--p-acc); }
@@ -568,6 +631,12 @@
     appKey: APP,
     appPainting,
     setAppPainting,
+    kinds: () => KINDS.slice(),
+    kind: (k) => {
+      if (k !== undefined) setKind(k);
+      return kind;
+    },
+    primaryKind: (i) => (valid(i) ? primary(i) : null),
     tab: (t) => {
       if (t === "app" || t === "project") {
         tab = t;

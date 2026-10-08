@@ -87,18 +87,36 @@ const ok = (cond, msg) => {
   ok(sw.join() === ["rgb(242, 99, 134)", "rgb(245, 136, 175)", "rgb(164, 217, 132)", "rgb(252, 188, 82)", "rgb(253, 129, 78)"].join(), "Flowers, 1964 shows its own five colours, in order");
   ok(!("painting" in (await saved())), "nothing about the painting is in the saved film yet");
 
+  /* grouped by kind */
+  const groups = await L(() => [...document.querySelectorAll(".cvp-win .cvp-group")].map((h) => h.textContent));
+  const ids = await L(() => [...document.querySelectorAll(".cvp-win .cvp-row")].map((r) => +r.dataset.pick));
+  ok(groups.length >= 8 && new Set(ids).size === 62 && groups[0] === "Neon", "All shows the paintings grouped by kind, each once: " + groups.join(", "));
+  await page.click('.cvp-win [data-kind="Neon"]');
+  const neon = await L(() => [...document.querySelectorAll(".cvp-win .cvp-row")].map((r) => CurioPaintings.list()[+r.dataset.pick].tags.includes("Neon")));
+  ok(neon.length === 9 && neon.every(Boolean), "the Neon chip shows the 9 neon paintings together");
+  await page.click('.cvp-win [data-kind="Neutral"]');
+  const neutral = await L(() => [...document.querySelectorAll(".cvp-win .cvp-row")].map((r) => CurioPaintings.list()[+r.dataset.pick].tags.includes("Neutral")));
+  ok(neutral.length === 41 && neutral.every(Boolean), "the Neutral chip shows the 41 neutral ones together");
+  await page.click('.cvp-win [data-kind="all"]');
+  ok((await L(() => document.querySelectorAll(".cvp-win .cvp-row").length)) === 62, "All shows the 62 again");
+
   const pick = s0.i === 9 ? 10 : 9;
+  const cols0 = await L(() => CurioViewer.live().film.objects.map((o) => o.color));
   await page.click(`.cvp-row[data-pick="${pick}"]`);
   await settle();
   const s1 = await L(() => CurioPaintings.inForce());
   ok(s1.i === pick && s1.from === "project", "a click on a row chooses that painting: " + s1.name);
   ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(pick), "and lights its row");
   ok((await saved()).painting === pick, "a chosen painting is saved with the project");
-  ok(new RegExp("colours: " + s1.name).test(await L(() => document.querySelector(".cvp-status").textContent)), "the status line says colours: <name> — <artist>");
+  ok(new RegExp("take the colours of " + s1.name).test(await L(() => document.querySelector(".cvp-status").textContent)), "the status line says My film: N things take the colours of <name> — <artist>");
+  const cols1 = await L(() => CurioViewer.live().film.objects.map((o) => o.color));
+  ok(cols1.length > 0 && cols1.every((c, k) => c === s1.colors[k % 5]), "choosing a painting recolours every thing in the film with its five, in turn: " + cols1.join(" "));
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "paintings-window.png") });
   await undo();
   const s2 = await L(() => CurioPaintings.inForce());
   ok(s2.i === s0.i && s2.from === "opening", "one Undo puts the painting before back");
+  const cols2 = await L(() => CurioViewer.live().film.objects.map((o) => o.color));
+  ok(cols2.join() === cols0.join(), "and the same Undo puts the things' own colours back: " + cols2.join(" "));
   ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(s0.i), "and the lit row follows");
 
   /* ---- Keep it with this project ---- */
@@ -247,6 +265,49 @@ const ok = (cond, msg) => {
   th = await themeNow();
   ok(th.a === appPick && th.ground === th.want.bg && th.accent === th.want.accent, `a click there recolours the app: background ${th.ground}, accent ${th.accent}`);
   ok((await L(() => CurioPaintings.inForce())).i === proj, "and leaves the project's painting alone");
+  /* every colour, not only the ones on tokens */
+  const every = await L(() => {
+    const P = CurioPaintTheme.palette(CurioPaintings.list()[CurioPaintings.appPainting()].colors);
+    const rgb = (h) => { const d = document.createElement("i"); d.style.color = h; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+    const a = document.createElement("div");
+    a.setAttribute("style", "color:#fde68a; background:#1b1c21");
+    document.body.appendChild(a);
+    const st = document.createElement("style");
+    st.textContent = ".cvp-t2 { color: #22d3ee; border: 1px solid #ffd166; }";
+    document.head.appendChild(st);
+    const b = document.createElement("div");
+    b.className = "cvp-t2";
+    document.body.appendChild(b);
+    const cv = document.createElement("canvas");
+    document.body.appendChild(cv);
+    const g = cv.getContext("2d");
+    g.fillStyle = "#fde68a";
+    g.strokeStyle = "#3a3a42";
+    return new Promise((res) =>
+      setTimeout(() => {
+        const out = {
+          inline: getComputedStyle(a).color === rgb(CurioPaintTheme.map(P, "#fde68a")),
+          added: getComputedStyle(b).color === rgb(CurioPaintTheme.map(P, "#22d3ee")) && getComputedStyle(b).borderTopColor === rgb(CurioPaintTheme.map(P, "#ffd166")),
+          canvas: g.fillStyle === CurioPaintTheme.map(P, "#fde68a").toLowerCase() && g.strokeStyle !== "#3a3a42",
+          bodyBg: getComputedStyle(document.body).backgroundColor === rgb(P.bg),
+          thing: (() => { const o = CurioViewer.live().film.objects[0]; return !o || CurioRecolor.map(o.color) === o.color; })(),
+        };
+        window.__cvpT = [a, st, b, cv];
+        res(out);
+      }, 300)
+    );
+  });
+  ok(every.inline && every.added && every.canvas && every.bodyBg, "every colour takes the painting: inline styles, styles added later, canvas lines and the page " + JSON.stringify(every));
+  ok(every.thing, "but the film's own things keep their colours (they are the other tab's)");
+  const back = await L((k) => {
+    const [a, st, b, cv] = window.__cvpT || [];
+    CurioPaintings.setAppPainting(null);
+    const out = a ? { inline: a.getAttribute("style"), added: getComputedStyle(b).color } : null;
+    [a, st, b, cv].forEach((x) => x && x.remove());
+    CurioPaintings.setAppPainting(k);
+    return out;
+  }, appPick);
+  ok(back && back.inline === "color:#fde68a; background:#1b1c21" && back.added === "rgb(34, 211, 238)", "and every colour it changed is put back: " + JSON.stringify(back));
   ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(appPick), "the app's painting is lit in that tab");
   await page.click('.cvp-win [data-cvp="tab-project"]');
   ok((await L(() => [...document.querySelectorAll(".cvp-win .cvp-row.on")].map((r) => +r.dataset.pick))).join() === String(proj), "Recolor project elements still lights the project's painting");
@@ -266,6 +327,17 @@ const ok = (cond, msg) => {
   await page.click('.cvp-win [data-cvp="app-own"]');
   th = await themeNow();
   ok(th.a === null && !th.sheet && th.ground === "#0f0f10", "The app's own colours puts the usual look back");
+  /* a light painting gives a light app with dark words */
+  const lt = await L(() => {
+    const i = CurioPaintings.list().findIndex((p) => CurioPaintTheme.isLight(p.colors));
+    CurioPaintings.setAppPainting(i);
+    const P = CurioPaintTheme.palette(CurioPaintings.list()[i].colors);
+    const t = getComputedStyle(document.querySelector(".cv-root.cv-viewer"));
+    const out = { mode: P.mode, ground: t.getPropertyValue("--c-ground").trim(), text: t.getPropertyValue("--c-text").trim(), lumG: CurioPaintTheme.lum(P.bg), lumT: CurioPaintTheme.lum(P.text) };
+    CurioPaintings.setAppPainting(null);
+    return out;
+  });
+  ok(lt.mode === "light" && lt.lumG > lt.lumT && lt.ground !== "#0f0f10", "a light painting gives a light app with dark words: " + JSON.stringify(lt));
 
   /* a phone */
   await page.setViewportSize({ width: 390, height: 844 });
