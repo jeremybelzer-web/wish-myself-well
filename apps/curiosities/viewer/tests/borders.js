@@ -179,7 +179,7 @@ const ok = (cond, msg) => {
   await page.evaluate(() => (localStorage.setItem("curio-viewer-big-v1", "1"), localStorage.setItem("curio-viewer-workspace-v1", "{}")));
   await page.setViewportSize({ width: 1000, height: 720 });
   await page.reload();
-  await page.waitForFunction(() => document.querySelector(".cv-root[data-ws-lanes=beside]") && !document.querySelector('.cvd-border[data-border="side"]').hidden, null, { timeout: 20000 });
+  await page.waitForFunction(() => { const b = document.querySelector('.cvd-border[data-border="side"]'); return !!document.querySelector(".cv-root[data-ws-lanes=beside]") && !!b && !b.hidden; }, null, { timeout: 20000 });
   await page.waitForTimeout(500);
   const cls = () => L(() => document.querySelector(".cv-root.cv-viewer").className);
   await drag("side", -900, 0);
