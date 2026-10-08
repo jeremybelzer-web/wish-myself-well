@@ -1149,10 +1149,7 @@
       tmp.width = W;
       tmp.height = H;
       tmp.getContext("2d").drawImage(ctx.canvas, 0, 0);
-      ctx.save();
-      ctx.filter = `blur(${(blur * W) / 90}px)`;
-      ctx.drawImage(tmp, 0, 0);
-      ctx.restore();
+      softDraw(ctx, tmp, (blur * W) / 90);
       polys.forEach((P) => P.depth <= subjD && drawPoly(P));
     } else polys.forEach(drawPoly);
     /* rain */
@@ -1371,6 +1368,48 @@
     if (a < 110) return "from the side (" + side + ")";
     if (a < 160) return "behind, toward " + side;
     return "behind them";
+  }
+  /* some browsers (Safari before 18, some headless Chromes) ignore ctx.filter: there the blur shrinks the
+     picture and stretches it back, which softens it the same way */
+  let filterBlurWorks;
+  function canFilterBlur() {
+    if (filterBlurWorks !== undefined) return filterBlurWorks;
+    try {
+      const a = document.createElement("canvas");
+      a.width = a.height = 9;
+      const ac = a.getContext("2d");
+      ac.fillStyle = "#fff";
+      ac.fillRect(4, 4, 1, 1);
+      const b = document.createElement("canvas");
+      b.width = b.height = 9;
+      const bc = b.getContext("2d");
+      bc.filter = "blur(2px)";
+      bc.drawImage(a, 0, 0);
+      filterBlurWorks = bc.getImageData(1, 4, 1, 1).data[3] > 0;
+    } catch (e) {
+      filterBlurWorks = false;
+    }
+    return filterBlurWorks;
+  }
+  function softDraw(ctx, src, px) {
+    ctx.save();
+    if (canFilterBlur()) {
+      ctx.filter = `blur(${px}px)`;
+      ctx.drawImage(src, 0, 0);
+    } else {
+      const k = Math.max(1, px * 1.5);
+      const small = document.createElement("canvas");
+      small.width = Math.max(1, Math.round(src.width / k));
+      small.height = Math.max(1, Math.round(src.height / k));
+      const sc = small.getContext("2d");
+      sc.imageSmoothingEnabled = true;
+      sc.imageSmoothingQuality = "high";
+      sc.drawImage(src, 0, 0, small.width, small.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(small, 0, 0, src.width, src.height);
+    }
+    ctx.restore();
   }
   function blurWords(b) {
     return b < 0.02 ? "none" : b < 0.35 ? "a little" : b < 0.7 ? "soft background" : "only the subject is sharp";
