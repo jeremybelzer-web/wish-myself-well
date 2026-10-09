@@ -290,9 +290,9 @@
   n("filterWords", "Filter words", "w-words", "Words that put a character between the reader and the thing: saw, heard, felt, noticed, thought, realized. 'She heard the door' against 'The door slammed.'", null,
     "Cut 'she saw' and 'she heard' from a scene and let the things happen straight to the reader.");
 
-  c("pieceTopic", "What it is about", "w-words", "The topics the piece is about (several can be on at once): love, heartbreak, home, leaving, family, faith, work, money, drinking, the road, small towns, death, growing up, freedom, the past.",
-    [["setting", "Main topic", ["love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "something else"], "The topic that leads.", U],
-     ["second", "Second topic", ["none", "love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "something else"], "A topic running alongside.", Object.assign({ from: "none", to: "none" }, U)],
+  c("pieceTopic", "What it is about", "w-words", "The topics the piece is about (several can be on at once): love, heartbreak, home, leaving, family, faith, work, money, drinking, the road, small towns, death, growing up, freedom, the past, nature, war, who I am, justice, power, wanting, fear, humor.",
+    [["setting", "Main topic", ["love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "nature", "war and violence", "who I am", "justice", "power", "wanting", "fear", "humor", "something else"], "The topic that leads.", U],
+     ["second", "Second topic", ["none", "love", "heartbreak", "home", "leaving", "family", "faith", "work", "money", "drinking", "the road", "small towns", "death", "growing up", "freedom", "the past", "nature", "war and violence", "who I am", "justice", "power", "wanting", "fear", "humor", "something else"], "A topic running alongside.", Object.assign({ from: "none", to: "none" }, U)],
      ["howMany", "How many topics", [0, 100], "0 = one topic, 100 = many woven together."]],
     "Write about work, and let love show up only in the last line.", "set");
 

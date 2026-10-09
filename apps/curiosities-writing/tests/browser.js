@@ -24,6 +24,7 @@ const WRITING = "file://" + path.join(__dirname, "../index.html");
     suite: typeof SUITES !== "undefined" && SUITES.some((s) => s.id === "w-song-hook"),
     spark: typeof PROXIMITIES !== "undefined" && PROXIMITIES.some((x) => x.id === "w-long-then-punch"),
     elixir: ((window.CurioAuto && CurioAuto.PROXIMITY_SUITES) || []).some((x) => x.id === "w-the-hook"),
+    study: typeof CURIOSITIES !== "undefined" && CURIOSITIES.some((c) => c.id === "mosaicRhyme") && ((window.CurioAuto && CurioAuto.PROXIMITY_SUITES) || []).some((x) => x.id === "w-sermon"),
   }));
 
   let p = await page(WRITING);
@@ -37,7 +38,7 @@ const WRITING = "file://" + path.join(__dirname, "../index.html");
 
   p = await page(FILM + "?writing=1&screen=1");
   const w = await read(p);
-  assert.ok(w.simile && w.suite && w.spark && w.elixir, "with ?writing=1 every level is there: " + JSON.stringify(w));
+  assert.ok(w.simile && w.suite && w.spark && w.elixir && w.study, "with ?writing=1 every level is there: " + JSON.stringify(w));
   assert.ok(w.lanes.includes("simile.byCharacter") && w.lanes.includes("simile.byVoice"), "a curiosity's sliders are lanes");
   const box = p.locator("input[placeholder='Search every curiosity']").first();
   await box.fill("simile");
