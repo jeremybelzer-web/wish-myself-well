@@ -20,8 +20,8 @@
   DB.workspace({ id: "w-verbs", label: "Verbs & tense", scope: "scene", plain: "How the verbs work: tense, aspect, voice, mood, and what kind of action they carry." });
   DB.workspace({ id: "w-sentence", label: "Sentence & paragraph", scope: "scene", plain: "How sentences and paragraphs are built: length, type, word order, openings, endings, punctuation." });
   DB.workspace({ id: "w-words", label: "Words", scope: "scene", plain: "Which words get used: nouns, adjectives, adverbs, how fancy, how concrete, how fresh." });
-  DB.workspace({ id: "w-figures", label: "Figures of speech", scope: "scene", plain: "Similes, metaphors, personification and the other figures: how often, where, how spaced, and about what." });
-  DB.workspace({ id: "w-sound", label: "Sound of the words", scope: "scene", plain: "How the words sound read aloud: rhyme, alliteration, meter, line breaks." });
+  DB.workspace({ id: "w-figures", label: "Transforming language", scope: "scene", plain: "Language that turns one thing into another (figures of speech): similes, metaphors, personification and the other figures: how often, where, how spaced, and about what." });
+  DB.workspace({ id: "w-sound", label: "Wordplay & sound", scope: "scene", plain: "How the words sound and play off each other: rhyme of every kind, alliteration, echoes, meter, line breaks." });
   DB.workspace({ id: "w-voice", label: "Voice & point of view", scope: "story", plain: "Who tells it, in which person, how close to a mind, and how each character's words differ." });
   DB.workspace({ id: "w-dialogue", label: "Dialogue on the page", scope: "scene", plain: "How speech is set on the page: tags, beats, length, interruptions, and each speaker's habits." });
 
@@ -71,6 +71,8 @@
   }
   /* A counted element whose main slider is How often. */
   const n = (id, label, ws, plain, extra, tryThis, more) => c(id, label, ws, plain, extra || [], tryThis, "count", more);
+  /* Later writing files (db-writing-movement.js) add rows the same way. */
+  DB.writingHelpers = { c, n, U, W, WA, M };
 
   /* ---------- Verbs & tense ---------- */
   c("tense", "Tense", "w-verbs", "When the telling happens: past (he walked), present (he walks), future (he will walk), or shifting between them.",

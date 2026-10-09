@@ -5,6 +5,7 @@ const DB = require("../../curiosities/data/load-db.js");
 const filmCount = DB.data.curiosities.length;
 require("../../curiosities/data/writing/db-writing-language.js");
 require("../../curiosities/data/writing/db-writing-ladder.js");
+require("../../curiosities/data/writing/db-writing-movement.js");
 const Lanes = require("../lanes.js");
 const { sync } = require("../tools/sync-scripts.js");
 
