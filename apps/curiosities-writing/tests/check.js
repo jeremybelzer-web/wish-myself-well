@@ -8,6 +8,7 @@ require("../../curiosities/data/writing/db-writing-ladder.js");
 require("../../curiosities/data/writing/db-writing-movement.js");
 require("../../curiosities/data/writing/db-writing-blocks.js");
 require("../../curiosities/data/writing/db-writing-forms.js");
+require("../../curiosities/data/writing/db-writing-dialogue.js");
 const Lanes = require("../lanes.js");
 const { sync } = require("../tools/sync-scripts.js");
 

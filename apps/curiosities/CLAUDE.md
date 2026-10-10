@@ -49,7 +49,7 @@ In code the old names stay so saved projects keep working: sparks are `PROXIMITI
 
 State is `localStorage` key `curiosities-board-v2`.
 
-**The writing app's curiosities** (`apps/curiosities-writing/`): load the page with `?writing=1` and `index.html` also loads `data/writing/db-writing-language.js`, `db-writing-ladder.js`, `db-writing-movement.js`, `db-writing-blocks.js` and `db-writing-forms.js` before `CuriosityDB.install`, so the language curiosities, their suites, sparks and elixirs are automatable in every view here, and the relationship map draws their proximities (`DB.writingProximities`, edge type `near`). Without the flag nothing changes. `?relations=1` opens the relationship map on load.
+**The writing app's curiosities** (`apps/curiosities-writing/`): load the page with `?writing=1` and `index.html` also loads `data/writing/db-writing-language.js`, `db-writing-ladder.js`, `db-writing-movement.js`, `db-writing-blocks.js`, `db-writing-forms.js` and `db-writing-dialogue.js` before `CuriosityDB.install`, so the language curiosities, their suites, sparks and elixirs are automatable in every view here, and the relationship map draws their proximities (`DB.writingProximities`, edge type `near`). Without the flag nothing changes. `?relations=1` opens the relationship map on load.
 
 ## The bar: My film, Storyboard, the workspaces, and the Library
 
